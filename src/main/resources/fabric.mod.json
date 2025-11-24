@@ -5,10 +5,11 @@
   "name": "${name}",
   "description": "Library that abstracts Hypixel Housing's systems for other mods to use.",
   "authors": [
-    "Wekend"
+    "Wekend",
+    "Sin_ender"
   ],
   "contact": {
-    "homepage": "https://wekend.dev",
+    "homepage": "https://redstone.llc/",
     "sources": "https://github.com/redstone-llc/${id}",
     "issues": "https://github.com/redstone-llc/${id}/issues"
   },
