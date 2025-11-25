@@ -1,7 +1,7 @@
 package llc.redstone.systemsapi.api
 
-import llc.redstone.systemsapi.data.Action
 import llc.redstone.systemsapi.data.ItemStack
+import llc.redstone.systemsapi.importer.ActionContainer
 import net.minecraft.item.Item
 
 interface Function {
@@ -20,8 +20,7 @@ interface Function {
     suspend fun getAutomaticExecution(): Int
     suspend fun setAutomaticExecution(newAutomaticExecution: Int)
 
-    suspend fun getActions(): List<Action>
-    suspend fun addActions(newActions: List<Action>)
+    suspend fun getActionContainer(): ActionContainer
 
     suspend fun delete()
 }

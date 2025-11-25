@@ -146,13 +146,9 @@ internal class CommandImporter(override var name: String) : Command {
         MenuUtils.clickMenuSlot(MenuItems.LISTED)
     }
 
-    override suspend fun getActions(): List<Action> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun setActions(newActions: List<Action>, optimized: Boolean) {
+    override suspend fun getActionContainer(): ActionContainer {
         openActionsEditMenu()
-        ActionInteraction("Actions: /\$name").addActions(newActions)
+        return ActionContainer("Actions: /$name")
     }
 
     override suspend fun delete() {

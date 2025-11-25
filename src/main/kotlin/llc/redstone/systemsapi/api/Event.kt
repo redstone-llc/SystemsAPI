@@ -1,6 +1,6 @@
 package llc.redstone.systemsapi.api
 
-import llc.redstone.systemsapi.data.Action
+import llc.redstone.systemsapi.importer.ActionContainer
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
 import net.minecraft.item.Items
 
@@ -26,6 +26,5 @@ interface Event {
         PLAYER_TOGGLE_FLIGHT(MenuSlot(Items.FEATHER, "Player Toggle Flight"))
     }
 
-    suspend fun getActionsForEvent(event: Events): List<Action>
-    suspend fun setActionsForEvent(event: Events, newActions: List<Action>, optimized: Boolean = false)
+    suspend fun getActionContainerForEvent(event: Events): ActionContainer
 }

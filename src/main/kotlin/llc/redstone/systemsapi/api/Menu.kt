@@ -1,5 +1,6 @@
 package llc.redstone.systemsapi.api
 
+import llc.redstone.systemsapi.importer.ActionContainer
 import net.minecraft.item.ItemStack
 
 interface Menu {
@@ -13,8 +14,15 @@ interface Menu {
     suspend fun getMenuSize(): Int
     suspend fun changeMenuSize(newSize: Int)
 
-    suspend fun getMenuElements(): Array<ItemStack>
-    suspend fun setMenuElements(newMenuElements: Array<ItemStack>)
+    suspend fun getAllMenuElements(): Array<MenuElement>
+    suspend fun getMenuElement(index: Int): MenuElement
 
     suspend fun delete()
+
+    interface MenuElement {
+        suspend fun getItem(): ItemStack
+        suspend fun setItem(item: ItemStack)
+
+        suspend fun getActionContainer(): ActionContainer
+    }
 }

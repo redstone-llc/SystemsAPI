@@ -11,12 +11,8 @@ internal class EventImporter : Event {
         MenuUtils.clickMenuSlot(event.item)
     }
 
-    override suspend fun getActionsForEvent(event: Event.Events): List<Action> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun setActionsForEvent(event: Event.Events, newActions: List<Action>, optimized: Boolean) {
+    override suspend fun getActionContainerForEvent(event: Event.Events): ActionContainer {
         openEventActionsMenu(event)
-        ActionInteraction("Edit Actions").addActions(newActions)
+        return ActionContainer("Edit Actions")
     }
 }

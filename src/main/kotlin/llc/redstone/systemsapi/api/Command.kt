@@ -1,6 +1,7 @@
 package llc.redstone.systemsapi.api
 
 import llc.redstone.systemsapi.data.Action
+import llc.redstone.systemsapi.importer.ActionContainer
 
 interface Command {
     var name: String
@@ -19,8 +20,7 @@ interface Command {
     suspend fun getListed(): Boolean
     suspend fun setListed(newListed: Boolean)
 
-    suspend fun getActions(): List<Action>
-    suspend fun setActions(newActions: List<Action>, optimized: Boolean = false)
+    suspend fun getActionContainer(): ActionContainer
 
     suspend fun delete()
 

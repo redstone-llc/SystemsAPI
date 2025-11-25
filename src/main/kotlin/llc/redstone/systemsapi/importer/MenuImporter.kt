@@ -58,11 +58,11 @@ internal class MenuImporter(override var title: String) : Menu {
         )
     }
 
-    override suspend fun getMenuElements(): Array<ItemStack> {
+    override suspend fun getAllMenuElements(): Array<Menu.MenuElement> {
         TODO("Not yet implemented")
     }
 
-    override suspend fun setMenuElements(newMenuElements: Array<ItemStack>) {
+    override suspend fun getMenuElement(index: Int): Menu.MenuElement {
         TODO("Not yet implemented")
     }
 
@@ -74,5 +74,19 @@ internal class MenuImporter(override var title: String) : Menu {
         val CHANGE_TITLE = MenuSlot(Items.ANVIL, "Change Title")
         val CHANGE_MENU_SIZE = MenuSlot(Items.BEACON, "Change Menu Size")
         val EDIT_MENU_ELEMENTS = MenuSlot(Items.ENDER_CHEST, "Edit Menu Elements")
+    }
+
+    internal class MenuElementImporter : Menu.MenuElement {
+        override suspend fun getItem(): ItemStack {
+            TODO("Not yet implemented")
+        }
+
+        override suspend fun setItem(item: ItemStack) {
+            TODO("Not yet implemented")
+        }
+
+        override suspend fun getActionContainer(): ActionContainer {
+            TODO("Not yet implemented")
+        }
     }
 }

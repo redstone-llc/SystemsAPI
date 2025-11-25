@@ -1,6 +1,7 @@
 package llc.redstone.systemsapi.api
 
 import llc.redstone.systemsapi.data.Action
+import llc.redstone.systemsapi.importer.ActionContainer
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
 
 interface Region {
@@ -20,11 +21,8 @@ interface Region {
     suspend fun getPvpSettings(): MutableMap<PvpSettings, Boolean>
     suspend fun setPvpSettings(newPvpSettings: MutableMap<PvpSettings, Boolean>)
 
-    suspend fun getEntryActions(): List<Action>
-    suspend fun setEntryActions(newActions: List<Action>, optimized: Boolean = false)
-
-    suspend fun getExitActions(): List<Action>
-    suspend fun setExitActions(newActions: List<Action>, optimized: Boolean = false)
+    suspend fun getEntryActionContainer(): ActionContainer
+    suspend fun getExitActionContainer(): ActionContainer
 
     suspend fun delete()
 

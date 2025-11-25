@@ -149,13 +149,9 @@ internal class FunctionImporter(override var name: String) : Function {
         TextUtils.input(newAutomaticExecution.toString(), 100L)
     }
 
-    override suspend fun getActions(): List<Action> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun addActions(newActions: List<Action>) {
-        if (!isActionsMenuOpen()) CommandUtils.runCommand("function edit $name")
-        ActionInteraction("Actions: $name").addActions(newActions)
+    override suspend fun getActionContainer(): ActionContainer {
+        openFunctionEditMenu()
+        return ActionContainer("Actions: $name")
     }
 
     override suspend fun delete() {

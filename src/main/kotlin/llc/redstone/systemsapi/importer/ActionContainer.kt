@@ -24,7 +24,7 @@ import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.full.starProjectedType
 
 //The title of the actions gui, either Actions: <name> or Edit Actions
-class ActionInteraction(val title: String) {
+class ActionContainer(val title: String) {
     companion object {
         private val slots = mapOf(
             0 to 10,
@@ -37,6 +37,18 @@ class ActionInteraction(val title: String) {
             7 to 19,
             8 to 20,
         )
+    }
+
+    suspend fun getActions(): List<Action> {
+        TODO("Not yet implemented")
+    }
+
+    suspend fun setActions(newActions: List<Action>) {
+        TODO("Not yet implemented")
+    }
+
+    suspend fun updateActions(newActions: List<Action>) {
+        TODO("Not yet implemented")
     }
 
     //List of actions to add to the container
@@ -112,7 +124,7 @@ class ActionInteraction(val title: String) {
                             val actions = value.filterIsInstance<Action>()
                             if (actions.size != value.size) error("List contains non-action entries")
                             MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
-                            ActionInteraction("Edit Actions").addActions(actions)
+                            ActionContainer("Edit Actions").addActions(actions)
                             MenuUtils.onOpen("Edit Actions")
                             MenuUtils.clickMenuSlot(MenuItems.BACK)
                             MenuUtils.onOpen("Action Settings")
@@ -120,7 +132,7 @@ class ActionInteraction(val title: String) {
                             val conditions = value.filterIsInstance<Condition>()
                             if (conditions.size != value.size) error("List contains non-condition entries")
                             MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
-                            ConditionInteraction.addConditions(conditions)
+                            ConditionContainer.addConditions(conditions)
                             MenuUtils.onOpen("Edit Conditions")
                             MenuUtils.clickMenuSlot(MenuItems.BACK)
                             MenuUtils.onOpen("Action Settings")

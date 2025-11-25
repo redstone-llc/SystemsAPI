@@ -22,7 +22,7 @@ import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.full.starProjectedType
 
 //The title of the actions gui, either Actions: <name> or Edit Actions
-object ConditionInteraction {
+object ConditionContainer {
     private val slots = mapOf(
         0 to 10,
         1 to 11,

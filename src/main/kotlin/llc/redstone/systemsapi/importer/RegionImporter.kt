@@ -79,7 +79,7 @@ internal class RegionImporter(override var name: String) : Region {
         for (pvpSetting in keys) {
             val setting = MenuUtils.findSlot(MC.currentScreen as GenericContainerScreen, pvpSetting.item)
                 ?: error("Couldn't find slot for $pvpSetting")
-            when (setting.stack.item) { //FIXME: Cant it also be a stone button?
+            when (setting.stack.item) {
                 Items.LIME_DYE -> map.putIfAbsent(pvpSetting, true)
                 Items.LIGHT_GRAY_DYE -> map.putIfAbsent(pvpSetting, false)
             }
@@ -96,7 +96,7 @@ internal class RegionImporter(override var name: String) : Region {
         for (pvpSetting in keys) {
             val settingItem = MenuUtils.findSlot(MC.currentScreen as GenericContainerScreen, pvpSetting.item)
                 ?: error("Couldn't find slot for $pvpSetting")
-            val settingValue = when (settingItem.stack.item) { //FIXME: Cant it also be a stone button?
+            val settingValue = when (settingItem.stack.item) {
                 Items.LIME_DYE -> true
                 Items.LIGHT_GRAY_DYE -> false
                 else -> null
@@ -113,22 +113,14 @@ internal class RegionImporter(override var name: String) : Region {
         }
     }
 
-    override suspend fun getEntryActions(): List<Action> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun setEntryActions(newActions: List<Action>, optimized: Boolean) {
+    override suspend fun getEntryActionContainer(): ActionContainer {
         openEntryActionsEditMenu()
-        ActionInteraction("Edit Actions").addActions(newActions)
+        return ActionContainer("Edit Actions")
     }
 
-    override suspend fun getExitActions(): List<Action> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun setExitActions(newActions: List<Action>, optimized: Boolean) {
+    override suspend fun getExitActionContainer(): ActionContainer {
         openExitActionsEditMenu()
-        ActionInteraction("Edit Actions").addActions(newActions)
+        return ActionContainer("Edit Actions")
     }
 
     override suspend fun delete() {
