@@ -14,8 +14,8 @@ interface Menu {
     suspend fun getMenuSize(): Int
     suspend fun changeMenuSize(newSize: Int)
 
-    suspend fun getAllMenuElements(): Array<MenuElement>
     suspend fun getMenuElement(index: Int): MenuElement
+    suspend fun getAllMenuElements(): Array<MenuElement>
 
     suspend fun delete()
 
@@ -23,6 +23,6 @@ interface Menu {
         suspend fun getItem(): ItemStack
         suspend fun setItem(item: ItemStack)
 
-        suspend fun getActionContainer(): ActionContainer
+        suspend fun getActionContainer(): ActionContainer?
     }
 }

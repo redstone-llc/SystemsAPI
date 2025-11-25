@@ -9,6 +9,7 @@ import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
 import llc.redstone.systemsapi.util.TextUtils
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
+import net.minecraft.component.DataComponentTypes
 import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
 
@@ -49,7 +50,7 @@ internal class MenuImporter(override var title: String) : Menu {
     }
 
     override suspend fun changeMenuSize(newSize: Int) {
-        if (newSize !in 1..6) error("[Menu \$title] Invalid size '$newSize'. Must be between 1 and 6.")
+        if (newSize !in 1..6) error("[Menu $title] Invalid size '$newSize'. Must be between 1 and 6.")
         openMenuEditMenu()
         MenuUtils.clickMenuSlot(MenuItems.CHANGE_MENU_SIZE)
         MenuUtils.clickMenuSlot(
@@ -63,7 +64,8 @@ internal class MenuImporter(override var title: String) : Menu {
     }
 
     override suspend fun getMenuElement(index: Int): Menu.MenuElement {
-        TODO("Not yet implemented")
+        MenuUtils.clickMenuSlot(MenuItems.EDIT_MENU_ELEMENTS)
+        return MenuElementImporter(index) // TODO: is this right?
     }
 
     override suspend fun delete() {
@@ -76,17 +78,25 @@ internal class MenuImporter(override var title: String) : Menu {
         val EDIT_MENU_ELEMENTS = MenuSlot(Items.ENDER_CHEST, "Edit Menu Elements")
     }
 
-    internal class MenuElementImporter : Menu.MenuElement {
+    internal class MenuElementImporter(val slot: Int) : Menu.MenuElement {
         override suspend fun getItem(): ItemStack {
-            TODO("Not yet implemented")
+            MenuUtils.packetClick(MC.currentScreen as GenericContainerScreen, slot, 1)
+            MenuUtils.packetClick(MC.currentScreen as GenericContainerScreen, 13, 0)
+            TODO("somehow wait until mixin receives item then return that item")
         }
 
         override suspend fun setItem(item: ItemStack) {
-            TODO("Not yet implemented")
+            MenuUtils.packetClick(MC.currentScreen as GenericContainerScreen, slot, 1)
+            TODO("generate the item and click it")
         }
 
-        override suspend fun getActionContainer(): ActionContainer {
-            TODO("Not yet implemented")
+        override suspend fun getActionContainer(): ActionContainer? {
+            val gui = MC.currentScreen as? GenericContainerScreen ?: error("Could not cast currentScreen to GenericContainerScreen.")
+            val item = gui.screenHandler.inventory.getStack(slot)
+            if (item.name.string == "Empty Slot" && item.get(DataComponentTypes.LORE)?.lines?.get(0)?.string == "Click to set item!") return null // Slot must first have an item before it can have an ActionContainer
+            MenuUtils.packetClick(gui, slot, 0)
+            MenuUtils.onOpen("Edit Actions")
+            return ActionContainer("Edit Actions")
         }
     }
 }
