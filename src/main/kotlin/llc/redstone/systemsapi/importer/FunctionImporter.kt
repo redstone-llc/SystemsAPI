@@ -150,7 +150,7 @@ internal class FunctionImporter(override var name: String) : Function {
     }
 
     override suspend fun getActionContainer(): ActionContainer {
-        openFunctionEditMenu()
+        openActionsEditMenu()
         return ActionContainer("Actions: $name")
     }
 
