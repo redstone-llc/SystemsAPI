@@ -79,13 +79,19 @@ object MenuUtils {
     var currentScreen: String? = null
     var attempts: Int = 0
 
-    suspend fun onOpen(name: String?, vararg clazz: KClass<out Screen> = arrayOf(GenericContainerScreen::class)): Screen {
+    suspend fun onOpen(name: String?, vararg clazz: KClass<out Screen>? = arrayOf(GenericContainerScreen::class)): Screen? {
         attempts = 0
         waitingOn = name ?: "null"
         while (true) {
             if (attempts++ >= 20) error("Failed to open $name")
             delay(50)
-            val screen = MC.currentScreen ?: continue
+            val screen = MC.currentScreen ?: run {
+                if (clazz.contains(null)) {
+                    delay(50)
+                    return null
+                }
+                continue
+            }
             currentScreen = screen.title.string
             if (clazz.contains(screen::class) && (name == null || currentScreen?.contains(name) == true)) {
                 delay(50)

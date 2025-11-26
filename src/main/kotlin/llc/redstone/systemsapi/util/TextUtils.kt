@@ -41,14 +41,18 @@ object TextUtils {
     }
 
     suspend fun input(message: String) {
-        val screen = MenuUtils.onOpen(null, AnvilScreen::class, ChatScreen::class)
+        val screen = MenuUtils.onOpen(null, AnvilScreen::class, ChatScreen::class, null)
         if (screen is AnvilScreen) {
             if (screen.screenHandler.setNewItemName(message)) {
                 MC.networkHandler?.sendPacket(RenameItemC2SPacket(message))
             }
             delay(100)
             MenuUtils.interactionClick(screen, 2, 0)
-        } else if (screen is ChatScreen) {
+        } else if (screen is ChatScreen) { //If they have Housing Toolbox and the setting is enabled
+            sendMessage(message)
+        } else if (screen == null) {
+            MC.currentScreen = ChatScreen("", false)
+            MenuUtils.onOpen(null, ChatScreen::class)
             sendMessage(message)
         }
     }

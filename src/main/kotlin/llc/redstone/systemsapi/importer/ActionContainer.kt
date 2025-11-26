@@ -5,6 +5,7 @@ import llc.redstone.systemsapi.data.Action
 import llc.redstone.systemsapi.data.Condition
 import llc.redstone.systemsapi.data.CustomKey
 import llc.redstone.systemsapi.data.DisplayName
+import llc.redstone.systemsapi.data.InventorySlot
 import llc.redstone.systemsapi.data.Keyed
 import llc.redstone.systemsapi.data.KeyedCycle
 import llc.redstone.systemsapi.data.StatOp
@@ -103,6 +104,13 @@ class ActionContainer(val title: String) {
 
                     StatValue::class -> {
                         MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
+                        TextUtils.input(value.toString(), 100L)
+                    }
+
+                    InventorySlot::class -> {
+                        MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
+                        MenuUtils.onOpen("Select Inventory Slot")
+                        MenuUtils.clickMenuSlot(MenuItems.MANUAL_INPUT)
                         TextUtils.input(value.toString(), 100L)
                     }
 
@@ -210,6 +218,7 @@ class ActionContainer(val title: String) {
     object MenuItems {
         val ADD_ACTION = MenuSlot(Items.PAPER, "Add Action")
         val BACK = MenuSlot(Items.ARROW, "Go Back")
+        val MANUAL_INPUT = MenuSlot(Items.OAK_SIGN, "Manual Input")
         val TOGGLE_ADVANCED_OPERATIONS = MenuSlot(Items.COMMAND_BLOCK, "Toggle Advanced Operations")
     }
 }

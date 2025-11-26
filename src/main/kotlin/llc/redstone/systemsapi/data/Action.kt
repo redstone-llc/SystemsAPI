@@ -69,8 +69,8 @@ sealed class Action(
     data class GiveItem(
         val item: ItemStack,
         val allowMultiple: Boolean,
-        val inventorySlot: StatValue,
-        val replaceExistingItem: Boolean,
+        val inventorySlot: InventorySlot,
+        val replaceExistingItem: Boolean = false,
     ) : Action("GIVE_ITEM")
 
     @DisplayName("Remove Item")
@@ -345,6 +345,12 @@ sealed class StatValue {
     }
     data class Str(val value: String) : StatValue() {
         override fun toString() = value
+    }
+}
+
+data class InventorySlot(val slot: Int) {
+    override fun toString(): String {
+        return "$slot"
     }
 }
 

@@ -5,7 +5,7 @@ import llc.redstone.systemsapi.data.Action
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.MenuUtils
 
-internal class EventImporter : Event {
+internal object EventImporter : Event {
     private fun openEventActionsMenu(event: Event.Events) {
         CommandUtils.runCommand("eventactions")
         MenuUtils.clickMenuSlot(event.item)

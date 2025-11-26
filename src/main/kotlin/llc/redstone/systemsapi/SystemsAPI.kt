@@ -1,6 +1,7 @@
 package llc.redstone.systemsapi
 
 import com.github.shynixn.mccoroutine.fabric.mcCoroutineConfiguration
+import llc.redstone.systemsapi.api.HousingImporter
 import net.fabricmc.api.ClientModInitializer
 import net.minecraft.client.MinecraftClient
 import org.slf4j.Logger
@@ -18,5 +19,9 @@ object SystemsAPI : ClientModInitializer {
         LOGGER.info("Loaded v$VERSION for Minecraft $MINECRAFT.")
 
         mcCoroutineConfiguration.minecraftExecutor = MinecraftClient.getInstance()
+    }
+
+    fun getHousingImporter(): HousingImporter {
+        return llc.redstone.systemsapi.importer.HousingImporter
     }
 }
