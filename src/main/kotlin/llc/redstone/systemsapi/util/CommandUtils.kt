@@ -1,7 +1,10 @@
 package llc.redstone.systemsapi.util
 
 import com.mojang.brigadier.suggestion.Suggestions
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.future.await
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import llc.redstone.systemsapi.SystemsAPI.MC
 import net.minecraft.client.MinecraftClient
@@ -24,33 +27,33 @@ object CommandUtils {
         }
     }
 
-    private var pendingCompletion: CompletableFuture<List<String>>? = null
+    private var pending: CompletableDeferred<List<String>>? = null
     suspend fun getTabCompletions(baseCommand: String): List<String> {
         val partialCommand = buildString {
             append(if (baseCommand.startsWith('/')) baseCommand else "/$baseCommand")
             if (!endsWith(' ')) append(' ')
         }
 
-        val deferred = CompletableFuture<List<String>>()
-        pendingCompletion = deferred
+        val deferred = CompletableDeferred<List<String>>()
+        pending?.cancel()
+        pending = deferred
 
-        MC.networkHandler?.sendPacket(RequestCommandCompletionsC2SPacket(-1, partialCommand))
-            ?: error("Could not access Network Handler while looking for '$partialCommand...' tab completions.")
-
-        val result = withTimeoutOrNull(1000) {
-            try {
-                deferred.await()
-            } finally {
-                pendingCompletion = null
-            }
+        try {
+            MC.networkHandler?.sendPacket(RequestCommandCompletionsC2SPacket(-1, partialCommand))
+                ?: error("Could not access Network Handler while looking for '$partialCommand...' tab completions.")
+            return withTimeout(1_000) { deferred.await() }
+        } catch (e: TimeoutCancellationException) {
+            if (pending === deferred) pending = null
+            error("[getTabCompletions] Timed out waiting for '$partialCommand...' tab completions.")
+        } finally {
+            if (pending === deferred) pending = null
         }
-
-        // Probably not necessary, but I don't want false negatives
-        if (result == null) pendingCompletion = null
-        return result ?: error("Tab completions for command '$partialCommand...' returned null.")
     }
 
     fun handleSuggestions(suggestions: Suggestions) {
-        if (pendingCompletion != null && !pendingCompletion!!.isDone) pendingCompletion!!.complete(suggestions.list.map { it.text })
+        pending?.let { current ->
+            pending = null
+            current.complete(suggestions.list.map { it.text })
+        }
     }
 }
