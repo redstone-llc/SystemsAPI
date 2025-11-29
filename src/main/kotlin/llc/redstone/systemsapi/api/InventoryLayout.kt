@@ -7,5 +7,6 @@ interface InventoryLayout {
 
     // TODO
 
+    suspend fun exists(): Boolean
     suspend fun delete()
 }

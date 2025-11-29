@@ -22,6 +22,7 @@ interface Command {
 
     suspend fun getActionContainer(): ActionContainer
 
+    suspend fun exists(): Boolean
     suspend fun delete()
 
     enum class CommandMode {

@@ -9,6 +9,7 @@ import llc.redstone.systemsapi.util.MenuUtils.Target
 import llc.redstone.systemsapi.api.Function
 import llc.redstone.systemsapi.data.Action
 import llc.redstone.systemsapi.data.ItemStack
+import llc.redstone.systemsapi.util.CommandUtils.getTabCompletions
 import llc.redstone.systemsapi.util.ItemUtils
 import llc.redstone.systemsapi.util.ItemUtils.loreLine
 import llc.redstone.systemsapi.util.TextUtils
@@ -59,13 +60,11 @@ internal class FunctionImporter(override var name: String) : Function {
         name = newName
     }
 
-    override suspend fun createIfNotExists() {
-        if (!openFunctionEditMenu()) {
-            CommandUtils.runCommand("function create $name")
-            MenuUtils.onOpen("Actions: $name")
-            MenuUtils.clickMenuSlot(MenuItems.BACK)
-            delay(100)
-        }
+    override suspend fun createIfNotExists(): Boolean {
+        if (exists()) return false
+
+        CommandUtils.runCommand("function create $name") // TODO: delay until we receive confirmation that the function is actually created
+        return true
     }
 
     override suspend fun getDescription(): String {
@@ -75,7 +74,7 @@ internal class FunctionImporter(override var name: String) : Function {
             ?.let { gui -> MenuUtils.findSlot(gui, MenuItems.SET_DESCRIPTION) }
             ?.stack
             ?.loreLine(2, false, LoreFilters.RENAME_LORE_FILTER)
-            ?: error("[Command $name] Failed to get description.")
+            ?: error("[Function $name] Failed to get description.")
 
         return description
     }
@@ -88,7 +87,7 @@ internal class FunctionImporter(override var name: String) : Function {
             ?.let { gui -> MenuUtils.findSlot(gui, MenuItems.SET_DESCRIPTION) }
             ?.stack
             ?.loreLine(2, false, LoreFilters.RENAME_LORE_FILTER)
-            ?: error("[Command $name] Failed to set description to '$newDescription'.")
+            ?: error("[Function $name] Failed to set description to '$newDescription'.")
         if (description == newDescription) return
 
         MenuUtils.clickMenuSlot(MenuItems.SET_DESCRIPTION)
@@ -97,10 +96,8 @@ internal class FunctionImporter(override var name: String) : Function {
 
     override suspend fun getIcon(): Item {
         openFunctionEditMenu()
-
-        val gui = MC.currentScreen as? GenericContainerScreen ?: return Items.AIR // FIXME
-
-        val slot = MenuUtils.findSlot(gui, MenuItems.EDIT_ICON) ?: return Items.AIR // FIXME
+        val gui = MC.currentScreen as? GenericContainerScreen ?: error("[Function $name] getIcon: Failed to cast currentScreen as GenericContainerScreen.")
+        val slot = MenuUtils.findSlot(gui, MenuItems.EDIT_ICON) ?: error("[Function $name] getIcon: Failed to find EDIT_ICON.")
         return slot.stack.item
     }
 
@@ -153,6 +150,8 @@ internal class FunctionImporter(override var name: String) : Function {
         openActionsEditMenu()
         return ActionContainer("Actions: $name")
     }
+
+    override suspend fun exists(): Boolean = getTabCompletions("function edit").contains(name)
 
     override suspend fun delete() {
         CommandUtils.runCommand("function delete $name")

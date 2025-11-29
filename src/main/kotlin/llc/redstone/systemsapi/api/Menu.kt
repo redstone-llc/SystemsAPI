@@ -17,6 +17,7 @@ interface Menu {
     suspend fun getMenuElement(index: Int): MenuElement
     suspend fun getAllMenuElements(): Array<MenuElement>
 
+    suspend fun exists(): Boolean
     suspend fun delete()
 
     interface MenuElement {

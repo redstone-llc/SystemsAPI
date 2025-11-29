@@ -31,10 +31,9 @@ internal class MenuImporter(override var title: String) : Menu {
     }
 
     override suspend fun createIfNotExists(): Boolean {
-        val menus = getTabCompletions("menu edit")
-        if (menus.contains(title)) return false
+        if (exists()) return false
 
-        CommandUtils.runCommand("menu create $title")
+        CommandUtils.runCommand("menu create $title") // TODO: delay until we receive confirmation that the function is actually created
         return true
     }
 
@@ -78,9 +77,9 @@ internal class MenuImporter(override var title: String) : Menu {
         return MenuElementImporter(index)
     }
 
-    override suspend fun delete() {
-        CommandUtils.runCommand("menu delete $title")
-    }
+    override suspend fun exists(): Boolean = getTabCompletions("menu edit").contains(title)
+
+    override suspend fun delete() = CommandUtils.runCommand("menu delete $title")
 
     object MenuItems {
         val CHANGE_TITLE = MenuSlot(Items.ANVIL, "Change Title")

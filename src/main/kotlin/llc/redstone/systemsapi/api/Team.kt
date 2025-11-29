@@ -15,6 +15,7 @@ interface Team {
     suspend fun getFriendlyFire(): Boolean
     suspend fun setFriendlyFire(newFriendlyFire: Boolean)
 
+    suspend fun exists(): Boolean
     suspend fun delete()
 
     enum class TeamColor {

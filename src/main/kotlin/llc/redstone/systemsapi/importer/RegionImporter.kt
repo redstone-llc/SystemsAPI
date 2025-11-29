@@ -42,10 +42,9 @@ internal class RegionImporter(override var name: String) : Region {
     }
 
     override suspend fun createIfNotExists(): Boolean {
-        val regions = getTabCompletions("region edit")
-        if (regions.contains(name)) return false
+        if (exists()) return false
 
-        CommandUtils.runCommand("command create $name")
+        CommandUtils.runCommand("command create $name") // TODO: delay until we receive confirmation that the function is actually created
         return true
     }
 
@@ -122,6 +121,8 @@ internal class RegionImporter(override var name: String) : Region {
         openExitActionsEditMenu()
         return ActionContainer("Edit Actions")
     }
+
+    override suspend fun exists(): Boolean = getTabCompletions("region edit").contains(name)
 
     override suspend fun delete() {
         CommandUtils.runCommand("region delete $name")

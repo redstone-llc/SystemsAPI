@@ -24,6 +24,7 @@ interface Region {
     suspend fun getEntryActionContainer(): ActionContainer
     suspend fun getExitActionContainer(): ActionContainer
 
+    suspend fun exists(): Boolean
     suspend fun delete()
 
     enum class PvpSettings(val item: MenuSlot) {
