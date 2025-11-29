@@ -16,9 +16,6 @@ import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.component.DataComponentTypes
 import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
-import net.minecraft.network.packet.c2s.play.CreativeInventoryActionC2SPacket
-import java.util.concurrent.ConcurrentHashMap
-import kotlin.concurrent.atomics.AtomicBoolean
 
 internal class MenuImporter(override var title: String) : Menu {
     private fun isMenuEditMenuOpen(): Boolean {
@@ -95,7 +92,7 @@ internal class MenuImporter(override var title: String) : Menu {
         companion object {
             private var pending: CompletableDeferred<ItemStack>? = null
 
-            fun onItemRecieved(stack: ItemStack) {
+            fun onItemReceived(stack: ItemStack) {
                 pending?.let { current ->
                     pending = null
                     current.complete(stack)

@@ -3,9 +3,7 @@ package llc.redstone.systemsapi.util
 import com.mojang.brigadier.suggestion.Suggestions
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.future.await
 import kotlinx.coroutines.withTimeout
-import kotlinx.coroutines.withTimeoutOrNull
 import llc.redstone.systemsapi.SystemsAPI.MC
 import net.minecraft.client.MinecraftClient
 import net.minecraft.network.packet.c2s.play.RequestCommandCompletionsC2SPacket

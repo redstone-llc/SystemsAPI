@@ -17,7 +17,7 @@ public class ItemReceiveMixin {
 
         if (stack.isEmpty()) return;
 
-        MenuImporter.MenuElementImporter.Companion.onItemRecieved(stack);
+        MenuImporter.MenuElementImporter.Companion.onItemReceived(stack);
 
     }
 }
