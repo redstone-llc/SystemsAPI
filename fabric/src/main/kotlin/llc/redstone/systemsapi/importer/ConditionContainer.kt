@@ -41,7 +41,6 @@ object ConditionContainer {
         8 to 20,
     )
 
-
     //List of actions to add to the container
     suspend fun addConditions(actions: List<Condition>) {
         for (condition in actions) {
@@ -74,8 +73,6 @@ object ConditionContainer {
                 properties.add(1, conditionProperties.find { it.name == "holder" } ?: continue)
             }
 
-            println(properties.joinToString(", ") { it.name })
-
             //Iterate through parameters
             for ((index, property) in properties.withIndex()) {
                 //Get the property and its values
@@ -89,88 +86,7 @@ object ConditionContainer {
                 val slotIndex = slots[index]!!
                 val slot = gui.screenHandler.getSlot(slotIndex)
 
-                //All other properties
-                when (property.returnType.classifier) {
-                    String::class, Int::class, Double::class -> {
-                        MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
-                        val pagination = property.annotations.find { it is Pagination }
-                        if (pagination != null) {
-                            MenuUtils.onOpen("Select Option")
-                            MenuUtils.clickMenuTargetPaginated(Target(MenuSlot(null, value.toString())))
-                            continue
-                        }
-                        TextUtils.input(value.toString(), 100L)
-                    }
-
-                    StatValue::class -> {
-                        MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
-                        TextUtils.input(value.toString(), 100L)
-                    }
-
-                    ItemStack::class -> {
-                        MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
-                        MenuUtils.onOpen("Select an Item")
-
-                        val nbt = (value as ItemStack).nbt ?: error("[Item action] ItemStack has no NBT data")
-                        val item = ItemUtils.createFromNBT(nbt)
-                        val player = MC.player ?: error("[Item action] Could not get the player")
-                        val oldStack = player.inventory.getStack(0)
-                        item.giveItem(26)
-                        MenuUtils.clickPlayerSlot(26)
-                        oldStack.giveItem(26)
-                    }
-
-                    Boolean::class -> {
-                        val line = slot.stack.loreLine(false, filter = { str -> str == "Disabled" || str == "Enabled" })
-                            ?: continue
-                        val currentValue = line == "Enabled"
-                        val boolValue = value as Boolean
-                        if (currentValue != boolValue) {
-                            MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
-                        }
-                    }
-                }
-
-                //Enum condition properties
-                if (property.returnType.isSubtypeOf(Keyed::class.starProjectedType)) {
-                    val keyed = value as Keyed
-
-                    val entries = value.javaClass.enumConstants
-
-                    if (keyed is KeyedCycle) {
-                        val holderIndex = entries.indexOf(keyed) + 1
-                        val stack = slot.stack
-
-                        val current = stack.loreLine(true) { str -> str.contains("➠") } ?: continue
-                        val currentHolder = entries.find { current.contains(it.key) }
-                        val currentIndex = if (currentHolder != null) entries.indexOf(currentHolder) + 1 else 0
-                        if (currentHolder != keyed) {
-                            val clicks = holderIndex - currentIndex
-                            repeat(abs(clicks)) {
-                                MenuUtils.clickMenuTargets(Target(MenuSlot(null, null, slotIndex), if (clicks > 0) 0 else 1))
-                                delay(50) //Small delay to allow the menu to update
-                            }
-                        }
-
-                        continue
-                    }
-
-                    if (slot.stack.loreLine(false, filter = { str -> str == value.key }) == null) {
-                        MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
-                        MenuUtils.onOpen("Select Option")
-                        if (keyed is KeyedLabeled) {
-                            MenuUtils.clickMenuTargetPaginated(Target(MenuSlot(null, keyed.label)))
-                        } else {
-                            MenuUtils.clickMenuTargetPaginated(Target(MenuSlot(null, keyed.key)))
-                        }
-
-                        if (keyed::class.annotations.find { it is CustomKey } != null) {
-                            TextUtils.input(value.toString(), 200L)
-                        }
-                    }
-
-                    continue
-                }
+                PropertySettings.import(property, slot, value)
             }
             //Make sure we are in the condition settings menu before we go back to actions to add another one
             if (properties.isNotEmpty()) {

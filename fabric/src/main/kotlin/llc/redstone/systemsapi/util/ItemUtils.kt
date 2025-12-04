@@ -55,6 +55,12 @@ object ItemUtils {
         return null
     }
 
+    fun ItemStack.loreLines(color: Boolean): List<String> {
+        val loreLines = get(DataComponentTypes.LORE)?.lines
+            ?: return emptyList()
+        return loreLines.map { TextUtils.convertTextToString(it, color) }
+    }
+
     fun createFromNBT(nbt: NbtCompound): ItemStack {
         return ItemStack.CODEC.decode(NbtOps.INSTANCE, nbt).result().getOrNull()?.first
             ?: throw IllegalArgumentException("Failed to decode ItemStack from NBT")

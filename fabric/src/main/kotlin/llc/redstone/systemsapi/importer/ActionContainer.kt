@@ -3,38 +3,32 @@ package llc.redstone.systemsapi.importer
 import kotlinx.coroutines.delay
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.data.Action
-import llc.redstone.systemsapi.data.Condition
-import llc.redstone.systemsapi.data.CustomKey
 import llc.redstone.systemsapi.data.DisplayName
-import llc.redstone.systemsapi.data.InventorySlot
-import llc.redstone.systemsapi.data.ItemStack
 import llc.redstone.systemsapi.data.Keyed
-import llc.redstone.systemsapi.data.KeyedCycle
-import llc.redstone.systemsapi.data.KeyedLabeled
-import llc.redstone.systemsapi.data.Pagination
-import llc.redstone.systemsapi.data.StatOp
+import llc.redstone.systemsapi.data.Location
 import llc.redstone.systemsapi.data.StatValue
-import llc.redstone.systemsapi.util.ItemUtils
-import llc.redstone.systemsapi.util.ItemUtils.giveItem
-import llc.redstone.systemsapi.util.ItemUtils.loreLine
+import llc.redstone.systemsapi.data.VariableHolder
+import llc.redstone.systemsapi.util.ItemUtils.loreLines
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
 import llc.redstone.systemsapi.util.MenuUtils.Target
 import llc.redstone.systemsapi.util.TextUtils
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.item.Items
-import net.minecraft.nbt.NbtIo
-import kotlin.math.abs
+import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
+import kotlin.reflect.full.companionObjectInstance
+import kotlin.reflect.full.findAnnotations
+import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.full.starProjectedType
 
 //The title of the actions gui, either Actions: <name> or Edit Actions
-class ActionContainer(val title: String) {
+class ActionContainer(val title: String = MC.currentScreen?.title?.string ?: error("No screen is currently open")) {
     companion object {
-        private val slots = mapOf(
+        private val slots = mutableMapOf(
             0 to 10,
             1 to 11,
             2 to 12,
@@ -44,6 +38,18 @@ class ActionContainer(val title: String) {
             6 to 16,
             7 to 19,
             8 to 20,
+            9 to 21,
+            10 to 22,
+            11 to 23,
+            12 to 24,
+            13 to 25,
+            14 to 28,
+            15 to 29,
+            16 to 30,
+            17 to 31,
+            18 to 32,
+            19 to 33,
+            20 to 34,
         )
     }
 
@@ -88,7 +94,6 @@ class ActionContainer(val title: String) {
                 properties.add(0, actionProperties.find { it.name == "holder" } ?: continue)
             }
 
-
             //Iterate through parameters
             for ((index, property) in properties.withIndex()) {
                 //Get the property and its values
@@ -96,147 +101,14 @@ class ActionContainer(val title: String) {
 
                 //Make sure we are in the right gui before continuing
                 MenuUtils.onOpen("Action Settings")
-                val gui = MC.currentScreen as? GenericContainerScreen ?: error("Could not cast current screen to GenericContainerScreen")
+                val gui = MC.currentScreen as? GenericContainerScreen
+                    ?: error("Could not cast current screen to GenericContainerScreen")
 
                 //Place in the gui to click
                 val slotIndex = slots[index]!!
                 val slot = gui.screenHandler.getSlot(slotIndex)
 
-                //All other properties
-                when (property.returnType.classifier) {
-                    String::class, Int::class, Double::class -> {
-                        MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
-                        val pagination = property.annotations.find { it is Pagination }
-                        if (pagination != null) {
-                            MenuUtils.onOpen("Select Option")
-                            MenuUtils.clickMenuTargetPaginated(Target(MenuSlot(null, value.toString())))
-                            continue
-                        }
-                        TextUtils.input(value.toString(), 100L)
-                    }
-
-                    StatValue::class -> {
-                        MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
-                        TextUtils.input(value.toString(), 100L)
-                    }
-
-                    InventorySlot::class -> {
-                        MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
-                        MenuUtils.onOpen("Select Inventory Slot")
-                        MenuUtils.clickMenuSlot(MenuItems.MANUAL_INPUT)
-                        TextUtils.input(value.toString(), 100L)
-                    }
-
-                    ItemStack::class -> {
-                        MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
-                        MenuUtils.onOpen("Select an Item")
-
-                        val nbt = (value as ItemStack).nbt ?: error("[Item action] ItemStack has no NBT data")
-                        val item = ItemUtils.createFromNBT(nbt)
-                        val player = MC.player ?: error("[Item action] Could not get the player")
-                        val oldStack = player.inventory.getStack(0)
-                        item.giveItem(26)
-                        MenuUtils.clickPlayerSlot(26)
-                        oldStack.giveItem(26)
-                    }
-
-                    Boolean::class -> {
-                        val line = slot.stack.loreLine(false, filter = { str -> str == "Disabled" || str == "Enabled" })
-                            ?: continue
-                        val currentValue = line == "Enabled"
-                        val boolValue = value as Boolean
-                        if (currentValue != boolValue) {
-                            MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
-                        }
-                    }
-
-                    List::class -> {
-                        val value = value as List<*>
-                        if (value.isEmpty()) continue
-                        //if the first entry is an action then we assume they all are actions
-                        if (value.first() is Action) {
-                            val actions = value.filterIsInstance<Action>()
-                            if (actions.size != value.size) error("List contains non-action entries")
-                            MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
-                            ActionContainer("Edit Actions").addActions(actions)
-                            MenuUtils.onOpen("Edit Actions")
-                            MenuUtils.clickMenuSlot(MenuItems.BACK)
-                            MenuUtils.onOpen("Action Settings")
-                        } else if (value.first() is Condition) {
-                            val conditions = value.filterIsInstance<Condition>()
-                            if (conditions.size != value.size) error("List contains non-condition entries")
-                            MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
-                            ConditionContainer.addConditions(conditions)
-                            MenuUtils.onOpen("Edit Conditions")
-                            MenuUtils.clickMenuSlot(MenuItems.BACK)
-                            MenuUtils.onOpen("Action Settings")
-                        }
-                    }
-
-                    StatOp::class -> {
-                        val operation = value as StatOp
-
-                        val value = slot.stack.loreLine(false, filter = { str -> str == operation.key })
-                        if (value == null) {
-                            MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
-                            MenuUtils.onOpen("Select Option")
-
-                            if (operation.advanced) {
-                                val gui = MC.currentScreen as? GenericContainerScreen ?: continue
-                                val operationSlot = MenuUtils.findSlot(gui, MenuItems.TOGGLE_ADVANCED_OPERATIONS)
-                                val line = operationSlot?.stack?.loreLine(4, false) ?: continue
-                                val currentValue = line == "Disabled"
-                                if (currentValue) {
-                                    MenuUtils.clickMenuSlot(MenuItems.TOGGLE_ADVANCED_OPERATIONS)
-                                }
-                            }
-
-                            MenuUtils.clickMenuTargetPaginated(Target(MenuSlot(null, operation.key)))
-                        }
-                        continue
-                    }
-                }
-
-                //Enum action properties
-                if (property.returnType.isSubtypeOf(Keyed::class.starProjectedType)) {
-                    val keyed = value as Keyed
-
-                    val entries = value.javaClass.enumConstants
-
-                    if (keyed is KeyedCycle) {
-                        val holderIndex = entries.indexOf(keyed) + 1
-                        val stack = slot.stack
-
-                        val current = stack.loreLine(true) { str -> str.contains("➠") } ?: continue
-                        val currentHolder = entries.find { current.contains(it.key) }
-                        val currentIndex = if (currentHolder != null) entries.indexOf(currentHolder) + 1 else 0
-                        if (currentHolder != keyed) {
-                            val clicks = holderIndex - currentIndex
-                            repeat(abs(clicks)) {
-                                MenuUtils.clickMenuTargets(Target(MenuSlot(null, null, slotIndex), if (clicks > 0) 0 else 1))
-                                delay(50) //Small delay to allow the menu to update
-                            }
-                        }
-
-                        continue
-                    }
-
-                    if (slot.stack.loreLine(false, filter = { str -> str == value.key }) == null) {
-                        MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
-                        MenuUtils.onOpen("Select Option")
-                        if (keyed is KeyedLabeled) {
-                            MenuUtils.clickMenuTargetPaginated(Target(MenuSlot(null, keyed.label)))
-                        } else {
-                            MenuUtils.clickMenuTargetPaginated(Target(MenuSlot(null, keyed.key)))
-                        }
-
-                        if (keyed::class.annotations.find { it is CustomKey } != null) {
-                            TextUtils.input(value.toString(), 200L)
-                        }
-                    }
-
-                    continue
-                }
+                PropertySettings.import(property, slot, value)
             }
             //Make sure we are in the action settings menu before we go back to actions to add another one
             if (properties.isNotEmpty()) {
@@ -247,10 +119,97 @@ class ActionContainer(val title: String) {
         }
     }
 
+    suspend fun exportActions(): List<Action> {
+        val actions = mutableListOf<Action>()
+
+        MenuUtils.onOpen(title)
+
+        val gui = MC.currentScreen as? GenericContainerScreen
+            ?: error("Could not cast current screen to GenericContainerScreen")
+
+        if (MenuUtils.findSlot(gui, MenuItems.NO_ACTIONS, true) != null) return actions
+
+        for (slotIndex in slots.values) {
+            val slot = gui.screenHandler.getSlot(slotIndex)
+            if (!slot.hasStack()) break //No more actions
+
+            val item = slot.stack
+            val loreLines = item.loreLines(true).filter {
+                it.contains(": ") //Only care about lines with properties
+            }
+
+            //TODO: Fix edge cases like variable actions where the Display Name isn't the correct action class
+            val name = TextUtils.convertTextToString(item.name, false)
+            var actionClass = Action::class.sealedSubclasses.firstOrNull() { it.findAnnotations(DisplayName::class).any { ann -> ann.value == name } }
+                ?: continue
+
+            var constructor = actionClass.primaryConstructor!!
+            var parameters = constructor.parameters.toMutableList()
+            var actionProperties = actionClass.memberProperties
+            var properties = mutableListOf<Pair<KProperty1<Action, *>, KParameter?>>()
+
+            for (parm in parameters) {
+                properties.add(actionProperties.find { it.name == parm.name } as KProperty1<Action, *> to parm)
+            }
+
+            suspend fun args(indexAddition: Int = 0): MutableMap<KParameter, Any?> {
+                val args = mutableMapOf<KParameter, Any?>()
+                properties.forEachIndexed { index, (prop, param) ->
+                    if (param == null) return@forEachIndexed
+                    val colorValue = loreLines.getOrNull(index + indexAddition)?.split(": ")?.drop(1)?.joinToString(": ") ?: return@forEachIndexed
+                    val value = colorValue.replace(Regex("&[0-9a-fk-or]"), "")
+
+                    val returnValue = PropertySettings.export(title, prop, slot, slots[index + indexAddition]!!, value, colorValue)
+                    println(returnValue)
+                    if (returnValue is VariableHolder) {
+                        if (returnValue == VariableHolder.Player) {
+                            actionClass = Action.PlayerVariable::class
+                        } else if (returnValue == VariableHolder.Global) {
+                            actionClass = Action.GlobalVariable::class
+                        } else if (returnValue == VariableHolder.Team) {
+                            actionClass = Action.TeamVariable::class
+                        }
+                        constructor = actionClass.primaryConstructor!!
+                        parameters = constructor.parameters.toMutableList()
+                        actionProperties = actionClass.memberProperties
+                        properties = mutableListOf()
+                        for (parm in parameters) {
+                            properties.add(actionProperties.find { it.name == parm.name } as KProperty1<Action, *> to parm)
+                        }
+                        // I hate recursion, but I think this is the cleanest way to handle it
+                        return args(1)
+                    }
+
+                    args[param] = returnValue
+                }
+                return args
+            }
+            val args = args()
+
+            if (args.size != constructor.parameters.size) {
+                actionClass.constructors.forEach { newCon ->
+                    if (constructor.parameters.size == newCon.parameters.size) {
+                        actions.add(newCon.callBy(args))
+                    }
+                }
+            } else {
+                actions.add(constructor.callBy(args))
+            }
+        }
+
+        if (MenuUtils.findSlot(gui, MenuUtils.GlobalMenuItems.NEXT_PAGE, true) != null) {
+            MenuUtils.clickMenuSlot(MenuUtils.GlobalMenuItems.NEXT_PAGE)
+            actions.addAll(exportActions())
+        }
+
+        return actions
+    }
+
     object MenuItems {
         val ADD_ACTION = MenuSlot(Items.PAPER, "Add Action")
         val BACK = MenuSlot(Items.ARROW, "Go Back")
         val MANUAL_INPUT = MenuSlot(Items.OAK_SIGN, "Manual Input")
         val TOGGLE_ADVANCED_OPERATIONS = MenuSlot(Items.COMMAND_BLOCK, "Toggle Advanced Operations")
+        val NO_ACTIONS = MenuSlot(Items.BEDROCK, "No Actions!")
     }
 }

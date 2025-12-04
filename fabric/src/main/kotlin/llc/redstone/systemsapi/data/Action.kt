@@ -16,7 +16,7 @@ import net.minecraft.nbt.NbtCompound
 
 sealed class Action(
     @Transient val actionName: String = ""
-) {
+): PropertyHolder {
     @DisplayName("Conditional")
     data class Conditional(
         val conditions: List<Condition>,
@@ -67,14 +67,14 @@ sealed class Action(
 
     @DisplayName("Give Item")
     data class GiveItem(
-        val item: ItemStack,
+        val item: ItemStack?,
         val allowMultiple: Boolean,
-        val inventorySlot: InventorySlot,
+        val inventorySlot: InventorySlot?,
         val replaceExistingItem: Boolean = false,
     ) : Action("GIVE_ITEM")
 
     @DisplayName("Remove Item")
-    data class RemoveItem(val item: ItemStack) : Action("REMOVE_ITEM")
+    data class RemoveItem(val item: ItemStack?) : Action("REMOVE_ITEM")
 
     @DisplayName("Send a Chat Message")
     data class SendMessage(val message: String) : Action("SEND_MESSAGE")
@@ -99,6 +99,7 @@ sealed class Action(
     @DisplayName("Send to Lobby")
     data class SendToLobby(val location: Lobby) : Action("SEND_TO_LOBBY")
 
+    @DisplayName("Change Variable")
     sealed class ChangeVariable protected constructor(
         val holder: VariableHolder
     ): Action("CHANGE_VARIABLE")
@@ -201,7 +202,7 @@ sealed class Action(
 
     @DisplayName("Drop Item")
     data class DropItem(
-        val item: ItemStack,
+        val item: ItemStack?,
         val location: Location,
         val dropNaturally: Boolean,
         val disableMerging: Boolean,
@@ -303,11 +304,19 @@ sealed class Location(override val key: String): Keyed {
     object HouseSpawn : Location("House Spawn Location")
 
 
-    object CurrentLocation : Location("Invokers Location")
+    object InvokersLocation : Location("Invokers Location")
 
 
-    object InvokersLocation : Location("Current Location")
+    object CurrentLocation : Location("Current Location")
 
+    companion object {
+        fun fromKey(key: String): Location? = when (key) {
+            HouseSpawn.key -> HouseSpawn
+            InvokersLocation.key -> InvokersLocation
+            CurrentLocation.key -> CurrentLocation
+            else -> null
+        }
+    }
 }
 
 enum class GameMode(override val key: String) : KeyedCycle {
@@ -320,7 +329,7 @@ enum class GameMode(override val key: String) : KeyedCycle {
     }
 }
 
-enum class StatOp(override val key: String, val advanced: Boolean = false): Keyed{
+enum class StatOp(override val key: String, val advanced: Boolean = false): Keyed {
     Set("Set"),
     UnSet("Unset"),
     Inc("Increment"),
@@ -333,7 +342,13 @@ enum class StatOp(override val key: String, val advanced: Boolean = false): Keye
     LS("Left Shift", true),
     ARS("Arithmetic Right Shift", true),
     LRS("Logical Right Shift", true),
+    ;
+
+    companion object {
+        fun fromKey(key: String): StatOp? = entries.find { it.key.equals(key, true) }
+    }
 }
+
 
 sealed class StatValue {
     data class Lng(val value: Long) : StatValue() {
@@ -350,15 +365,51 @@ sealed class StatValue {
     }
 }
 
-data class InventorySlot(val slot: Int) {
+sealed class InventorySlot(override val key: String, val slot: Int): Keyed {
+    @CustomKey
+    data class ManualInput(val inputSlot: Int) : InventorySlot("Manual Input", inputSlot)
+    class HandSlot() : InventorySlot("Hand Slot", -2)
+    class FirstAvailableSlot() : InventorySlot("First Available Slot", -1)
+    class HotbarSlot(slot: Int) : InventorySlot("Hotbar Slot $slot", slot - 1)
+    class PlayerInventorySlot(slot: Int) : InventorySlot("Inventory Slot $slot", slot + 8)
+    class HelmetSlot() : InventorySlot("Helmet", 39)
+    class ChestplateSlot() : InventorySlot("Chestplate", 38)
+    class LeggingsSlot() : InventorySlot("Leggings", 37)
+    class BootsSlot() : InventorySlot("Boots", 36)
     override fun toString(): String {
         return "$slot"
+    }
+
+    companion object {
+        fun fromKey(key: String): InventorySlot? {
+            if (key.equals("Hand Slot", true)) return HandSlot()
+            if (key.equals("First Available Slot", true)) return FirstAvailableSlot()
+            if (key.equals("Helmet", true)) return HelmetSlot()
+            if (key.equals("Chestplate", true)) return ChestplateSlot()
+            if (key.equals("Leggings", true)) return LeggingsSlot()
+            if (key.equals("Boots", true)) return BootsSlot()
+
+            val hotbarMatch = Regex("""Hotbar Slot (\d+)""").find(key)
+            if (hotbarMatch != null) {
+                val slot = hotbarMatch.groupValues[1].toInt()
+                return HotbarSlot(slot)
+            }
+
+            val inventoryMatch = Regex("""Inventory Slot (\d+)""").find(key)
+            if (inventoryMatch != null) {
+                val slot = inventoryMatch.groupValues[1].toInt()
+                return PlayerInventorySlot(slot)
+            }
+
+            val slot = key.toIntOrNull() ?: return null
+            return ManualInput(slot)
+        }
     }
 }
 
 enum class Weather(override val key: String) : KeyedCycle {
     SUNNY("Sunny"),
-    RAINY("Rainy");
+    RAINING("Raining");
 
     companion object {
         fun fromKey(key: String): Weather? = entries.find { it.key.equals(key, true) }
@@ -380,10 +431,25 @@ sealed class Time(override val key: String): Keyed {
     object Noon : Time("Noon")
     object Sunset : Time("Sunset")
     object Midnight : Time("Midnight")
+
+    companion object {
+        fun fromKey(key: String): Time {
+            if (key.contains("Reset to World Time", true)) return ResetToWorldTime
+            if (key.contains("Sunrise", true)) return Sunrise
+            if (key.contains("Noon", true)) return Noon
+            if (key.contains("Sunset", true)) return Sunset
+            if (key.contains("Midnight", true)) return Midnight
+            return Custom(key.replace(",", "").toLong())
+        }
+    }
 }
 
 enum class VariableHolder(override val key: String) : KeyedCycle {
     Player("Player"),
     Global("Global"),
     Team("Team");
+
+    companion object {
+        fun fromKey(key: String): VariableHolder? = entries.find { it.key.equals(key, true) }
+    }
 }

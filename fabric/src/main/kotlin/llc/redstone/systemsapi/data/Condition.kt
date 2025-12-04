@@ -15,7 +15,7 @@ Borrowed from https://github.com/sndyx/hsl, licensed under the MIT License
 @Serializable
 sealed class Condition(
     @Transient val conditionName: String = ""
-) {
+): PropertyHolder {
     var inverted = false
 
     @DisplayName("Required Group")

@@ -132,7 +132,7 @@ class TestMod : ClientModInitializer {
                                     strength = 1.5,
                                 ),
                                 SetPlayerWeather(
-                                    Weather.RAINY
+                                    Weather.RAINING
                                 ),
                                 SetPlayerTime(
                                     Time.Custom(12000)
@@ -171,7 +171,7 @@ class TestMod : ClientModInitializer {
                                         relativeFileLocation = "test"
                                     ),
                                     allowMultiple = false,
-                                    inventorySlot = InventorySlot(39),
+                                    inventorySlot = InventorySlot.HelmetSlot(),
                                     replaceExistingItem = false
                                 ),
                                 KillPlayer(),
@@ -268,24 +268,14 @@ class TestMod : ClientModInitializer {
                                     team = "test"
                                 ),
                             )
-                            function.getActionContainer().addActions(
-                                listOf(
-//                                    *actions.toTypedArray(),
-//                                    RandomAction(actions = actions),
-                                    Conditional(
-                                        conditions = conditions,
-                                        matchAnyCondition = true,
-                                        ifActions = actions.plus(
-                                            Exit()
-                                        ),
-                                        elseActions = actions.plus(
-                                            Exit()
-                                        ),
-                                    )
-                                )
-                            )
-                        }
 
+                            val exported = function.getActionContainer().exportActions()
+                            for (action in exported) {
+                                LOGGER.info("$action")
+                            }
+                            println("Exported ${exported.size} actions.")
+
+                        }
                         1
                     }
             )
