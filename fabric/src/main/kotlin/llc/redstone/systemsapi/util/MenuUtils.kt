@@ -33,9 +33,10 @@ object MenuUtils {
     var currentScreen: String? = null
     var attempts: Int = 0
     var lastClick: String? = null
+    var clickWaitingOn: String? = null
+    var clickAttempts: Int = 0
 
     //Used for error correction
-    private var lastSlotCheck: Slot? = null
     private var lastSlot: MenuSlot? = null
     private var lastButton = 0
     private var attempted: Boolean = false
@@ -48,21 +49,21 @@ object MenuUtils {
                    (menuSlot.label == null || customName == menuSlot.label)
         }
 
-        attempts = 0
-        waitingOn = "clicking ${menuSlot.item?.name?.string ?: "any item"} ${menuSlot.label ?: "with any name"}"
+        clickAttempts = 0
+        clickWaitingOn = "clicking ${menuSlot.item?.name?.string ?: "any item"} ${menuSlot.label ?: "with any name"}"
         currentScreen = MC.currentScreen?.title?.string ?: "null"
 
         while (true) {
-            if (attempts++ >= 5) error("Failed to find slot for $waitingOn in $currentScreen after $attempts attempts. Last click: $lastClick")
+            if (clickAttempts++ >= 5) error("Failed to find slot for $waitingOn in $currentScreen after $clickAttempts attempts. Last click: $lastClick")
 
             val foundSlot = menuSlot.slot?.let { slot ->
                 gui.screenHandler.getSlot(slot).takeIf { matches(it) }
             } ?: gui.screenHandler.slots.firstOrNull { matches(it) }
 
             lastClick = convertTextToString(foundSlot?.stack?.name ?: Text.of("null")) + " slot ${foundSlot?.id ?: "null"}"
-            lastSlotCheck = foundSlot
+            lastSlot = menuSlot
 
-            if (nullable || foundSlot != null) return foundSlot
+            if (nullable || (foundSlot != null)) return foundSlot
             delay(50)
         }
     }
@@ -76,11 +77,12 @@ object MenuUtils {
             waitingOn = null
             currentScreen = null
             lastClick = null
+            attempted = false
         }
         attempts = 0
         waitingOn = name ?: "null"
         while (true) {
-            if (attempts++ >= 20) run {
+            if (attempts++ >= 5) run {
                 if (attempted) {
                     attempted = false
                     error("Failed to find screen $waitingOn after $attempts attempts.")
@@ -157,10 +159,10 @@ object MenuUtils {
             }
 
             if (match == null) {
-                val nextPageSlot = findSlot(gui, GlobalMenuItems.NEXT_PAGE)
+                val nextPageSlot = findSlot(gui, GlobalMenuItems.NEXT_PAGE, true)
                 if (nextPageSlot != null) {
                     clickMenuSlot(GlobalMenuItems.NEXT_PAGE)
-                    delay(100)
+                    delay(200)
                     if (clickMenuTargetPaginated(*attempts)) {
                         return true
                     }

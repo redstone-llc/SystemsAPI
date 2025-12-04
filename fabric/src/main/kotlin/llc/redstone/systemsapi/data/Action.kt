@@ -176,7 +176,7 @@ sealed class Action(
     data class ExecuteFunction(@property:Pagination val name: String, val global: Boolean) : Action("TRIGGER_FUNCTION")
 
     @DisplayName("Apply Inventory Layout")
-    data class ApplyInventoryLayout(val layout: String) : Action("APPLY_LAYOUT")
+    data class ApplyInventoryLayout(@property:Pagination val layout: String) : Action("APPLY_LAYOUT")
 
     @DisplayName("Exit")
     class Exit : Action("EXIT")
@@ -205,23 +205,23 @@ sealed class Action(
         val location: Location,
         val dropNaturally: Boolean,
         val disableMerging: Boolean,
-        val prioritizePlayer: Boolean,
-        val inventoryFallback: Boolean,
         val despawnDurationTicks: Int,
         val pickupDelayTicks: Int,
+        val prioritizePlayer: Boolean,
+        val inventoryFallback: Boolean,
     ) : Action("DROP_ITEM")
 
     @DisplayName("Change Velocity")
     data class ChangeVelocity(
-        val x: StatValue,
-        val y: StatValue,
-        val z: StatValue,
+        val x: Double,
+        val y: Double,
+        val z: Double,
     ) : Action("CHANGE_VELOCITY")
 
     @DisplayName("Launch to Target")
     data class LaunchToTarget(
         val location: Location,
-        val strength: StatValue
+        val strength: Double
     ) : Action("LAUNCH_TO_TARGET")
 
     @DisplayName("Set Player Weather")

@@ -1,12 +1,18 @@
 package llc.redstone.systemsapi.importer
 
+import kotlinx.coroutines.delay
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.data.Condition
 import llc.redstone.systemsapi.data.CustomKey
 import llc.redstone.systemsapi.data.DisplayName
+import llc.redstone.systemsapi.data.ItemStack
 import llc.redstone.systemsapi.data.Keyed
 import llc.redstone.systemsapi.data.KeyedCycle
+import llc.redstone.systemsapi.data.KeyedLabeled
+import llc.redstone.systemsapi.data.Pagination
 import llc.redstone.systemsapi.data.StatValue
+import llc.redstone.systemsapi.util.ItemUtils
+import llc.redstone.systemsapi.util.ItemUtils.giveItem
 import llc.redstone.systemsapi.util.ItemUtils.loreLine
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.Target
@@ -87,12 +93,31 @@ object ConditionContainer {
                 when (property.returnType.classifier) {
                     String::class, Int::class, Double::class -> {
                         MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
+                        val pagination = property.annotations.find { it is Pagination }
+                        if (pagination != null) {
+                            MenuUtils.onOpen("Select Option")
+                            MenuUtils.clickMenuTargetPaginated(Target(MenuSlot(null, value.toString())))
+                            continue
+                        }
                         TextUtils.input(value.toString(), 100L)
                     }
 
                     StatValue::class -> {
                         MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
                         TextUtils.input(value.toString(), 100L)
+                    }
+
+                    ItemStack::class -> {
+                        MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
+                        MenuUtils.onOpen("Select an Item")
+
+                        val nbt = (value as ItemStack).nbt ?: error("[Item action] ItemStack has no NBT data")
+                        val item = ItemUtils.createFromNBT(nbt)
+                        val player = MC.player ?: error("[Item action] Could not get the player")
+                        val oldStack = player.inventory.getStack(0)
+                        item.giveItem(26)
+                        MenuUtils.clickPlayerSlot(26)
+                        oldStack.giveItem(26)
                     }
 
                     Boolean::class -> {
@@ -116,15 +141,14 @@ object ConditionContainer {
                         val holderIndex = entries.indexOf(keyed) + 1
                         val stack = slot.stack
 
-                        val current =
-                            stack.loreLine(true) { str -> str.contains("&a") || str.contains("&c") } ?: continue
+                        val current = stack.loreLine(true) { str -> str.contains("➠") } ?: continue
                         val currentHolder = entries.find { current.contains(it.key) }
                         val currentIndex = if (currentHolder != null) entries.indexOf(currentHolder) + 1 else 0
                         if (currentHolder != keyed) {
                             val clicks = holderIndex - currentIndex
-
                             repeat(abs(clicks)) {
-                                MenuUtils.clickMenuTargets(Target(MenuSlot(null, null, 10), if (clicks > 0) 0 else 1))
+                                MenuUtils.clickMenuTargets(Target(MenuSlot(null, null, slotIndex), if (clicks > 0) 0 else 1))
+                                delay(50) //Small delay to allow the menu to update
                             }
                         }
 
@@ -134,7 +158,11 @@ object ConditionContainer {
                     if (slot.stack.loreLine(false, filter = { str -> str == value.key }) == null) {
                         MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
                         MenuUtils.onOpen("Select Option")
-                        MenuUtils.clickMenuTargetPaginated(Target(MenuSlot(null, keyed.key)))
+                        if (keyed is KeyedLabeled) {
+                            MenuUtils.clickMenuTargetPaginated(Target(MenuSlot(null, keyed.label)))
+                        } else {
+                            MenuUtils.clickMenuTargetPaginated(Target(MenuSlot(null, keyed.key)))
+                        }
 
                         if (keyed::class.annotations.find { it is CustomKey } != null) {
                             TextUtils.input(value.toString(), 200L)
@@ -145,8 +173,10 @@ object ConditionContainer {
                 }
             }
             //Make sure we are in the condition settings menu before we go back to actions to add another one
-            MenuUtils.onOpen("Settings")
-            MenuUtils.clickMenuSlot(MenuItems.BACK)
+            if (properties.isNotEmpty()) {
+                MenuUtils.onOpen("Settings")
+                MenuUtils.clickMenuSlot(MenuItems.BACK)
+            }
             MenuUtils.onOpen("Edit Conditions")
         }
     }

@@ -4,14 +4,22 @@ import com.github.shynixn.mccoroutine.fabric.launch
 import com.github.shynixn.mccoroutine.fabric.mcCoroutineConfiguration
 import llc.redstone.systemsapi.SystemsAPI
 import llc.redstone.systemsapi.data.Action.*
+import llc.redstone.systemsapi.data.Comparison
+import llc.redstone.systemsapi.data.Condition.*
 import llc.redstone.systemsapi.data.GameMode
+import llc.redstone.systemsapi.data.InventoryLocation
 import llc.redstone.systemsapi.data.InventorySlot
+import llc.redstone.systemsapi.data.ItemAmount
+import llc.redstone.systemsapi.data.ItemCheck
 import llc.redstone.systemsapi.data.ItemStack
 import llc.redstone.systemsapi.data.Location
 import llc.redstone.systemsapi.data.StatOp
 import llc.redstone.systemsapi.data.StatValue
+import llc.redstone.systemsapi.data.Time
+import llc.redstone.systemsapi.data.Weather
 import llc.redstone.systemsapi.data.enums.Enchantment
 import llc.redstone.systemsapi.data.enums.Lobby
+import llc.redstone.systemsapi.data.enums.Permission
 import llc.redstone.systemsapi.data.enums.PotionEffect
 import llc.redstone.systemsapi.data.enums.Sound
 import llc.redstone.systemsapi.util.CommandUtils
@@ -76,78 +84,204 @@ class TestMod : ClientModInitializer {
                                 pitch = 0f,
                                 yaw = 0f,
                             )
+                            val actions = listOf(
+                                ChangePlayerGroup(
+                                    newGroup = "test",
+                                    includeHigherGroups = true
+                                ),
+                                PlayerVariable(
+                                    variable = "hello",
+                                    op = StatOp.Dec,
+                                    amount = StatValue.I32(10),
+                                    unset = false
+                                ),
+                                ApplyPotionEffect(
+                                    effect = PotionEffect.Strength,
+                                    duration = 10,
+                                    level = 10,
+                                    override = true,
+                                    showIcon = false
+                                ),
+                                ChangeHealth(
+                                    op = StatOp.Inc,
+                                    amount = 5.0
+                                ),
+                                ApplyInventoryLayout(
+                                    layout = "test"
+                                ),
+                                DropItem(
+                                    item = ItemStack(
+                                        nbt = nbt,
+                                        relativeFileLocation = "test"
+                                    ),
+                                    location = testLocation,
+                                    dropNaturally = true,
+                                    disableMerging = true,
+                                    prioritizePlayer = true,
+                                    inventoryFallback = true,
+                                    despawnDurationTicks = 20,
+                                    pickupDelayTicks = 20
+                                ),
+                                ChangeVelocity(
+                                    0.1,
+                                    0.2,
+                                    0.3
+                                ),
+                                LaunchToTarget(
+                                    location = testLocation,
+                                    strength = 1.5,
+                                ),
+                                SetPlayerWeather(
+                                    Weather.RAINY
+                                ),
+                                SetPlayerTime(
+                                    Time.Custom(12000)
+                                ),
+                                ToggleNametagDisplay(
+                                    displayNametag = false
+                                ),
+                                GlobalVariable(
+                                    variable = "hello",
+                                    op = StatOp.Set,
+                                    amount = StatValue.I32(2),
+                                    unset = false
+                                ),
+                                TeamVariable(
+                                    teamName = "test",
+                                    variable = "test",
+                                    op = StatOp.Set,
+                                    amount = StatValue.I32(5),
+                                    unset = false
+                                ),
+                                ClearAllPotionEffects(),
+                                DisplayActionBar(message = "message hehe he ha"),
+                                DisplayTitle(
+                                    title = "Hello World!",
+                                    subtitle = "This is a subtitle!",
+                                    fadeIn = 5,
+                                    stay = 2,
+                                    fadeOut = 3
+                                ),
+                                FailParkour(reason = "This is a reason!"),
+                                FullHeal(),
+                                GiveExperienceLevels(levels = 10),
+                                GiveItem(
+                                    item = ItemStack(
+                                        nbt = nbt,
+                                        relativeFileLocation = "test"
+                                    ),
+                                    allowMultiple = false,
+                                    inventorySlot = InventorySlot(39),
+                                    replaceExistingItem = false
+                                ),
+                                KillPlayer(),
+                                ParkourCheckpoint(),
+                                PlaySound(
+                                    sound = Sound.AnvilLand,
+                                    volume = 0.7,
+                                    pitch = 1.0,
+                                    location = testLocation
+                                ),
+                                RemoveItem(
+                                    item = ItemStack(
+                                        nbt = nbt,
+                                        relativeFileLocation = "test"
+                                    )
+                                ),
+                                ResetInventory(),
+                                SendMessage(message = "Hello there !This is a message"),
+                                SendToLobby(location = Lobby.MainLobby),
+                                SetCompassTarget(location = testLocation),
+                                SetGameMode(gamemode = GameMode.Creative),
+                                ChangeHunger(op = StatOp.Set, amount = 4.0),
+                                ChangeMaxHealth(op = StatOp.Set, amount = 40.0, healOnChange = true),
+                                TeleportPlayer(location = testLocation, preventInsideBlocks = false),
+                                ExecuteFunction(name = "e", global = true),
+                                EnchantHeldItem(enchantment = Enchantment.Protection, level = 10),
+                                DisplayMenu(menu = "test"),
+                                PauseExecution(ticks = 5),
+                                SetPlayerTeam(team = "test"),
+                            )
+                            val conditions = listOf(
+                                PlayerVariableRequirement(
+                                    variable = "test",
+                                    op = Comparison.Eq,
+                                    value = StatValue.I32(5),
+                                ),
+                                GlobalVariableRequirement(
+                                    variable = "test",
+                                    op = Comparison.Le,
+                                    value = StatValue.I32(10),
+                                ),
+                                TeamVariableRequirement(
+                                    team = "test",
+                                    variable = "test",
+                                    op = Comparison.Ge,
+                                    value = StatValue.I32(15),
+                                ),
+                                RequiredGroup(
+                                    group = "test",
+                                    includeHigherGroups = true,
+                                ),
+                                HasPermission(
+                                    permission = Permission.EditCommands
+                                ),
+                                InRegion(
+                                    region = "test"
+                                ),
+                                HasItem(
+                                    item = ItemStack(
+                                        nbt = nbt,
+                                        relativeFileLocation = "test"
+                                    ),
+                                    whatToCheck = ItemCheck.ItemType,
+                                    whereToCheck = InventoryLocation.Anywhere,
+                                    amount = ItemAmount.Ge,
+                                ),
+                                InParkour(),
+                                RequiredEffect(
+                                    effect = PotionEffect.Poison
+                                ),
+                                PlayerSneaking(),
+                                PlayerFlying(),
+                                RequiredHealth(
+                                    mode = Comparison.Ge,
+                                    amount = 10.0
+                                ),
+                                RequiredMaxHealth(
+                                    mode = Comparison.Eq,
+                                    amount = 20.0
+                                ),
+                                RequiredHungerLevel(
+                                    mode = Comparison.Le,
+                                    amount = 15.0
+                                ),
+                                RequiredGameMode(
+                                    gameMode = GameMode.Survival
+                                ),
+                                RequiredPlaceholderNumber(
+                                    placeholder = "%test%",
+                                    mode = Comparison.Eq,
+                                    amount = StatValue.I32(10),
+                                ),
+                                RequiredTeam(
+                                    team = "test"
+                                ),
+                            )
                             function.getActionContainer().addActions(
                                 listOf(
-//                                    PlayerVariable(
-//                                        variable = "hello",
-//                                        op = StatOp.Dec,
-//                                        amount = StatValue.I32(10),
-//                                        unset = false
-//                                    ),
-//                                    ApplyPotionEffect(
-//                                        effect = PotionEffect.Strength,
-//                                        duration = 10,
-//                                        level = 10,
-//                                        override = true,
-//                                        showIcon = false
-//                                    ),
-                                    GlobalVariable(
-                                        variable = "hello",
-                                        op = StatOp.Set,
-                                        amount = StatValue.I32(2),
-                                        unset = false
-                                    ),
-//                                    ClearAllPotionEffects(),
-//                                    DisplayActionBar(message = "message hehe he ha"),
-//                                    DisplayTitle(
-//                                        title = "Hello World!",
-//                                        subtitle = "This is a subtitle!",
-//                                        fadeIn = 5,
-//                                        stay = 2,
-//                                        fadeOut = 3
-//                                    ),
-//                                    FailParkour(reason = "This is a reason!"),
-//                                    FullHeal(),
-//                                    GiveExperienceLevels(levels = 10),
-//                                    GiveItem(
-//                                        item = ItemStack(
-//                                            nbt = nbt,
-//                                            relativeFileLocation = "test"
-//                                        ),
-//                                        allowMultiple = false,
-//                                        inventorySlot = InventorySlot(39),
-//                                        replaceExistingItem = false
-//                                    ),
-//                                    KillPlayer(),
-//                                    ParkourCheckpoint(),
-//                                    PlaySound(
-//                                        sound = Sound.AnvilLand,
-//                                        volume = 0.7,
-//                                        pitch = 1.0,
-//                                        location = testLocation
-//                                    ),
-//                                    RemoveItem(
-//                                        item = ItemStack(
-//                                            nbt = nbt,
-//                                            relativeFileLocation = "test"
-//                                        )
-//                                    ),
-//                                    ResetInventory(),
-//                                    SendMessage(message = "Hello there !This is a message"),
-//                                    SendToLobby(location = Lobby.MainLobby),
-//                                    SetCompassTarget(location = testLocation),
-//                                    SetGameMode(gamemode = GameMode.Creative),
-//                                    ChangeHunger(op = StatOp.Set, amount = 4.0),
-//                                    ChangeMaxHealth(op = StatOp.Set, amount = 40.0, healOnChange = true),
-//                                    TeleportPlayer(location = testLocation, preventInsideBlocks = false),
-//                                    ExecuteFunction(name = "e", global = true),
-//                                    UseHeldItem(),
-//                                    EnchantHeldItem(enchantment = Enchantment.Protection, level = 10),
-//                                    DisplayMenu(menu = "Your Statistics"),
-//                                    CloseMenu(),
-//                                    PauseExecution(ticks = 5),
-//                                    SetPlayerTeam(team = "Blue"),
-//                                    BalancePlayerTeam(),
+//                                    *actions.toTypedArray(),
+//                                    RandomAction(actions = actions),
+                                    Conditional(
+                                        conditions = conditions,
+                                        matchAnyCondition = true,
+                                        ifActions = actions.plus(
+                                            Exit()
+                                        ),
+                                        elseActions = actions.plus(
+                                            Exit()
+                                        ),
+                                    )
                                 )
                             )
                         }

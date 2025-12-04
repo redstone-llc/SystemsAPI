@@ -21,7 +21,7 @@ sealed class Condition(
     @DisplayName("Required Group")
     data class RequiredGroup(
         @SerialName("required_group")
-        val group: String,
+        @property:Pagination val group: String,
         @SerialName("include_higher_groups")
         val includeHigherGroups: Boolean,
     ) : Condition("IN_GROUP")
@@ -40,7 +40,7 @@ sealed class Condition(
 
     @DisplayName("Variable Requirement")
     data class TeamVariableRequirement(
-        val team: String?,
+        @property:Pagination val team: String?,
         val variable: String,
         val op: Comparison,
         val value: StatValue,
@@ -61,7 +61,7 @@ sealed class Condition(
 
     @DisplayName("Within Region")
     data class InRegion(
-        val region: String,
+        @property:Pagination val region: String,
     ) : Condition("IN_REGION")
 
     @DisplayName("Has Item")
@@ -72,8 +72,8 @@ sealed class Condition(
         @SerialName("required_amount") val amount: ItemAmount,
     ) : Condition("HAS_ITEM")
 
-    @DisplayName("Doing Region")
-    data object InParkour : Condition("IN_PARKOUR")
+    @DisplayName("Doing Parkour")
+    class InParkour : Condition("IN_PARKOUR")
 
     @DisplayName("Has Potion Effect")
     data class RequiredEffect(
@@ -81,27 +81,27 @@ sealed class Condition(
     ) : Condition("POTION_EFFECT")
 
     @DisplayName("Player Sneaking")
-    data object PlayerSneaking : Condition("SNEAKING")
+    class PlayerSneaking : Condition("SNEAKING")
 
     @DisplayName("Player Flying")
-    data object PlayerFlying : Condition("FLYING")
+    class PlayerFlying : Condition("FLYING")
 
     @DisplayName("Player Health")
     data class RequiredHealth(
         val mode: Comparison,
-        val amount: StatValue,
+        val amount: Double,
     ) : Condition("HEALTH")
 
     @DisplayName("Max Player Health")
     data class RequiredMaxHealth(
         val mode: Comparison,
-        val amount: StatValue,
+        val amount: Double,
     ) : Condition("MAX_HEALTH")
 
     @DisplayName("Player Hunger")
     data class RequiredHungerLevel(
         val mode: Comparison,
-        val amount: StatValue,
+        val amount: Double,
     ) : Condition("HUNGER_LEVEL")
 
     @DisplayName("Required Gamemode")
@@ -120,11 +120,11 @@ sealed class Condition(
     @DisplayName("Required Team")
     data class RequiredTeam(
         @SerialName("required_team")
-        val team: String,
+        @property:Pagination val team: String,
     ) : Condition("IN_TEAM")
 
     @DisplayName("Pvp Enabled")
-    data object PvpEnabled : Condition("PVP_ENABLED")
+    class PvpEnabled : Condition("PVP_ENABLED")
 
     @DisplayName("Fishing Environment")
     data class FishingEnvironment(
@@ -177,7 +177,7 @@ enum class Comparison {
     Le;
 }
 
-enum class ItemCheck(override val key: String) : Keyed {
+enum class ItemCheck(override val key: String) : KeyedCycle {
     ItemType("Item Type"),
     Metadata("Metadata");
 
@@ -188,7 +188,7 @@ enum class ItemCheck(override val key: String) : Keyed {
     }
 }
 
-enum class ItemAmount(override val key: String) : Keyed {
+enum class ItemAmount(override val key: String) : KeyedCycle {
     Any("Any Amount"),
     Ge("Equal or Greater Amount");
 

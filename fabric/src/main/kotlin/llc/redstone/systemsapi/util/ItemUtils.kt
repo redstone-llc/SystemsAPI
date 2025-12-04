@@ -41,7 +41,7 @@ object ItemUtils {
     fun ItemStack.loreLine(color: Boolean, filter: (String) -> Boolean = { true }): String? {
         val loreLines = get(DataComponentTypes.LORE)?.lines
             ?: error("Could not find lore line in item $this which matched filter.")
-        val loreLine = loreLines.firstOrNull { line -> filter(TextUtils.convertTextToString(line, false)) }
+        val loreLine = loreLines.firstOrNull { line -> filter(TextUtils.convertTextToString(line, color)) }
             ?: return null
         return TextUtils.convertTextToString(loreLine, color)
     }
