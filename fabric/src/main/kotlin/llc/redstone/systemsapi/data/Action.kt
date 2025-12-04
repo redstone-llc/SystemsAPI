@@ -30,7 +30,7 @@ sealed class Action(
 
     @DisplayName("Change Player's Group")
     data class ChangePlayerGroup(
-        val newGroup: String,
+        @property:Pagination val newGroup: String,
         val includeHigherGroups: Boolean = false,
     ) : Action("CHANGE_PLAYER_GROUP")
 
@@ -57,8 +57,8 @@ sealed class Action(
 
     @DisplayName("Change Max Health")
     data class ChangeMaxHealth(
+        val amount: Double,
         val op: StatOp,
-        val amount: StatValue,
         val healOnChange: Boolean = true,
     ) : Action("CHANGE_MAX_HEALTH")
 
@@ -112,13 +112,14 @@ sealed class Action(
     ) : ChangeVariable(VariableHolder.Player)
 
     @DisplayName("Change Variable")
-    data class TeamVariable(
-        val teamName: String,
+    class TeamVariable(
+        @property:Pagination val teamName: String,
         val variable: String,
         val op: StatOp,
         val amount: StatValue,
         val unset: Boolean = false
-    ) : ChangeVariable(VariableHolder.Team)
+    ) : ChangeVariable(VariableHolder.Team) {
+    }
 
     @DisplayName("Change Variable")
     data class GlobalVariable(
@@ -153,14 +154,14 @@ sealed class Action(
 
     @DisplayName("Change Health")
     data class ChangeHealth(
+        val amount: Double,
         val op: StatOp,
-        val amount: StatValue,
     ) : Action("CHANGE_HEALTH")
 
     @DisplayName("Change Hunger Level")
     data class ChangeHunger(
+        val amount: Double,
         val op: StatOp,
-        val amount: StatValue,
     ) : Action("CHANGE_HUNGER")
 
     @DisplayName("Use/Remove Held Item")
@@ -172,7 +173,7 @@ sealed class Action(
     ) : Action("RANDOM_ACTION")
 
     @DisplayName("Trigger Function")
-    data class ExecuteFunction(val name: String, val global: Boolean) : Action("TRIGGER_FUNCTION")
+    data class ExecuteFunction(@property:Pagination val name: String, val global: Boolean) : Action("TRIGGER_FUNCTION")
 
     @DisplayName("Apply Inventory Layout")
     data class ApplyInventoryLayout(val layout: String) : Action("APPLY_LAYOUT")
@@ -190,10 +191,10 @@ sealed class Action(
     data class PauseExecution(val ticks: Int) : Action("PAUSE")
 
     @DisplayName("Set Player Team")
-    data class SetPlayerTeam(val team: String) : Action("SET_PLAYER_TEAM")
+    data class SetPlayerTeam(@property:Pagination val team: String) : Action("SET_PLAYER_TEAM")
 
     @DisplayName("Display Menu")
-    data class DisplayMenu(val menu: String) : Action("DISPLAY_MENU")
+    data class DisplayMenu(@property:Pagination val menu: String) : Action("DISPLAY_MENU")
 
     @DisplayName("Close Menu")
     class CloseMenu : Action("CLOSE_MENU")
@@ -244,6 +245,7 @@ interface Keyed {
 }
 
 annotation class CustomKey
+annotation class Pagination
 
 interface KeyedCycle: Keyed
 

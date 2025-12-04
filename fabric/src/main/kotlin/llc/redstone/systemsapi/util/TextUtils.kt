@@ -51,7 +51,7 @@ object TextUtils {
         } else if (screen is ChatScreen) { //If they have Housing Toolbox and the setting is enabled
             sendMessage(message)
         } else if (screen == null) {
-            MC.currentScreen = ChatScreen("", false)
+            MC.setScreen(ChatScreen("", false))
             MenuUtils.onOpen(null, ChatScreen::class)
             sendMessage(message)
         }

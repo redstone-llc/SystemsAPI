@@ -6,7 +6,7 @@ import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.MenuUtils
 
 internal object EventImporter : Event {
-    private fun openEventActionsMenu(event: Event.Events) {
+    private suspend fun openEventActionsMenu(event: Event.Events) {
         CommandUtils.runCommand("eventactions")
         MenuUtils.clickMenuSlot(event.item)
     }

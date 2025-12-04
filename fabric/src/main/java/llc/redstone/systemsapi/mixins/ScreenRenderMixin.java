@@ -18,6 +18,8 @@ public class ScreenRenderMixin {
             context.drawText(MinecraftClient.getInstance().textRenderer, Text.of("Waiting On: " + MenuUtils.INSTANCE.getWaitingOn()), 50, 100, 0xFFFFFFFF, false);
             context.drawText(MinecraftClient.getInstance().textRenderer, Text.of("Current Screen: " + MenuUtils.INSTANCE.getCurrentScreen()), 50, 120, 0xFFFFFFFF, false);
             context.drawText(MinecraftClient.getInstance().textRenderer, Text.of("Attempts: " + MenuUtils.INSTANCE.getAttempts()), 50, 140, 0xFFFFFFFF, false);
+            context.drawText(MinecraftClient.getInstance().textRenderer, Text.of("Last Click: " + MenuUtils.INSTANCE.getLastClick()), 50, 160, 0xFFFFFFFF, false);
+
         }
     }
 }
