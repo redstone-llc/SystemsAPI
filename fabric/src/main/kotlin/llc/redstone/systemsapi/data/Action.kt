@@ -14,10 +14,15 @@ import llc.redstone.systemsapi.data.enums.PotionEffect
 import llc.redstone.systemsapi.data.enums.Sound
 import net.minecraft.nbt.NbtCompound
 
+// TODO: verify these limits
+// TODO: verify these scopes
+
 sealed class Action(
     @Transient val actionName: String = ""
 ) {
     @DisplayName("Conditional")
+    @Limit(15) @EventLimit(15)
+    @FunctionScope @EventScope
     data class Conditional(
         val conditions: List<Condition>,
         val matchAnyCondition: Boolean,
@@ -26,21 +31,31 @@ sealed class Action(
     ) : Action("CONDITIONAL")
 
     @DisplayName("Cancel Event")
+    @Limit(1)
+    @EventScope
     class CancelEvent : Action("CANCEL_EVENT")
 
     @DisplayName("Change Player's Group")
+    @Limit(1)
+    @AllScope
     data class ChangePlayerGroup(
         @property:Pagination val newGroup: String,
         val includeHigherGroups: Boolean = false,
     ) : Action("CHANGE_PLAYER_GROUP")
 
     @DisplayName("Kill Player")
+    @Limit(1)
+    @AllScope
     class KillPlayer : Action("KILL")
 
     @DisplayName("Full Heal")
+    @Limit(5)
+    @AllScope
     class FullHeal : Action("FULL_HEAL")
 
     @DisplayName("Display Title")
+    @Limit(5)
+    @AllScope
     data class DisplayTitle(
         val title: String,
         val subtitle: String,
@@ -50,12 +65,18 @@ sealed class Action(
     ) : Action("TITLE")
 
     @DisplayName("Display Action Bar")
+    @Limit(5)
+    @AllScope
     data class DisplayActionBar(val message: String) : Action("ACTION_BAR")
 
     @DisplayName("Reset Inventory")
+    @Limit(1)
+    @AllScope
     class ResetInventory : Action("RESET_INVENTORY")
 
     @DisplayName("Change Max Health")
+    @Limit(5)
+    @AllScope
     data class ChangeMaxHealth(
         val amount: Double,
         val op: StatOp,
@@ -63,9 +84,13 @@ sealed class Action(
     ) : Action("CHANGE_MAX_HEALTH")
 
     @DisplayName("Parkour Checkpoint")
+    @Limit(1)
+    @AllScope
     class ParkourCheckpoint : Action("PARKOUR_CHECKPOINT")
 
     @DisplayName("Give Item")
+    @Limit(15) @EventLimit(40)
+    @AllScope
     data class GiveItem(
         val item: ItemStack,
         val allowMultiple: Boolean,
@@ -74,12 +99,18 @@ sealed class Action(
     ) : Action("GIVE_ITEM")
 
     @DisplayName("Remove Item")
+    @Limit(15) @EventLimit(40)
+    @AllScope
     data class RemoveItem(val item: ItemStack) : Action("REMOVE_ITEM")
 
     @DisplayName("Send a Chat Message")
+    @Limit(20)
+    @AllScope
     data class SendMessage(val message: String) : Action("SEND_MESSAGE")
 
     @DisplayName("Apply Potion Effect")
+    @Limit(22)
+    @AllScope
     data class ApplyPotionEffect(
         val effect: PotionEffect,
         val duration: Int,
@@ -91,12 +122,18 @@ sealed class Action(
     ) : Action("POTION_EFFECT")
 
     @DisplayName("Clear All Potion Effects")
+    @Limit(5)
+    @AllScope
     class ClearAllPotionEffects : Action("CLEAR_EFFECTS")
 
     @DisplayName("Give Experience Levels")
+    @Limit(5)
+    @AllScope
     data class GiveExperienceLevels(val levels: Int) : Action("GIVE_EXP_LEVELS")
 
     @DisplayName("Send to Lobby")
+    @Limit(1)
+    @AllScope
     data class SendToLobby(val location: Lobby) : Action("SEND_TO_LOBBY")
 
     sealed class ChangeVariable protected constructor(
@@ -104,6 +141,8 @@ sealed class Action(
     ): Action("CHANGE_VARIABLE")
 
     @DisplayName("Change Variable")
+    @Limit(25)
+    @AllScope
     data class PlayerVariable(
         val variable: String,
         val op: StatOp,
@@ -112,6 +151,8 @@ sealed class Action(
     ) : ChangeVariable(VariableHolder.Player)
 
     @DisplayName("Change Variable")
+    @Limit(25)
+    @AllScope
     class TeamVariable(
         @property:Pagination val teamName: String,
         val variable: String,
@@ -122,6 +163,8 @@ sealed class Action(
     }
 
     @DisplayName("Change Variable")
+    @Limit(25)
+    @AllScope
     data class GlobalVariable(
         val variable: String,
         val op: StatOp,
@@ -130,15 +173,21 @@ sealed class Action(
     ) : ChangeVariable(VariableHolder.Global)
 
     @DisplayName("Teleport Player")
+    @Limit(5)
+    @AllScope
     data class TeleportPlayer(
         val location: Location,
         val preventInsideBlocks: Boolean = false,
     ) : Action("TELEPORT_PLAYER")
 
     @DisplayName("Fail Parkour")
+    @Limit(1)
+    @AllScope
     data class FailParkour(val reason: String) : Action("FAIL_PARKOUR")
 
     @DisplayName("Play Sound")
+    @Limit(25)
+    @AllScope
     data class PlaySound(
         val sound: Sound,
         val volume: Double,
@@ -147,59 +196,89 @@ sealed class Action(
     ) : Action("PLAY_SOUND")
 
     @DisplayName("Set Compass Target")
+    @Limit(5)
+    @AllScope
     data class SetCompassTarget(val location: Location) : Action("SET_COMPASS_TARGET")
 
     @DisplayName("Set Gamemode")
+    @Limit(1)
+    @AllScope
     data class SetGameMode(val gamemode: GameMode) : Action("SET_GAMEMODE")
 
     @DisplayName("Change Health")
+    @Limit(5)
+    @AllScope
     data class ChangeHealth(
         val amount: Double,
         val op: StatOp,
     ) : Action("CHANGE_HEALTH")
 
     @DisplayName("Change Hunger Level")
+    @Limit(5)
+    @AllScope
     data class ChangeHunger(
         val amount: Double,
         val op: StatOp,
     ) : Action("CHANGE_HUNGER")
 
     @DisplayName("Use/Remove Held Item")
+    @Limit(1)
+    @AllScope
     class UseHeldItem : Action("USE_HELD_ITEM")
 
     @DisplayName("Random Action")
+    @Limit(25)
+    @AllScope
     data class RandomAction(
         val actions: List<Action>,
     ) : Action("RANDOM_ACTION")
 
     @DisplayName("Trigger Function")
+    @Limit(10)
+    @AllScope
     data class ExecuteFunction(@property:Pagination val name: String, val global: Boolean) : Action("TRIGGER_FUNCTION")
 
     @DisplayName("Apply Inventory Layout")
+    @Limit(5)
+    @AllScope
     data class ApplyInventoryLayout(val layout: String) : Action("APPLY_LAYOUT")
 
     @DisplayName("Exit")
+    @Limit(1)
+    @AllScope
     class Exit : Action("EXIT")
     
     @DisplayName("Enchant Held Item")
+    @Limit(23)
+    @AllScope
     data class EnchantHeldItem(
         val enchantment: Enchantment,
         val level: Int,
     ) : Action("ENCHANT_HELD_ITEM")
     
     @DisplayName("Pause Execution")
+    @Limit(30)
+    @AllScope
     data class PauseExecution(val ticks: Int) : Action("PAUSE")
 
     @DisplayName("Set Player Team")
+    @Limit(1)
+    @AllScope
     data class SetPlayerTeam(@property:Pagination val team: String) : Action("SET_PLAYER_TEAM")
 
     @DisplayName("Display Menu")
+    @Limit(10)
+    @AllScope
     data class DisplayMenu(@property:Pagination val menu: String) : Action("DISPLAY_MENU")
 
     @DisplayName("Close Menu")
+    @Limit(1)
+    @AllScope
     class CloseMenu : Action("CLOSE_MENU")
 
     @DisplayName("Drop Item")
+    @Limit(25)
+    @AllScope
     data class DropItem(
         val item: ItemStack,
         val location: Location,
@@ -212,6 +291,8 @@ sealed class Action(
     ) : Action("DROP_ITEM")
 
     @DisplayName("Change Velocity")
+    @Limit(5)
+    @AllScope
     data class ChangeVelocity(
         val x: StatValue,
         val y: StatValue,
@@ -219,22 +300,32 @@ sealed class Action(
     ) : Action("CHANGE_VELOCITY")
 
     @DisplayName("Launch to Target")
+    @Limit(5)
+    @AllScope
     data class LaunchToTarget(
         val location: Location,
         val strength: StatValue
     ) : Action("LAUNCH_TO_TARGET")
 
     @DisplayName("Set Player Weather")
+    @Limit(1)
+    @AllScope
     data class SetPlayerWeather(val weather: Weather) : Action("SET_PLAYER_WEATHER")
 
     @DisplayName("Set Player Time")
+    @Limit(1)
+    @AllScope
     data class SetPlayerTime(val time: Time) : Action("SET_PLAYER_TIME")
 
     @DisplayName("Toggle Nametag Display")
+    @Limit(1)
+    @AllScope
     data class ToggleNametagDisplay(val displayNametag: Boolean) :
         Action("TOGGLE_NAMETAG_DISPLAY")
 
     @DisplayName("Balance Player Team")
+    @Limit(1)
+    @AllScope
     class BalancePlayerTeam : Action("BALANCE_PLAYER_TEAM")
 
 
