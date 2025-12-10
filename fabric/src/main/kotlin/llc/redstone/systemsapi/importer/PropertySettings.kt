@@ -30,18 +30,26 @@ import llc.redstone.systemsapi.util.TextUtils
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.nbt.NbtOps
 import net.minecraft.screen.slot.Slot
+import java.lang.reflect.ParameterizedType
 import kotlin.jvm.optionals.getOrNull
 import kotlin.math.abs
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.starProjectedType
+import kotlin.reflect.javaType
+import kotlin.reflect.jvm.javaField
 
 object PropertySettings {
     suspend fun import(property: KProperty1<out PropertyHolder, *>, slot: Slot, value: Any?) {
         val slotIndex = slot.id
         when (property.returnType.classifier) {
-            String::class, Int::class, Double::class, StatValue::class -> {
+            Int::class, Double::class, StatValue::class -> {
+                MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
+                TextUtils.input(value.toString(), 100L)
+            }
+
+            String::class -> {
                 MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
                 val pagination = property.annotations.find { it is Pagination }
                 if (pagination != null) {
@@ -170,6 +178,8 @@ object PropertySettings {
         }
     }
 
+    private val genericContainer = ActionContainer("Edit Actions")
+
     suspend fun export(title: String, prop: KProperty1<out PropertyHolder, *>, actionSlot: Slot, propertySlotIndex: Int, value: String, colorValue: String): Any? {
         val gui = MC.currentScreen as? GenericContainerScreen ?: error("[export] Could not cast currentScreen as GenericContainerScreen.")
 
@@ -189,18 +199,44 @@ object PropertySettings {
                 }
             }
 
+            List::class -> {
+                var returnValue = emptyList<Any>()
+                val field = prop.javaField?.genericType as? ParameterizedType ?: error("Could not get parameterized type for List property ${prop.name}")
+                val listType = field.actualTypeArguments[0]
+                if (listType == Action::class.java) {
+                    MenuUtils.clickMenuSlot(MenuSlot(null, null, actionSlot.id))
+                    MenuUtils.onOpen("Settings")
+                    MenuUtils.clickMenuSlot(MenuSlot(null, null, propertySlotIndex))
+                    returnValue = genericContainer.getActions()
+                } else if (listType == Condition::class.java) {
+                    MenuUtils.clickMenuSlot(MenuSlot(null, null, actionSlot.id))
+                    MenuUtils.onOpen("Settings")
+                    MenuUtils.clickMenuSlot(MenuSlot(null, null, propertySlotIndex))
+                    returnValue = ConditionContainer.exportConditions()
+                }
+                MenuUtils.clickMenuSlot(MenuItems.BACK)
+                MenuUtils.onOpen("Settings")
+                MenuUtils.clickMenuSlot(MenuItems.BACK)
+                MenuUtils.onOpen(title)
+
+                returnValue
+            }
+
             ItemStack::class -> {
                 MenuUtils.clickMenuSlot(MenuSlot(null, null, actionSlot.id))
-                MenuUtils.onOpen("Action Settings")
+                MenuUtils.onOpen("Settings")
                 MenuUtils.clickMenuSlot(MenuSlot(null, null, propertySlotIndex))
                 MenuUtils.onOpen("Select an Item")
+
+                val gui = MC.currentScreen as? GenericContainerScreen
+                    ?: error("[Item action] Could not cast currentScreen as GenericContainerScreen.")
 
                 val deferred = CompletableDeferred<net.minecraft.item.ItemStack>()
                 pending?.cancel()
                 pending = deferred
 
                 val item = try {
-                    MenuUtils.packetClick(gui, 13, 0)
+                    MenuUtils.interactionClick(gui, 13, 0)
                     withTimeout(1_000) { deferred.await() }
                 } catch (e: TimeoutCancellationException) {
                     if (pending === deferred) pending = null
@@ -211,6 +247,8 @@ object PropertySettings {
                 val nbt = net.minecraft.item.ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, item).result().getOrNull()
                     ?.asCompound()?.getOrNull() ?: error("[Item action] Could not get NBT from item $item")
 
+                MenuUtils.clickMenuSlot(MenuItems.BACK)
+                MenuUtils.onOpen("Settings")
                 MenuUtils.clickMenuSlot(MenuItems.BACK)
                 MenuUtils.onOpen(title)
 

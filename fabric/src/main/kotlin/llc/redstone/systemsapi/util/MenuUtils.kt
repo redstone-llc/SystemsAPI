@@ -30,6 +30,8 @@ object MenuUtils {
 
     //Debug info
     var waitingOn: String? = null
+    var lastWaitingOn: String? = null
+    var lastSuccessful: String? = null
     var currentScreen: String? = null
     var attempts: Int = 0
     var lastClick: String? = null
@@ -54,7 +56,7 @@ object MenuUtils {
         currentScreen = MC.currentScreen?.title?.string ?: "null"
 
         while (true) {
-            if (clickAttempts++ >= 5) error("Failed to find slot for $waitingOn in $currentScreen after $clickAttempts attempts. Last click: $lastClick")
+            if (clickAttempts++ >= 5) error("Failed to find slot for $waitingOn in $currentScreen after $clickAttempts attempts.")
 
             val foundSlot = menuSlot.slot?.let { slot ->
                 gui.screenHandler.getSlot(slot).takeIf { matches(it) }
@@ -73,6 +75,7 @@ object MenuUtils {
         vararg clazz: KClass<out Screen>? = arrayOf(GenericContainerScreen::class)
     ): Screen? {
         fun reset() {
+            lastWaitingOn = waitingOn
             attempts = 0
             waitingOn = null
             currentScreen = null
@@ -105,6 +108,7 @@ object MenuUtils {
             if (clazz.contains(screen::class) && (name == null || currentScreen?.contains(name) == true)) {
                 delay(50)
                 reset()
+                lastSuccessful = currentScreen + " clazz: " + screen::class.simpleName
                 return screen
             }
         }

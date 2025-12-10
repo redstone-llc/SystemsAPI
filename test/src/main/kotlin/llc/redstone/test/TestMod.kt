@@ -2,6 +2,8 @@ package llc.redstone.test
 
 import com.github.shynixn.mccoroutine.fabric.launch
 import com.github.shynixn.mccoroutine.fabric.mcCoroutineConfiguration
+import com.mojang.authlib.yggdrasil.YggdrasilEnvironment
+import com.mojang.authlib.yggdrasil.YggdrasilUserApiService
 import llc.redstone.systemsapi.SystemsAPI
 import llc.redstone.systemsapi.data.Action.*
 import llc.redstone.systemsapi.data.Comparison
@@ -22,17 +24,22 @@ import llc.redstone.systemsapi.data.enums.Lobby
 import llc.redstone.systemsapi.data.enums.Permission
 import llc.redstone.systemsapi.data.enums.PotionEffect
 import llc.redstone.systemsapi.data.enums.Sound
-import llc.redstone.systemsapi.util.CommandUtils
 import net.fabricmc.api.ClientModInitializer
 import net.minecraft.client.MinecraftClient
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.*
-import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents
+import net.minecraft.client.session.ProfileKeys
+import net.minecraft.client.session.Session
 import net.minecraft.item.Items
 import net.minecraft.nbt.NbtOps
+import net.minecraft.text.MutableText
+import net.minecraft.text.PlainTextContent.of
+import net.minecraft.util.ApiServices
+import java.awt.Color
+import java.net.Proxy
+import java.util.Optional
 import kotlin.jvm.optionals.getOrNull
 
 class TestMod : ClientModInitializer {
@@ -52,14 +59,49 @@ class TestMod : ClientModInitializer {
             TODO("Not yet implemented")
         }
 
+
+        //Login to an alterning account
+        val account = AlteningAccount.fromToken("85ew7-hczbx@alt.com")
+        val (compatSession, service) = account.login()
+
+        val session = Session(
+            compatSession.username,
+            compatSession.uuid,
+            compatSession.token,
+            Optional.empty(),
+            Optional.empty(),
+            /*? <1.21.9 {*//* Session.AccountType.byName(compatSession.type) *//*?}*/
+        )
+
+        val profileKeys = runCatching {
+            // In this case the environment doesn't matter, as it is only used for the profile key
+            val environment = YggdrasilEnvironment.PROD.environment
+            val userAuthenticationService = YggdrasilUserApiService(session.accessToken, Proxy.NO_PROXY, environment)
+            ProfileKeys.create(userAuthenticationService, session, MC.runDirectory.toPath())
+        }.onFailure {
+            LOGGER.error("Failed to create profile keys for ${session.username} due to ${it.message}")
+        }.getOrDefault(ProfileKeys.MISSING)
+
+        var field = MC::class.java.getDeclaredField("session")
+        field.isAccessible = true
+        field.set(MC, session)
+
+        field = MC::class.java.getDeclaredField("apiServices")
+        field.isAccessible = true
+        field.set(MC, ApiServices.create(service, MC.runDirectory))
+
+        field = MC::class.java.getDeclaredField("profileKeys")
+        field.isAccessible = true
+        field.set(MC, profileKeys)
+
         var ran = false
-        ClientEntityEvents.ENTITY_LOAD.register { entity, world ->
-            if (ran) {
-                return@register
-            }
-            ran = true
-            CommandUtils.runCommand("myhouses test", 200)
-        }
+//        ClientEntityEvents.ENTITY_LOAD.register { entity, world ->
+//            if (ran) {
+//                return@register
+//            }
+//            ran = true
+//            CommandUtils.runCommand("myhouses test", 200)
+//        }
 
         ClientCommandRegistrationCallback.EVENT.register { dispatcher, registryAccess ->
             dispatcher.register(
@@ -178,8 +220,8 @@ class TestMod : ClientModInitializer {
                                 ParkourCheckpoint(),
                                 PlaySound(
                                     sound = Sound.AnvilLand,
-                                    volume = 0.7,
-                                    pitch = 1.0,
+                                    volume = 0.8,
+                                    pitch = 1.1,
                                     location = testLocation
                                 ),
                                 RemoveItem(
@@ -268,13 +310,33 @@ class TestMod : ClientModInitializer {
                                     team = "test"
                                 ),
                             )
-
-                            val exported = function.getActionContainer().exportActions()
-                            for (action in exported) {
-                                LOGGER.info("$action")
+                            try {
+//                                function.getActionContainer().addActions(
+//                                    listOf(
+//                                        Conditional(
+//                                            conditions = conditions,
+//                                            matchAnyCondition = false,
+//                                            ifActions = actions,
+//                                            elseActions = actions
+//                                        ),
+//                                        RandomAction(
+//                                            actions = actions
+//                                        )
+//                                    )
+//
+//                                )
+                                val exported = function.getActionContainer().getActions()
+                                for (action in exported) {
+                                    LOGGER.info("$action")
+                                }
+                                println("Exported ${exported.size} actions.")
+                            } catch (e: Exception) {
+                                MC.player?.sendMessage(
+                                    MutableText.of(
+                                        of("[Test Mod] An error occurred: ${e.message}")
+                                    ).withColor(Color.RED.rgb), false
+                                )
                             }
-                            println("Exported ${exported.size} actions.")
-
                         }
                         1
                     }

@@ -54,7 +54,87 @@ class ActionContainer(val title: String = MC.currentScreen?.title?.string ?: err
     }
 
     suspend fun getActions(): List<Action> {
-        TODO("Not yet implemented")
+        val actions = mutableListOf<Action>()
+
+        MenuUtils.onOpen(title)
+
+        val gui = MC.currentScreen as? GenericContainerScreen
+            ?: error("Could not cast current screen to GenericContainerScreen")
+
+        if (MenuUtils.findSlot(gui, MenuItems.NO_ACTIONS, true) != null) return actions
+
+        for (slotIndex in slots.values) {
+            val slot = gui.screenHandler.getSlot(slotIndex)
+            if (!slot.hasStack()) break //No more actions
+
+            val item = slot.stack
+            val loreLines = item.loreLines(true).filter {
+                it.contains(":") //Only care about lines with properties
+            }
+
+            val name = TextUtils.convertTextToString(item.name, false)
+            var actionClass = Action::class.sealedSubclasses.firstOrNull() { it.findAnnotations(DisplayName::class).any { ann -> ann.value == name } }
+                ?: continue
+
+            var constructor = actionClass.primaryConstructor!!
+            var parameters = constructor.parameters.toMutableList()
+            var actionProperties = actionClass.memberProperties
+            var properties = mutableListOf<Pair<KProperty1<Action, *>, KParameter?>>()
+
+            for (parm in parameters) {
+                properties.add(actionProperties.find { it.name == parm.name } as KProperty1<Action, *> to parm)
+            }
+
+            suspend fun args(indexAddition: Int = 0): MutableMap<KParameter, Any?> {
+                val args = mutableMapOf<KParameter, Any?>()
+                properties.forEachIndexed { index, (prop, param) ->
+                    if (param == null) return@forEachIndexed
+                    val colorValue = loreLines.getOrNull(index + indexAddition)?.split(": ")?.drop(1)?.joinToString(": ") ?: return@forEachIndexed
+                    val value = colorValue.replace(Regex("&[0-9a-fk-or]"), "")
+
+                    val returnValue = PropertySettings.export(title, prop, slot, slots[index + indexAddition]!!, value, colorValue)
+                    if (returnValue is VariableHolder) {
+                        if (returnValue == VariableHolder.Player) {
+                            actionClass = Action.PlayerVariable::class
+                        } else if (returnValue == VariableHolder.Global) {
+                            actionClass = Action.GlobalVariable::class
+                        } else if (returnValue == VariableHolder.Team) {
+                            actionClass = Action.TeamVariable::class
+                        }
+                        constructor = actionClass.primaryConstructor!!
+                        parameters = constructor.parameters.toMutableList()
+                        actionProperties = actionClass.memberProperties
+                        properties = mutableListOf()
+                        for (parm in parameters) {
+                            properties.add(actionProperties.find { it.name == parm.name } as KProperty1<Action, *> to parm)
+                        }
+                        // I hate recursion, but I think this is the cleanest way to handle it
+                        return args(1)
+                    }
+
+                    args[param] = returnValue
+                }
+                return args
+            }
+            val args = args()
+
+            if (args.size != constructor.parameters.size) {
+                actionClass.constructors.forEach { newCon ->
+                    if (constructor.parameters.size == newCon.parameters.size) {
+                        actions.add(newCon.callBy(args))
+                    }
+                }
+            } else {
+                actions.add(constructor.callBy(args))
+            }
+        }
+
+        if (MenuUtils.findSlot(gui, MenuUtils.GlobalMenuItems.NEXT_PAGE, true) != null) {
+            MenuUtils.clickMenuSlot(MenuUtils.GlobalMenuItems.NEXT_PAGE)
+            actions.addAll(getActions())
+        }
+
+        return actions
     }
 
     suspend fun setActions(newActions: List<Action>) {
@@ -117,92 +197,6 @@ class ActionContainer(val title: String = MC.currentScreen?.title?.string ?: err
             }
             MenuUtils.onOpen(title)
         }
-    }
-
-    suspend fun exportActions(): List<Action> {
-        val actions = mutableListOf<Action>()
-
-        MenuUtils.onOpen(title)
-
-        val gui = MC.currentScreen as? GenericContainerScreen
-            ?: error("Could not cast current screen to GenericContainerScreen")
-
-        if (MenuUtils.findSlot(gui, MenuItems.NO_ACTIONS, true) != null) return actions
-
-        for (slotIndex in slots.values) {
-            val slot = gui.screenHandler.getSlot(slotIndex)
-            if (!slot.hasStack()) break //No more actions
-
-            val item = slot.stack
-            val loreLines = item.loreLines(true).filter {
-                it.contains(": ") //Only care about lines with properties
-            }
-
-            //TODO: Fix edge cases like variable actions where the Display Name isn't the correct action class
-            val name = TextUtils.convertTextToString(item.name, false)
-            var actionClass = Action::class.sealedSubclasses.firstOrNull() { it.findAnnotations(DisplayName::class).any { ann -> ann.value == name } }
-                ?: continue
-
-            var constructor = actionClass.primaryConstructor!!
-            var parameters = constructor.parameters.toMutableList()
-            var actionProperties = actionClass.memberProperties
-            var properties = mutableListOf<Pair<KProperty1<Action, *>, KParameter?>>()
-
-            for (parm in parameters) {
-                properties.add(actionProperties.find { it.name == parm.name } as KProperty1<Action, *> to parm)
-            }
-
-            suspend fun args(indexAddition: Int = 0): MutableMap<KParameter, Any?> {
-                val args = mutableMapOf<KParameter, Any?>()
-                properties.forEachIndexed { index, (prop, param) ->
-                    if (param == null) return@forEachIndexed
-                    val colorValue = loreLines.getOrNull(index + indexAddition)?.split(": ")?.drop(1)?.joinToString(": ") ?: return@forEachIndexed
-                    val value = colorValue.replace(Regex("&[0-9a-fk-or]"), "")
-
-                    val returnValue = PropertySettings.export(title, prop, slot, slots[index + indexAddition]!!, value, colorValue)
-                    println(returnValue)
-                    if (returnValue is VariableHolder) {
-                        if (returnValue == VariableHolder.Player) {
-                            actionClass = Action.PlayerVariable::class
-                        } else if (returnValue == VariableHolder.Global) {
-                            actionClass = Action.GlobalVariable::class
-                        } else if (returnValue == VariableHolder.Team) {
-                            actionClass = Action.TeamVariable::class
-                        }
-                        constructor = actionClass.primaryConstructor!!
-                        parameters = constructor.parameters.toMutableList()
-                        actionProperties = actionClass.memberProperties
-                        properties = mutableListOf()
-                        for (parm in parameters) {
-                            properties.add(actionProperties.find { it.name == parm.name } as KProperty1<Action, *> to parm)
-                        }
-                        // I hate recursion, but I think this is the cleanest way to handle it
-                        return args(1)
-                    }
-
-                    args[param] = returnValue
-                }
-                return args
-            }
-            val args = args()
-
-            if (args.size != constructor.parameters.size) {
-                actionClass.constructors.forEach { newCon ->
-                    if (constructor.parameters.size == newCon.parameters.size) {
-                        actions.add(newCon.callBy(args))
-                    }
-                }
-            } else {
-                actions.add(constructor.callBy(args))
-            }
-        }
-
-        if (MenuUtils.findSlot(gui, MenuUtils.GlobalMenuItems.NEXT_PAGE, true) != null) {
-            MenuUtils.clickMenuSlot(MenuUtils.GlobalMenuItems.NEXT_PAGE)
-            actions.addAll(exportActions())
-        }
-
-        return actions
     }
 
     object MenuItems {
