@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="fabric/src/main/resources/assets/systemsapi/icon.png" alt="SystemsAPI Icon" height="256">
+    <img src="fabric/src/main/resources/assets/systemsapi/header.png" alt="SystemsAPI Icon">
 </div>
 
 # SystemsAPI
@@ -11,5 +11,5 @@ SystemsAPI is a fabric library that abstracts Hypixel Housing's systems for othe
 
 ## Features:
 - [x] Action Importing
-- [x] Action Exporting
+- [ ] Action Exporting
 - [ ] Optimized Action Importing (optimally keeps/changes existing actions to make imports quick!)
