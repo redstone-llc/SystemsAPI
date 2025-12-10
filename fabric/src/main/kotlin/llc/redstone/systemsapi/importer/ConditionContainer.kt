@@ -1,12 +1,18 @@
 package llc.redstone.systemsapi.importer
 
+import kotlinx.coroutines.delay
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.data.Condition
 import llc.redstone.systemsapi.data.CustomKey
 import llc.redstone.systemsapi.data.DisplayName
+import llc.redstone.systemsapi.data.ItemStack
 import llc.redstone.systemsapi.data.Keyed
 import llc.redstone.systemsapi.data.KeyedCycle
+import llc.redstone.systemsapi.data.KeyedLabeled
+import llc.redstone.systemsapi.data.Pagination
 import llc.redstone.systemsapi.data.StatValue
+import llc.redstone.systemsapi.util.ItemUtils
+import llc.redstone.systemsapi.util.ItemUtils.giveItem
 import llc.redstone.systemsapi.util.ItemUtils.loreLine
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.Target
@@ -34,7 +40,6 @@ object ConditionContainer {
         7 to 19,
         8 to 20,
     )
-
 
     //List of actions to add to the container
     suspend fun addConditions(actions: List<Condition>) {
@@ -68,8 +73,6 @@ object ConditionContainer {
                 properties.add(1, conditionProperties.find { it.name == "holder" } ?: continue)
             }
 
-            println(properties.joinToString(", ") { it.name })
-
             //Iterate through parameters
             for ((index, property) in properties.withIndex()) {
                 //Get the property and its values
@@ -83,70 +86,13 @@ object ConditionContainer {
                 val slotIndex = slots[index]!!
                 val slot = gui.screenHandler.getSlot(slotIndex)
 
-                //All other properties
-                when (property.returnType.classifier) {
-                    String::class, Int::class, Double::class -> {
-                        MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
-                        TextUtils.input(value.toString(), 100L)
-                    }
-
-                    StatValue::class -> {
-                        MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
-                        TextUtils.input(value.toString(), 100L)
-                    }
-
-                    Boolean::class -> {
-                        val line = slot.stack.loreLine(false, filter = { str -> str == "Disabled" || str == "Enabled" })
-                            ?: continue
-                        val currentValue = line == "Enabled"
-                        val boolValue = value as Boolean
-                        if (currentValue != boolValue) {
-                            MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
-                        }
-                    }
-                }
-
-                //Enum condition properties
-                if (property.returnType.isSubtypeOf(Keyed::class.starProjectedType)) {
-                    val keyed = value as Keyed
-
-                    val entries = value.javaClass.enumConstants
-
-                    if (keyed is KeyedCycle) {
-                        val holderIndex = entries.indexOf(keyed) + 1
-                        val stack = slot.stack
-
-                        val current =
-                            stack.loreLine(true) { str -> str.contains("&a") || str.contains("&c") } ?: continue
-                        val currentHolder = entries.find { current.contains(it.key) }
-                        val currentIndex = if (currentHolder != null) entries.indexOf(currentHolder) + 1 else 0
-                        if (currentHolder != keyed) {
-                            val clicks = holderIndex - currentIndex
-
-                            repeat(abs(clicks)) {
-                                MenuUtils.clickMenuTargets(Target(MenuSlot(null, null, 10), if (clicks > 0) 0 else 1))
-                            }
-                        }
-
-                        continue
-                    }
-
-                    if (slot.stack.loreLine(false, filter = { str -> str == value.key }) == null) {
-                        MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
-                        MenuUtils.onOpen("Select Option")
-                        MenuUtils.clickMenuTargetPaginated(Target(MenuSlot(null, keyed.key)))
-
-                        if (keyed::class.annotations.find { it is CustomKey } != null) {
-                            TextUtils.input(value.toString(), 200L)
-                        }
-                    }
-
-                    continue
-                }
+                PropertySettings.import(property, slot, value)
             }
             //Make sure we are in the condition settings menu before we go back to actions to add another one
-            MenuUtils.onOpen("Settings")
-            MenuUtils.clickMenuSlot(MenuItems.BACK)
+            if (properties.isNotEmpty()) {
+                MenuUtils.onOpen("Settings")
+                MenuUtils.clickMenuSlot(MenuItems.BACK)
+            }
             MenuUtils.onOpen("Edit Conditions")
         }
     }
