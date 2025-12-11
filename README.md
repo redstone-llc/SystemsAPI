@@ -1,13 +1,22 @@
-<div align="center">
-    <img src="fabric/src/main/resources/assets/systemsapi/header.png" alt="SystemsAPI Icon">
-</div>
+<h1 align="center">
+    <img src="fabric/src/main/resources/assets/systemsapi/icon.png" height="256" alt="SystemsAPI Icon">
+    <br>
+    SystemsAPI
+    <br>
+    <a href="https://github.com/redstone-llc/SystemsAPI/commits/main/">
+        <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/redstone-llc/SystemsAPI?style=for-the-badge&logo=github&logoColor=%23cad3f5&labelColor=%23363a4f&color=%2340a02b">
+    </a>
+    <a href="https://discord.gg/pCcpqzU4He">
+        <img alt="By Redstone Studios" src="https://img.shields.io/badge/By-Redstone%20Studios-red?style=for-the-badge&labelColor=%23363a4f&color=%23e64553">
+    </a>
+</h1>
 
-# SystemsAPI
-
-> [!WARNING]
-> This library is a work in progress! Expect constant changes at this stage.
+## Overview
 
 SystemsAPI is a fabric library that abstracts Hypixel Housing's house systems for other mods to use. For an example implementation, see [HTSL Reborn](https://github.com/sinender/HTSLReborn).
+
+> [!WARNING]
+> This project is a work in progress! Expect constant changes to API structure at this stage.
 
 ## Features:
 - [x] Action importing
@@ -21,3 +30,4 @@ SystemsAPI is a fabric library that abstracts Hypixel Housing's house systems fo
     - [ ] Custom Menus
     - [ ] Regions
     - [ ] Scoreboard
+    - [ ] Teams
