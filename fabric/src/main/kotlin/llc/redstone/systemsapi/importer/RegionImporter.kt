@@ -41,13 +41,6 @@ internal class RegionImporter(override var name: String) : Region {
         MenuUtils.onOpen("Edit Actions")
     }
 
-    override suspend fun createIfNotExists(): Boolean {
-        if (exists()) return false
-
-        CommandUtils.runCommand("command create $name") // TODO: delay until we receive confirmation that the function is actually created
-        return true
-    }
-
     override suspend fun setName(newName: String) {
         if (newName.length !in 1..50) error(("[Region $name] Invalid title '$newName'. must be between 1 and 50 characters long."))
         openRegionEditMenu()
@@ -122,7 +115,8 @@ internal class RegionImporter(override var name: String) : Region {
         return ActionContainer("Edit Actions")
     }
 
-    override suspend fun exists(): Boolean = getTabCompletions("region edit").contains(name)
+    fun create() = CommandUtils.runCommand("region create $name")
+    suspend fun exists(): Boolean = getTabCompletions("region edit").contains(name)
 
     override suspend fun delete() {
         CommandUtils.runCommand("region delete $name")

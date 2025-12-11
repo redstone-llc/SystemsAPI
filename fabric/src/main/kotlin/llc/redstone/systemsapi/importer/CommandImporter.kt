@@ -49,13 +49,6 @@ internal class CommandImporter(override var name: String) : Command {
         name = newName
     }
 
-    override suspend fun createIfNotExists(): Boolean {
-        if (exists()) return false
-
-        CommandUtils.runCommand("command create $name")
-        return true
-    }
-
     override suspend fun getCommandMode(): Command.CommandMode {
         openCommandEditMenu()
 
@@ -150,7 +143,8 @@ internal class CommandImporter(override var name: String) : Command {
         return ActionContainer("Actions: /$name")
     }
 
-    override suspend fun exists(): Boolean = getTabCompletions("command edit").contains(name)
+    suspend fun exists(): Boolean = getTabCompletions("command edit").contains(name)
+    fun create() = CommandUtils.runCommand("command create $name")
 
     override suspend fun delete() {
         CommandUtils.runCommand("command delete $name")

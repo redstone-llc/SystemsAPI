@@ -6,8 +6,6 @@ import net.minecraft.item.ItemStack
 interface Menu {
     var title: String
 
-    suspend fun createIfNotExists(): Boolean
-
     suspend fun getTitle(): String = title
     suspend fun setTitle(newTitle: String)
 
@@ -17,7 +15,6 @@ interface Menu {
     suspend fun getMenuElement(index: Int): MenuElement
     suspend fun getAllMenuElements(): Array<MenuElement>
 
-    suspend fun exists(): Boolean
     suspend fun delete()
 
     interface MenuElement {

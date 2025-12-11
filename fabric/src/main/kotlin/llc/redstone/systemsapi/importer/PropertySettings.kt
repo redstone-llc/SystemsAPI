@@ -37,7 +37,6 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.starProjectedType
-import kotlin.reflect.javaType
 import kotlin.reflect.jvm.javaField
 
 object PropertySettings {
@@ -236,7 +235,7 @@ object PropertySettings {
                 pending = deferred
 
                 val item = try {
-                    MenuUtils.interactionClick(gui, 13, 0)
+                    MenuUtils.interactionClick(13, 0)
                     withTimeout(1_000) { deferred.await() }
                 } catch (e: TimeoutCancellationException) {
                     if (pending === deferred) pending = null

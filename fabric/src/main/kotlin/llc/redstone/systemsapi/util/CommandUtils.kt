@@ -37,7 +37,7 @@ object CommandUtils {
         pending = deferred
 
         try {
-            MC.networkHandler?.sendPacket(RequestCommandCompletionsC2SPacket(-1, partialCommand))
+            MC.networkHandler?.sendPacket(RequestCommandCompletionsC2SPacket(1, partialCommand))
                 ?: error("Could not access Network Handler while looking for '$partialCommand...' tab completions.")
             return withTimeout(1_000) { deferred.await() }
         } catch (e: TimeoutCancellationException) {

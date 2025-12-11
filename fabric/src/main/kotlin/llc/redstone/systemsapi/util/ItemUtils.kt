@@ -61,6 +61,12 @@ object ItemUtils {
         return loreLines.map { TextUtils.convertTextToString(it, color) }
     }
 
+    fun toNBT(itemStack: ItemStack): NbtCompound {
+        return ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, itemStack).result()
+            .getOrNull()?.asCompound()?.getOrNull()
+            ?: error("Could not convert itemstack to nbt")
+    }
+
     fun createFromNBT(nbt: NbtCompound): ItemStack {
         return ItemStack.CODEC.decode(NbtOps.INSTANCE, nbt).result().getOrNull()?.first
             ?: throw IllegalArgumentException("Failed to decode ItemStack from NBT")

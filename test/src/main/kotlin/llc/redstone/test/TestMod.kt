@@ -5,6 +5,7 @@ import com.github.shynixn.mccoroutine.fabric.mcCoroutineConfiguration
 import com.mojang.authlib.yggdrasil.YggdrasilEnvironment
 import com.mojang.authlib.yggdrasil.YggdrasilUserApiService
 import llc.redstone.systemsapi.SystemsAPI
+import llc.redstone.systemsapi.api.Event
 import llc.redstone.systemsapi.data.Action.*
 import llc.redstone.systemsapi.data.Comparison
 import llc.redstone.systemsapi.data.Condition.*
@@ -24,6 +25,7 @@ import llc.redstone.systemsapi.data.enums.Lobby
 import llc.redstone.systemsapi.data.enums.Permission
 import llc.redstone.systemsapi.data.enums.PotionEffect
 import llc.redstone.systemsapi.data.enums.Sound
+import llc.redstone.systemsapi.util.ItemUtils
 import net.fabricmc.api.ClientModInitializer
 import net.minecraft.client.MinecraftClient
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
@@ -108,12 +110,10 @@ class TestMod : ClientModInitializer {
                 literal("testmod")
                     .executes {
                         launch {
-                            val function = SystemsAPI.getHousingImporter().getFunctionOrNull("test")!!
                             val itemstack = Items.BIRCH_STAIRS.defaultStack
-                            val nbt =
-                                net.minecraft.item.ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, itemstack).result()
-                                    .getOrNull()?.asCompound()?.getOrNull()
-                                    ?: error("Could not convert itemstack to nbt")
+                            val nbt = ItemUtils.toNBT(itemstack)
+
+                            val menuSlot = SystemsAPI.getHousingImporter().getMenu("test")!!.getMenuElement(10)
                             val testLocation = Location.Custom(
                                 x = 1.0,
                                 y = 2.0,
@@ -325,11 +325,16 @@ class TestMod : ClientModInitializer {
 //                                    )
 //
 //                                )
-                                val exported = function.getActionContainer().getActions()
-                                for (action in exported) {
-                                    LOGGER.info("$action")
+                                val randomActions = actions.mapNotNull {
+                                    if (Math.random() < 0.3) {
+                                        it
+                                    } else {
+                                        null
+                                    }
                                 }
-                                println("Exported ${exported.size} actions.")
+
+                                menuSlot.setItem(itemstack)
+                                menuSlot.getActionContainer()?.addActions(randomActions)
                             } catch (e: Exception) {
                                 MC.player?.sendMessage(
                                     MutableText.of(

@@ -7,7 +7,6 @@ import llc.redstone.systemsapi.util.TextUtils.convertTextToString
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.client.gui.screen.ingame.HandledScreen
-import net.minecraft.component.DataComponentTypes
 import net.minecraft.item.Item
 import net.minecraft.item.Items
 import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket
@@ -16,7 +15,6 @@ import net.minecraft.screen.slot.SlotActionType
 import net.minecraft.screen.sync.ItemStackHash
 import net.minecraft.text.Text
 import kotlin.reflect.KClass
-import kotlin.text.get
 
 object MenuUtils {
 
@@ -114,7 +112,9 @@ object MenuUtils {
         }
     }
 
-    fun packetClick(gui: HandledScreen<*>, slot: Int, button: Int = 0) {
+    fun packetClick(slot: Int, button: Int = 0) {
+        val gui = MC.currentScreen as? HandledScreen<*> ?: error("[packetClick] Current screen is not a HandledScreen")
+
         val pkt = ClickSlotC2SPacket(
             gui.screenHandler.syncId,
             gui.screenHandler.revision,
@@ -129,7 +129,9 @@ object MenuUtils {
         MC.networkHandler?.sendPacket(pkt) ?: error("Failed to send click packet")
     }
 
-    fun interactionClick(gui: HandledScreen<*>, slot: Int, button: Int = 0) {
+    fun interactionClick(slot: Int, button: Int = 0) {
+        val gui = MC.currentScreen as? HandledScreen<*> ?: error("[interactionClick] Current screen is not a HandledScreen")
+
         lastButton = button
         MC.interactionManager?.clickSlot(
             gui.screenHandler.syncId,
@@ -148,7 +150,7 @@ object MenuUtils {
             val match = attempts.firstNotNullOfOrNull {
                 it to findSlot(gui, it.menuSlot)!!
             } ?: return@withContainer false
-            packetClick(gui, match.second.id, match.first.button)
+            packetClick(match.second.id, match.first.button)
             true
         }
 
@@ -173,7 +175,7 @@ object MenuUtils {
                 }
                 false
             } else {
-                packetClick(gui, match.second!!.id, match.first.button)
+                packetClick(match.second!!.id, match.first.button)
                 true
             }
         }
@@ -182,7 +184,7 @@ object MenuUtils {
     fun clickPlayerSlot(slot: Int, button: Int = 0) =
         withContainer { gui ->
             val playerSlot = slot + gui.screenHandler.slots.size - 45
-            packetClick(gui, playerSlot, button)
+            packetClick(playerSlot, button)
             true
         }
 

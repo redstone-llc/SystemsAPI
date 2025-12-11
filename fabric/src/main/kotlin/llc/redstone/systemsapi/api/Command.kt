@@ -9,8 +9,6 @@ interface Command {
     suspend fun getName(): String = name
     suspend fun setName(newName: String)
 
-    suspend fun createIfNotExists(): Boolean
-
     suspend fun getCommandMode(): CommandMode
     suspend fun setCommandMode(newCommandMode: CommandMode)
 
@@ -22,7 +20,6 @@ interface Command {
 
     suspend fun getActionContainer(): ActionContainer
 
-    suspend fun exists(): Boolean
     suspend fun delete()
 
     enum class CommandMode {

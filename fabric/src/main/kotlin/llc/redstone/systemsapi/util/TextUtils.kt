@@ -47,7 +47,7 @@ object TextUtils {
             if (screen.screenHandler.setNewItemName(message)) {
                 MC.networkHandler?.sendPacket(RenameItemC2SPacket(message))
             }
-            MenuUtils.interactionClick(screen, 2, 0)
+            MenuUtils.interactionClick(2, 0)
         } else if (screen is ChatScreen) { //If they have Housing Toolbox and the setting is enabled
             sendMessage(message)
         } else if (screen == null) {

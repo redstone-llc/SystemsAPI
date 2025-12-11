@@ -8,7 +8,8 @@ import llc.redstone.systemsapi.util.MenuUtils
 internal object EventImporter : Event {
     private suspend fun openEventActionsMenu(event: Event.Events) {
         CommandUtils.runCommand("eventactions")
-        MenuUtils.clickMenuSlot(event.item)
+        MenuUtils.onOpen("Event Actions")
+        MenuUtils.clickMenuTargetPaginated(MenuUtils.Target(event.item))
     }
 
     override suspend fun getActionContainerForEvent(event: Event.Events): ActionContainer {

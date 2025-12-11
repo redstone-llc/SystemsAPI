@@ -7,9 +7,6 @@ import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
 interface Region {
     var name: String
 
-    // Region must be selected to run this.
-    suspend fun createIfNotExists(): Boolean
-
     suspend fun getName(): String = name
     suspend fun setName(newName: String)
 
@@ -24,7 +21,6 @@ interface Region {
     suspend fun getEntryActionContainer(): ActionContainer
     suspend fun getExitActionContainer(): ActionContainer
 
-    suspend fun exists(): Boolean
     suspend fun delete()
 
     enum class PvpSettings(val item: MenuSlot) {

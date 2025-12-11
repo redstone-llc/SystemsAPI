@@ -7,7 +7,6 @@ import kotlinx.coroutines.withTimeout
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.api.Menu
 import llc.redstone.systemsapi.util.CommandUtils
-import llc.redstone.systemsapi.util.CommandUtils.getTabCompletions
 import llc.redstone.systemsapi.util.ItemUtils.giveItem
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
@@ -30,13 +29,6 @@ internal class MenuImporter(override var title: String) : Menu {
         delay(50)
     }
 
-    override suspend fun createIfNotExists(): Boolean {
-        if (exists()) return false
-
-        CommandUtils.runCommand("menu create $title") // TODO: delay until we receive confirmation that the function is actually created
-        return true
-    }
-
     override suspend fun setTitle(newTitle: String) {
         if (newTitle.length !in 1..32) error(("[Menu $title] Invalid title '$newTitle'. must be between 1 and 32 characters long."))
         openMenuEditMenu()
@@ -48,6 +40,7 @@ internal class MenuImporter(override var title: String) : Menu {
     override suspend fun getMenuSize(): Int {
         openMenuEditMenu()
         MenuUtils.clickMenuSlot(MenuItems.CHANGE_MENU_SIZE)
+        MenuUtils.onOpen("Change Menu Size")
         val stack = (MC.currentScreen as GenericContainerScreen).screenHandler.inventory.first { stack -> stack.hasGlint() || stack.hasEnchantments() }
         return Regex("""\d+""").find(stack.name.string)?.value?.toIntOrNull() ?: error("[Menu $title] Couldn't find menu size.")
     }
@@ -56,6 +49,7 @@ internal class MenuImporter(override var title: String) : Menu {
         if (newSize !in 1..6) error("[Menu $title] Invalid size '$newSize'. Must be between 1 and 6.")
         openMenuEditMenu()
         MenuUtils.clickMenuSlot(MenuItems.CHANGE_MENU_SIZE)
+        MenuUtils.onOpen("Change Menu Size")
         MenuUtils.clickMenuSlot(
             if (newSize == 1) MenuSlot(Items.BEACON, "1 Row")
             else MenuSlot(Items.BEACON, "$newSize Rows")
@@ -63,23 +57,27 @@ internal class MenuImporter(override var title: String) : Menu {
     }
 
     override suspend fun getAllMenuElements(): Array<Menu.MenuElement> {
+        openMenuEditMenu()
         MenuUtils.clickMenuSlot(MenuItems.EDIT_MENU_ELEMENTS)
+        MenuUtils.onOpen("Edit Elements: $title")
         val gui = MC.currentScreen as? GenericContainerScreen ?: error("[Menu $title] getAllMenuElements: Could not cast currentScreen as GenericContainerScreen.")
         val numSlots = 9 * gui.screenHandler.rows
-        return Array(numSlots) { index -> MenuElementImporter(index) }
+        return Array(numSlots) { index -> MenuElementImporter(index, title) }
     }
 
     override suspend fun getMenuElement(index: Int): Menu.MenuElement {
+        openMenuEditMenu()
         MenuUtils.clickMenuSlot(MenuItems.EDIT_MENU_ELEMENTS)
+        MenuUtils.onOpen("Edit Elements: $title")
         val gui = MC.currentScreen as? GenericContainerScreen ?: error("[Menu $title] getMenuElement: Could not cast currentScreen as GenericContainerScreen.")
         val numSlots = 9 * gui.screenHandler.rows
         if (index !in 0..<numSlots) error("[Menu $title] getMenuElement: Invalid index '$index'.")
-        return MenuElementImporter(index)
+        return MenuElementImporter(index, title)
     }
 
-    override suspend fun exists(): Boolean = getTabCompletions("menu edit").contains(title)
-
-    override suspend fun delete() = CommandUtils.runCommand("menu delete $title")
+    fun create() = CommandUtils.runCommand("menus create $title")
+    suspend fun exists(): Boolean = CommandUtils.getTabCompletions("menus edit").contains(title)
+    override suspend fun delete() = CommandUtils.runCommand("menus delete $title")
 
     object MenuItems {
         val CHANGE_TITLE = MenuSlot(Items.ANVIL, "Change Title")
@@ -87,7 +85,7 @@ internal class MenuImporter(override var title: String) : Menu {
         val EDIT_MENU_ELEMENTS = MenuSlot(Items.ENDER_CHEST, "Edit Menu Elements")
     }
 
-    internal class MenuElementImporter(val slot: Int) : Menu.MenuElement {
+    internal class MenuElementImporter(val slot: Int, val title: String) : Menu.MenuElement {
         companion object {
             var pending: CompletableDeferred<ItemStack>? = null
 
@@ -100,15 +98,15 @@ internal class MenuImporter(override var title: String) : Menu {
         }
 
         override suspend fun getItem(): ItemStack {
-            val gui = MC.currentScreen as? GenericContainerScreen ?: error("[getItem] Could not cast currentScreen as GenericContainerScreen.")
-            MenuUtils.packetClick(gui, slot, 1)
+            MenuUtils.packetClick(slot, 1)
+            MenuUtils.onOpen("Select an Item")
 
             val deferred = CompletableDeferred<ItemStack>()
             pending?.cancel()
             pending = deferred
 
             try {
-                MenuUtils.packetClick(gui, 13, 0)
+                MenuUtils.packetClick(13, 0)
                 return withTimeout(1_000) { deferred.await() }
             } catch (e: TimeoutCancellationException) {
                 if (pending === deferred) pending = null
@@ -119,21 +117,28 @@ internal class MenuImporter(override var title: String) : Menu {
         }
 
         override suspend fun setItem(item: ItemStack) {
-            val gui = MC.currentScreen as? GenericContainerScreen ?: error("[setItem] Could not cast currentScreen as GenericContainerScreen.")
             val player = MC.player ?: error("[setItem] Could not get the player")
-            MenuUtils.packetClick(gui, slot, 1)
-            val oldStack = player.inventory.getStack(0)
-            item.giveItem(0)
-            MenuUtils.interactionClick(gui, 0)
-            oldStack.giveItem(0)
+            MenuUtils.onOpen("Edit Elements: $title")
+
+            MenuUtils.packetClick(slot, 1)
+            MenuUtils.onOpen("Select an Item")
+
+            val oldStack = player.inventory.getStack(26)
+            item.giveItem(26)
+            MenuUtils.clickPlayerSlot(26)
+            oldStack.giveItem(26)
         }
 
         override suspend fun getActionContainer(): ActionContainer? {
             val gui = MC.currentScreen as? GenericContainerScreen ?: error("[MenuElement] getActionContainer: Could not cast currentScreen as GenericContainerScreen.")
             val item = gui.screenHandler.inventory.getStack(slot)
             if (item.name.string == "Empty Slot" && item.get(DataComponentTypes.LORE)?.lines?.get(0)?.string == "Click to set item!") return null // Slot must first have an item before it can have an ActionContainer
-            MenuUtils.packetClick(gui, slot, 0)
+
+            MenuUtils.onOpen("Edit Elements: $title")
+
+            MenuUtils.packetClick(slot, 0)
             MenuUtils.onOpen("Edit Actions")
+
             return ActionContainer("Edit Actions")
         }
     }

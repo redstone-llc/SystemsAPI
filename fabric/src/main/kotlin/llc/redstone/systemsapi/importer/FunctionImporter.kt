@@ -60,13 +60,6 @@ internal class FunctionImporter(override var name: String) : Function {
         name = newName
     }
 
-    override suspend fun createIfNotExists(): Boolean {
-        if (exists()) return false
-
-        CommandUtils.runCommand("function create $name") // TODO: delay until we receive confirmation that the function is actually created
-        return true
-    }
-
     override suspend fun getDescription(): String {
         openFunctionEditMenu()
 
@@ -129,7 +122,7 @@ internal class FunctionImporter(override var name: String) : Function {
     }
 
     override suspend fun setAutomaticExecution(newAutomaticExecution: Int) {
-        if (newAutomaticExecution !in 0..18000) error(("[Function $name] Invalid automatic execution ticks '$newAutomaticExecution'. Must be between 1 and 18000."))
+        if (newAutomaticExecution !in 0..18000) error("[Function $name] Invalid automatic execution ticks '$newAutomaticExecution'. Must be between 1 and 18000.")
         openFunctionEditMenu()
 
         val ticks = (MC.currentScreen as? GenericContainerScreen)
@@ -151,7 +144,8 @@ internal class FunctionImporter(override var name: String) : Function {
         return ActionContainer("Actions: $name")
     }
 
-    override suspend fun exists(): Boolean = getTabCompletions("function edit").contains(name)
+    suspend fun exists(): Boolean = getTabCompletions("function edit").contains(name)
+    fun create() = CommandUtils.runCommand("function create $name")
 
     override suspend fun delete() {
         CommandUtils.runCommand("function delete $name")

@@ -9,8 +9,6 @@ interface Function {
     suspend fun getName(): String = name
     suspend fun setName(newName: String)
 
-    suspend fun createIfNotExists(): Boolean
-
     suspend fun getDescription(): String
     suspend fun setDescription(newDescription: String)
 
@@ -22,6 +20,5 @@ interface Function {
 
     suspend fun getActionContainer(): ActionContainer
 
-    suspend fun exists(): Boolean
     suspend fun delete()
 }
