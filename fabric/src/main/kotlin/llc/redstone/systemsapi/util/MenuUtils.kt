@@ -21,11 +21,6 @@ object MenuUtils {
     data class Target(val menuSlot: MenuSlot, val button: Int = 0)
     data class MenuSlot(val item: Item?, val label: String?, val slot: Int? = null)
 
-    inline fun withContainer(block: (GenericContainerScreen) -> Boolean): Boolean {
-        val gui = MC.currentScreen as? GenericContainerScreen ?: return false
-        return block(gui)
-    }
-
     //Debug info
     var waitingOn: String? = null
     var lastWaitingOn: String? = null
@@ -41,7 +36,8 @@ object MenuUtils {
     private var lastButton = 0
     private var attempted: Boolean = false
 
-    suspend fun findSlot(gui: GenericContainerScreen, menuSlot: MenuSlot, nullable: Boolean = false): Slot? {
+    suspend fun findSlot(menuSlot: MenuSlot, nullable: Boolean = false): Slot? {
+        val gui = MC.currentScreen as? GenericContainerScreen ?: throw ClassCastException("Expected GenericContainerScreen but found ${MC.currentScreen?.javaClass?.name}")
         fun matches(slot: Slot): Boolean {
             val stack = slot.stack
             val customName = convertTextToString(stack.name ?: Text.of(""), false)
@@ -145,48 +141,44 @@ object MenuUtils {
     suspend fun clickMenuSlot(vararg slots: MenuSlot): Boolean =
         clickMenuTargets(*slots.map { Target(it) }.toTypedArray())
 
-    suspend fun clickMenuTargets(vararg attempts: Target): Boolean =
-        withContainer { gui ->
-            val match = attempts.firstNotNullOfOrNull {
-                it to findSlot(gui, it.menuSlot)!!
-            } ?: return@withContainer false
-            packetClick(match.second.id, match.first.button)
-            true
-        }
+    suspend fun clickMenuTargets(vararg attempts: Target): Boolean {
+        val match = attempts.firstNotNullOfOrNull {
+            it to findSlot(it.menuSlot)!!
+        } ?: return false
+        packetClick(match.second.id, match.first.button)
+        return true
+    }
 
     suspend fun clickMenuTargetPaginated(vararg attempts: Target): Boolean {
-        return withContainer { gui ->
-            val match = attempts.firstNotNullOfOrNull {
-                try {
-                    it to findSlot(gui, it.menuSlot)
-                } catch (e: Exception) {
-                    null
-                }
+        val match = attempts.firstNotNullOfOrNull {
+            try {
+                it to findSlot(it.menuSlot)
+            } catch (e: Exception) {
+                null
             }
+        }
 
-            if (match == null) {
-                val nextPageSlot = findSlot(gui, GlobalMenuItems.NEXT_PAGE, true)
-                if (nextPageSlot != null) {
-                    clickMenuSlot(GlobalMenuItems.NEXT_PAGE)
-                    delay(200)
-                    if (clickMenuTargetPaginated(*attempts)) {
-                        return true
-                    }
+        if (match == null) {
+            val nextPageSlot = findSlot(GlobalMenuItems.NEXT_PAGE, true)
+            if (nextPageSlot != null) {
+                clickMenuSlot(GlobalMenuItems.NEXT_PAGE)
+                delay(200)
+                if (clickMenuTargetPaginated(*attempts)) {
+                    return true
                 }
-                false
-            } else {
-                packetClick(match.second!!.id, match.first.button)
-                true
             }
+            return false
+        } else {
+            packetClick(match.second!!.id, match.first.button)
+            return true
         }
     }
 
-    fun clickPlayerSlot(slot: Int, button: Int = 0) =
-        withContainer { gui ->
-            val playerSlot = slot + gui.screenHandler.slots.size - 45
-            packetClick(playerSlot, button)
-            true
-        }
+    fun clickPlayerSlot(slot: Int, button: Int = 0) {
+        val gui = MC.currentScreen as? GenericContainerScreen ?: throw ClassCastException("Expected GenericContainerScreen but found ${MC.currentScreen?.javaClass?.name}")
+        val playerSlot = slot + gui.screenHandler.slots.size - 45
+        packetClick(playerSlot, button)
+    }
 
     object GlobalMenuItems {
         val NEXT_PAGE = MenuSlot(Items.ARROW, "Left-click for next page!")

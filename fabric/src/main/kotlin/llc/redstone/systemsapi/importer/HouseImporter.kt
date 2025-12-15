@@ -1,15 +1,10 @@
 package llc.redstone.systemsapi.importer
 
 import llc.redstone.systemsapi.SystemsAPI.MC
-import llc.redstone.systemsapi.api.Command
-import llc.redstone.systemsapi.api.Event
-import llc.redstone.systemsapi.api.Menu
+import llc.redstone.systemsapi.api.*
 import llc.redstone.systemsapi.api.Function
-import llc.redstone.systemsapi.api.House
-import llc.redstone.systemsapi.api.Region
 import llc.redstone.systemsapi.util.CommandUtils.getTabCompletions
 import llc.redstone.systemsapi.util.MenuUtils
-import llc.redstone.systemsapi.util.fail
 
 internal object HouseImporter : House {
     override suspend fun getCommand(name: String): Command? {
@@ -55,7 +50,6 @@ internal object HouseImporter : House {
 
     override suspend fun getMenu(title: String): Menu? {
         val menuImporter = MenuImporter(title)
-        this.fail("test")
         return if (menuImporter.exists()) menuImporter else null
     }
 
@@ -81,7 +75,7 @@ internal object HouseImporter : House {
         try {
             MenuUtils.onOpen("Edit: $name")
         } catch (e: Exception) {
-            error("[createRegion] Could not create region, make sure you have a region selection made")
+            throw IllegalStateException("Could not create region, make sure you have a region selection made")
         }
         return regionImporter
     }

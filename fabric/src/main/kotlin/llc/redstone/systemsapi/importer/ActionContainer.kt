@@ -1,12 +1,8 @@
 package llc.redstone.systemsapi.importer
 
-import kotlinx.coroutines.delay
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.data.Action
 import llc.redstone.systemsapi.data.DisplayName
-import llc.redstone.systemsapi.data.Keyed
-import llc.redstone.systemsapi.data.Location
-import llc.redstone.systemsapi.data.StatValue
 import llc.redstone.systemsapi.data.VariableHolder
 import llc.redstone.systemsapi.util.ItemUtils.loreLines
 import llc.redstone.systemsapi.util.MenuUtils
@@ -17,16 +13,12 @@ import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.item.Items
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
-import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.findAnnotations
-import kotlin.reflect.full.isSubclassOf
-import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
-import kotlin.reflect.full.starProjectedType
 
 //The title of the actions gui, either Actions: <name> or Edit Actions
-class ActionContainer(val title: String = MC.currentScreen?.title?.string ?: error("No screen is currently open")) {
+class ActionContainer(val title: String = MC.currentScreen?.title?.string ?: throw IllegalStateException("No screen is currently open")) {
     companion object {
         private val slots = mutableMapOf(
             0 to 10,
@@ -59,9 +51,9 @@ class ActionContainer(val title: String = MC.currentScreen?.title?.string ?: err
         MenuUtils.onOpen(title)
 
         val gui = MC.currentScreen as? GenericContainerScreen
-            ?: error("Could not cast current screen to GenericContainerScreen")
+            ?: throw ClassCastException("Expected GenericContainerScreen but found ${MC.currentScreen?.javaClass?.name}")
 
-        if (MenuUtils.findSlot(gui, MenuItems.NO_ACTIONS, true) != null) return actions
+        if (MenuUtils.findSlot(MenuItems.NO_ACTIONS, true) != null) return actions
 
         for (slotIndex in slots.values) {
             val slot = gui.screenHandler.getSlot(slotIndex)
@@ -94,12 +86,10 @@ class ActionContainer(val title: String = MC.currentScreen?.title?.string ?: err
 
                     val returnValue = PropertySettings.export(title, prop, slot, slots[index + indexAddition]!!, value, colorValue)
                     if (returnValue is VariableHolder) {
-                        if (returnValue == VariableHolder.Player) {
-                            actionClass = Action.PlayerVariable::class
-                        } else if (returnValue == VariableHolder.Global) {
-                            actionClass = Action.GlobalVariable::class
-                        } else if (returnValue == VariableHolder.Team) {
-                            actionClass = Action.TeamVariable::class
+                        actionClass = when (returnValue) {
+                            VariableHolder.Player -> Action.PlayerVariable::class
+                            VariableHolder.Global -> Action.GlobalVariable::class
+                            VariableHolder.Team -> Action.TeamVariable::class
                         }
                         constructor = actionClass.primaryConstructor!!
                         parameters = constructor.parameters.toMutableList()
@@ -129,7 +119,7 @@ class ActionContainer(val title: String = MC.currentScreen?.title?.string ?: err
             }
         }
 
-        if (MenuUtils.findSlot(gui, MenuUtils.GlobalMenuItems.NEXT_PAGE, true) != null) {
+        if (MenuUtils.findSlot(MenuUtils.GlobalMenuItems.NEXT_PAGE, true) != null) {
             MenuUtils.clickMenuSlot(MenuUtils.GlobalMenuItems.NEXT_PAGE)
             actions.addAll(getActions())
         }
@@ -182,7 +172,7 @@ class ActionContainer(val title: String = MC.currentScreen?.title?.string ?: err
                 //Make sure we are in the right gui before continuing
                 MenuUtils.onOpen("Action Settings")
                 val gui = MC.currentScreen as? GenericContainerScreen
-                    ?: error("Could not cast current screen to GenericContainerScreen")
+                    ?: throw ClassCastException("Expected GenericContainerScreen but found ${MC.currentScreen?.javaClass?.name}")
 
                 //Place in the gui to click
                 val slotIndex = slots[index]!!

@@ -1,23 +1,10 @@
 package llc.redstone.systemsapi.importer
 
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 import llc.redstone.systemsapi.SystemsAPI.MC
-import llc.redstone.systemsapi.data.Action
-import llc.redstone.systemsapi.data.Condition
-import llc.redstone.systemsapi.data.CustomKey
-import llc.redstone.systemsapi.data.InventorySlot
-import llc.redstone.systemsapi.data.ItemStack
-import llc.redstone.systemsapi.data.Keyed
-import llc.redstone.systemsapi.data.KeyedCycle
-import llc.redstone.systemsapi.data.KeyedLabeled
-import llc.redstone.systemsapi.data.Location
-import llc.redstone.systemsapi.data.Pagination
-import llc.redstone.systemsapi.data.PropertyHolder
-import llc.redstone.systemsapi.data.StatOp
-import llc.redstone.systemsapi.data.StatValue
+import llc.redstone.systemsapi.data.*
 import llc.redstone.systemsapi.importer.ActionContainer.MenuItems
 import llc.redstone.systemsapi.importer.MenuImporter.MenuElementImporter.Companion.pending
 import llc.redstone.systemsapi.util.ItemUtils
@@ -27,7 +14,6 @@ import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
 import llc.redstone.systemsapi.util.MenuUtils.Target
 import llc.redstone.systemsapi.util.TextUtils
-import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.nbt.NbtOps
 import net.minecraft.screen.slot.Slot
 import java.lang.reflect.ParameterizedType
@@ -121,13 +107,11 @@ object PropertySettings {
                     MenuUtils.onOpen("Select Option")
 
                     if (operation.advanced) {
-                        val gui = MC.currentScreen as? GenericContainerScreen ?: return
-                        val operationSlot = MenuUtils.findSlot(gui, MenuItems.TOGGLE_ADVANCED_OPERATIONS)
-                        val line = operationSlot?.stack?.loreLine(4, false) ?: return
-                        val currentValue = line == "Disabled"
-                        if (currentValue) {
-                            MenuUtils.clickMenuSlot(MenuItems.TOGGLE_ADVANCED_OPERATIONS)
-                        }
+                        val advancedOperationsValue = MenuUtils.findSlot(MenuItems.TOGGLE_ADVANCED_OPERATIONS)
+                            ?.stack
+                            ?.loreLine(4, false)
+                            ?.equals("Enabled") ?: throw IllegalStateException("Failed to get the status of advanced operations toggle")
+                        if (advancedOperationsValue) MenuUtils.clickMenuSlot(MenuItems.TOGGLE_ADVANCED_OPERATIONS)
                     }
 
                     MenuUtils.clickMenuTargetPaginated(Target(MenuSlot(null, operation.key)))
@@ -180,9 +164,8 @@ object PropertySettings {
     private val genericContainer = ActionContainer("Edit Actions")
 
     suspend fun export(title: String, prop: KProperty1<out PropertyHolder, *>, actionSlot: Slot, propertySlotIndex: Int, value: String, colorValue: String): Any? {
-        val gui = MC.currentScreen as? GenericContainerScreen ?: error("[export] Could not cast currentScreen as GenericContainerScreen.")
 
-        var argValue = when (prop.returnType.classifier) {
+        val argValue = when (prop.returnType.classifier) {
             String::class -> colorValue
             Int::class -> value.toInt()
             Long::class -> value.toLong()
@@ -227,9 +210,6 @@ object PropertySettings {
                 MenuUtils.clickMenuSlot(MenuSlot(null, null, propertySlotIndex))
                 MenuUtils.onOpen("Select an Item")
 
-                val gui = MC.currentScreen as? GenericContainerScreen
-                    ?: error("[Item action] Could not cast currentScreen as GenericContainerScreen.")
-
                 val deferred = CompletableDeferred<net.minecraft.item.ItemStack>()
                 pending?.cancel()
                 pending = deferred
@@ -237,9 +217,6 @@ object PropertySettings {
                 val item = try {
                     MenuUtils.interactionClick(13, 0)
                     withTimeout(1_000) { deferred.await() }
-                } catch (e: TimeoutCancellationException) {
-                    if (pending === deferred) pending = null
-                    error("[getItem] Timed out waiting for item.")
                 } finally {
                     if (pending === deferred) pending = null
                 }
@@ -258,42 +235,46 @@ object PropertySettings {
             }
 
             Location::class -> {
-                if (value == "Invokers Location") {
-                    Location.CurrentLocation
-                } else if (value == "House Spawn Location") {
-                    Location.HouseSpawn
-                } else {
-                    val parts = value.split(",")
-                    val xPart = parts[0]
-                    val yPart = parts[1]
-                    val zPart = parts[2]
-                    val pitchPart = parts.getOrNull(3)?.split(": ")?.getOrNull(1)
-                    val yawPart = parts.getOrNull(4)?.split(": ")?.getOrNull(1)
+                when (value) {
+                    "Invokers Location" -> {
+                        Location.CurrentLocation
+                    }
+                    "House Spawn Location" -> {
+                        Location.HouseSpawn
+                    }
+                    else -> {
+                        val parts = value.split(",")
+                        val xPart = parts[0]
+                        val yPart = parts[1]
+                        val zPart = parts[2]
+                        val pitchPart = parts.getOrNull(3)?.split(": ")?.getOrNull(1)
+                        val yawPart = parts.getOrNull(4)?.split(": ")?.getOrNull(1)
 
-                    val relX = xPart.startsWith("~")
-                    val relY = yPart.startsWith("~")
-                    val relZ = zPart.startsWith("~")
-                    val relPitch = pitchPart?.startsWith("~") ?: false
-                    val relYaw = yawPart?.startsWith("~") ?: false
+                        val relX = xPart.startsWith("~")
+                        val relY = yPart.startsWith("~")
+                        val relZ = zPart.startsWith("~")
+                        val relPitch = pitchPart?.startsWith("~") ?: false
+                        val relYaw = yawPart?.startsWith("~") ?: false
 
-                    val x = xPart.removePrefix("~").toDoubleOrNull() ?: 0.0
-                    val y = yPart.removePrefix("~").toDoubleOrNull() ?: 0.0
-                    val z = zPart.removePrefix("~").toDoubleOrNull() ?: 0.0
-                    val pitch = pitchPart?.removePrefix("~")?.toFloatOrNull() ?: 0f
-                    val yaw = yawPart?.removePrefix("~")?.toFloatOrNull() ?: 0f
+                        val x = xPart.removePrefix("~").toDoubleOrNull() ?: 0.0
+                        val y = yPart.removePrefix("~").toDoubleOrNull() ?: 0.0
+                        val z = zPart.removePrefix("~").toDoubleOrNull() ?: 0.0
+                        val pitch = pitchPart?.removePrefix("~")?.toFloatOrNull() ?: 0f
+                        val yaw = yawPart?.removePrefix("~")?.toFloatOrNull() ?: 0f
 
-                    Location.Custom(
-                        relX = relX,
-                        relY = relY,
-                        relZ = relZ,
-                        relPitch = relPitch,
-                        relYaw = relYaw,
-                        x = x,
-                        y = y,
-                        z = z,
-                        pitch = pitch,
-                        yaw = yaw,
-                    )
+                        Location.Custom(
+                            relX = relX,
+                            relY = relY,
+                            relZ = relZ,
+                            relPitch = relPitch,
+                            relYaw = relYaw,
+                            x = x,
+                            y = y,
+                            z = z,
+                            pitch = pitch,
+                            yaw = yaw,
+                        )
+                    }
                 }
             }
             else -> null

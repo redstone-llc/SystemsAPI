@@ -2,16 +2,15 @@ package llc.redstone.systemsapi.importer
 
 import kotlinx.coroutines.delay
 import llc.redstone.systemsapi.SystemsAPI.MC
-import llc.redstone.systemsapi.util.CommandUtils
-import llc.redstone.systemsapi.util.MenuUtils
-import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
-import llc.redstone.systemsapi.util.MenuUtils.Target
 import llc.redstone.systemsapi.api.Function
-import llc.redstone.systemsapi.data.Action
 import llc.redstone.systemsapi.data.ItemStack
+import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.CommandUtils.getTabCompletions
 import llc.redstone.systemsapi.util.ItemUtils
 import llc.redstone.systemsapi.util.ItemUtils.loreLine
+import llc.redstone.systemsapi.util.MenuUtils
+import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
+import llc.redstone.systemsapi.util.MenuUtils.Target
 import llc.redstone.systemsapi.util.TextUtils
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.item.Item
@@ -51,7 +50,7 @@ internal class FunctionImporter(override var name: String) : Function {
     }
 
     override suspend fun setName(newName: String) {
-        if (newName.length !in 1..50) error(("[Function $name] Invalid title '$newName'. Must be between 1 and 50 characters long."))
+        if (newName.length !in 1..50) throw IllegalArgumentException("Title length must be in range 1..50")
         openFunctionEditMenu()
 
         MenuUtils.clickMenuSlot(MenuItems.RENAME_FUNCTION)
@@ -63,24 +62,23 @@ internal class FunctionImporter(override var name: String) : Function {
     override suspend fun getDescription(): String {
         openFunctionEditMenu()
 
-        val description = (MC.currentScreen as? GenericContainerScreen)
-            ?.let { gui -> MenuUtils.findSlot(gui, MenuItems.SET_DESCRIPTION) }
+        val description = MenuUtils.findSlot(MenuItems.SET_DESCRIPTION)
             ?.stack
             ?.loreLine(2, false, LoreFilters.RENAME_LORE_FILTER)
-            ?: error("[Function $name] Failed to get description.")
+                          ?: throw IllegalStateException("Failed to get description")
 
         return description
     }
 
     override suspend fun setDescription(newDescription: String) {
-        if (newDescription.length !in 1..120) error(("[Function $name] Invalid title '$newDescription'. Must be between 1 and 120 characters long."))
+        if (newDescription.length !in 1..120) throw IllegalArgumentException("Description length must be in range 1..120")
         openFunctionEditMenu()
 
-        val description = (MC.currentScreen as? GenericContainerScreen)
-            ?.let { gui -> MenuUtils.findSlot(gui, MenuItems.SET_DESCRIPTION) }
+        val description = MenuUtils.findSlot(MenuItems.SET_DESCRIPTION)
             ?.stack
             ?.loreLine(2, false, LoreFilters.RENAME_LORE_FILTER)
-            ?: error("[Function $name] Failed to set description to '$newDescription'.")
+                          ?: throw IllegalStateException("Failed to set description")
+
         if (description == newDescription) return
 
         MenuUtils.clickMenuSlot(MenuItems.SET_DESCRIPTION)
@@ -89,8 +87,8 @@ internal class FunctionImporter(override var name: String) : Function {
 
     override suspend fun getIcon(): Item {
         openFunctionEditMenu()
-        val gui = MC.currentScreen as? GenericContainerScreen ?: error("[Function $name] getIcon: Failed to cast currentScreen as GenericContainerScreen.")
-        val slot = MenuUtils.findSlot(gui, MenuItems.EDIT_ICON) ?: error("[Function $name] getIcon: Failed to find EDIT_ICON.")
+        val gui = MC.currentScreen as? GenericContainerScreen ?: throw ClassCastException("Expected GenericContainerScreen but found ${MC.currentScreen?.javaClass?.name}")
+        val slot = MenuUtils.findSlot(MenuItems.EDIT_ICON) ?: throw IllegalStateException("Failed to find EDIT_ICON")
         return slot.stack.item
     }
 
@@ -109,30 +107,28 @@ internal class FunctionImporter(override var name: String) : Function {
     override suspend fun getAutomaticExecution(): Int {
         openFunctionEditMenu()
 
-        val ticks = (MC.currentScreen as? GenericContainerScreen)
-            ?.let { gui -> MenuUtils.findSlot(gui, MenuItems.AUTOMATIC_EXECUTION) }
+        val ticks = MenuUtils.findSlot( MenuItems.AUTOMATIC_EXECUTION)
             ?.stack
             ?.loreLine(5, false)
             ?.split(" ")
             ?.getOrNull(1)
             ?.let { value -> if (value == "Disabled") 0 else value.toIntOrNull() }
-            ?: error("[Function $name] Failed to get automatic execution.")
+            ?: throw IllegalStateException("Failed to get automatic execution")
 
         return ticks
     }
 
     override suspend fun setAutomaticExecution(newAutomaticExecution: Int) {
-        if (newAutomaticExecution !in 0..18000) error("[Function $name] Invalid automatic execution ticks '$newAutomaticExecution'. Must be between 1 and 18000.")
+        if (newAutomaticExecution !in 0..18000) throw IllegalArgumentException("Automatic execution ticks must be in range 1..18000")
         openFunctionEditMenu()
 
-        val ticks = (MC.currentScreen as? GenericContainerScreen)
-            ?.let { gui -> MenuUtils.findSlot(gui, MenuItems.AUTOMATIC_EXECUTION) }
+        val ticks = MenuUtils.findSlot(MenuItems.AUTOMATIC_EXECUTION)
             ?.stack
             ?.loreLine(5, false)
             ?.split(" ")
             ?.getOrNull(1)
             ?.let { value -> if (value == "Disabled") 0 else value.toIntOrNull() }
-            ?: error("[Function $name] Failed to set automatic execution to '$newAutomaticExecution'.")
+            ?: throw IllegalStateException("Failed to set automatic execution")
         if (ticks == newAutomaticExecution) return
 
         MenuUtils.clickMenuSlot(MenuItems.AUTOMATIC_EXECUTION)

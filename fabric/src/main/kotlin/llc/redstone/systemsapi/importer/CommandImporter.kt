@@ -3,7 +3,6 @@ package llc.redstone.systemsapi.importer
 import kotlinx.coroutines.delay
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.api.Command
-import llc.redstone.systemsapi.data.Action
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.CommandUtils.getTabCompletions
 import llc.redstone.systemsapi.util.ItemUtils.loreLine
@@ -52,14 +51,13 @@ internal class CommandImporter(override var name: String) : Command {
     override suspend fun getCommandMode(): Command.CommandMode {
         openCommandEditMenu()
 
-        val mode = (MC.currentScreen as? GenericContainerScreen)
-            ?.let { gui -> MenuUtils.findSlot(gui, MenuItems.TOGGLE_COMMAND_MODE) }
+        val mode = MenuUtils.findSlot(MenuItems.TOGGLE_COMMAND_MODE)
             ?.stack
             ?.loreLine(1, false)
             ?.split(" ")
             ?.getOrNull(1)
             ?.let { value -> if (value == "Self") Command.CommandMode.SELF else Command.CommandMode.TARGETED }
-            ?: error("[Command $name] Failed to get required group priority.")
+                   ?: throw IllegalStateException("Failed to find the command mode")
 
         return mode
     }
@@ -67,14 +65,13 @@ internal class CommandImporter(override var name: String) : Command {
     override suspend fun setCommandMode(newCommandMode: Command.CommandMode) {
         openCommandEditMenu()
 
-        val mode = (MC.currentScreen as? GenericContainerScreen)
-            ?.let { gui -> MenuUtils.findSlot(gui, MenuItems.TOGGLE_COMMAND_MODE) }
+        val mode = MenuUtils.findSlot(MenuItems.TOGGLE_COMMAND_MODE)
             ?.stack
             ?.loreLine(1, false)
             ?.split(" ")
             ?.getOrNull(1)
             ?.let { value -> if (value == "Self") Command.CommandMode.SELF else Command.CommandMode.TARGETED }
-            ?: error("[Command $name] Failed to set required group priority to ${newCommandMode.name}.")
+                   ?: throw IllegalStateException("Failed to set the command mode to ${newCommandMode.name}")
         if (mode == newCommandMode) return
 
         MenuUtils.clickMenuSlot(MenuItems.TOGGLE_COMMAND_MODE)
@@ -83,14 +80,13 @@ internal class CommandImporter(override var name: String) : Command {
     override suspend fun getRequiredGroupPriority(): Int {
         openCommandEditMenu()
 
-        val priority = (MC.currentScreen as? GenericContainerScreen)
-            ?.let { gui -> MenuUtils.findSlot(gui, MenuItems.REQUIRED_GROUP_PRIORITY) }
+        val priority = MenuUtils.findSlot(MenuItems.REQUIRED_GROUP_PRIORITY)
             ?.stack
             ?.loreLine(4, false)
             ?.split(" ")
             ?.getOrNull(1)
             ?.toIntOrNull()
-            ?: error("[Command $name] Failed to get required group priority.")
+                       ?: throw IllegalStateException("Failed to get the required group priority")
 
         return priority
     }
@@ -98,14 +94,13 @@ internal class CommandImporter(override var name: String) : Command {
     override suspend fun setRequiredGroupPriority(newPriority: Int) {
         openCommandEditMenu()
 
-        val priority = (MC.currentScreen as? GenericContainerScreen)
-            ?.let { gui -> MenuUtils.findSlot(gui, MenuItems.REQUIRED_GROUP_PRIORITY) }
+        val priority = MenuUtils.findSlot(MenuItems.REQUIRED_GROUP_PRIORITY)
             ?.stack
             ?.loreLine(4, false)
             ?.split(" ")
             ?.getOrNull(1)
             ?.toIntOrNull()
-            ?: error("[Command $name] Failed to set required group priority to $newPriority.")
+                       ?: throw IllegalStateException("Failed to set the required group priority to $newPriority.")
         if (priority == newPriority) return
 
         MenuUtils.clickMenuSlot(MenuItems.REQUIRED_GROUP_PRIORITY)
@@ -115,24 +110,22 @@ internal class CommandImporter(override var name: String) : Command {
     override suspend fun getListed(): Boolean {
         openCommandEditMenu()
 
-        val listed = (MC.currentScreen as? GenericContainerScreen)
-            ?.let { gui -> MenuUtils.findSlot(gui, MenuItems.LISTED) }
+        val listed = MenuUtils.findSlot(MenuItems.LISTED)
             ?.stack
             ?.item
             ?.let { item -> item == Items.LIME_DYE }
-            ?: error("[Command $name] Failed to get listed.")
+                     ?: throw IllegalStateException("Failed to get the listed value")
 
         return listed
     }
     override suspend fun setListed(newListed: Boolean) {
         openCommandEditMenu()
 
-        val listed = (MC.currentScreen as? GenericContainerScreen)
-            ?.let { gui -> MenuUtils.findSlot(gui, MenuItems.LISTED) }
+        val listed = MenuUtils.findSlot(MenuItems.LISTED)
             ?.stack
             ?.item
             ?.let { item -> item == Items.LIME_DYE }
-            ?: error("[Command $name] Failed to set listed to ${newListed}.")
+                     ?: throw IllegalStateException("Failed to set the listed value to $newListed.")
         if (listed == newListed) return
 
         MenuUtils.clickMenuSlot(MenuItems.LISTED)

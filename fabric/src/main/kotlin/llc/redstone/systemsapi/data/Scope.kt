@@ -8,3 +8,5 @@ annotation class ItemScope()
 annotation class EventScope(
     vararg val events: Event.Events
 )
+annotation class ConditionalScope()
+annotation class MenuScope()

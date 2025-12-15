@@ -2,7 +2,6 @@ package llc.redstone.systemsapi.util
 
 import com.mojang.brigadier.suggestion.Suggestions
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withTimeout
 import llc.redstone.systemsapi.SystemsAPI.MC
 import net.minecraft.client.MinecraftClient
@@ -13,14 +12,14 @@ import java.util.concurrent.TimeUnit
 object CommandUtils {
     fun runCommand(command: String, delay: Long = 0L) {
         if (delay == 0L) {
-            MinecraftClient.getInstance().player?.networkHandler?.sendChatCommand(command)
-                ?: error("Could not run command $command")
+            MinecraftClient.getInstance().player
+                ?.networkHandler
+                ?.sendChatCommand(command) ?: throw IllegalStateException("Unable to send command $command")
         } else {
             CompletableFuture.runAsync({
-
-                MinecraftClient.getInstance().player?.networkHandler?.sendChatCommand(command)
-                    ?: error("Could not run command $command")
-
+                MinecraftClient.getInstance().player
+                    ?.networkHandler
+                    ?.sendChatCommand(command) ?: throw IllegalStateException("Unable to send command $command")
             }, CompletableFuture.delayedExecutor(delay, TimeUnit.MILLISECONDS))
         }
     }
@@ -38,11 +37,7 @@ object CommandUtils {
 
         try {
             MC.networkHandler?.sendPacket(RequestCommandCompletionsC2SPacket(1, partialCommand))
-                ?: error("Could not access Network Handler while looking for '$partialCommand...' tab completions.")
             return withTimeout(1_000) { deferred.await() }
-        } catch (e: TimeoutCancellationException) {
-            if (pending === deferred) pending = null
-            error("[getTabCompletions] Timed out waiting for '$partialCommand...' tab completions.")
         } finally {
             if (pending === deferred) pending = null
         }

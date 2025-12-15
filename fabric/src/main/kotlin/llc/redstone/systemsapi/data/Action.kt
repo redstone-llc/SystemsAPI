@@ -2,7 +2,10 @@
 
 package llc.redstone.systemsapi.data
 
-import kotlinx.serialization.*
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -21,7 +24,7 @@ sealed class Action(
     @Transient val actionName: String = ""
 ): PropertyHolder {
     @DisplayName("Conditional")
-    @Limit(15) @EventLimit(15)
+    @Limit(25) @EventLimit(40)
     @FunctionScope @EventScope
     data class Conditional(
         val conditions: List<Condition>,
@@ -89,7 +92,7 @@ sealed class Action(
     class ParkourCheckpoint : Action("PARKOUR_CHECKPOINT")
 
     @DisplayName("Give Item")
-    @Limit(15) @EventLimit(40)
+    @Limit(40)
     @AllScope
     data class GiveItem(
         val item: ItemStack?,
@@ -99,7 +102,7 @@ sealed class Action(
     ) : Action("GIVE_ITEM")
 
     @DisplayName("Remove Item")
-    @Limit(15) @EventLimit(40)
+    @Limit(40)
     @AllScope
     data class RemoveItem(val item: ItemStack?) : Action("REMOVE_ITEM")
 
@@ -226,12 +229,12 @@ sealed class Action(
 
     @DisplayName("Use/Remove Held Item")
     @Limit(1)
-    @AllScope
+    @ItemScope
     class UseHeldItem : Action("USE_HELD_ITEM")
 
     @DisplayName("Random Action")
     @Limit(25)
-    @AllScope
+    @FunctionScope @EventScope // TODO: ALL BUT ITEM SCOPE
     data class RandomAction(
         val actions: List<Action>,
     ) : Action("RANDOM_ACTION")
@@ -248,11 +251,11 @@ sealed class Action(
 
     @DisplayName("Exit")
     @Limit(1)
-    @AllScope
+    @ConditionalScope
     class Exit : Action("EXIT")
     
     @DisplayName("Enchant Held Item")
-    @Limit(23)
+    @Limit(25)
     @AllScope
     data class EnchantHeldItem(
         val enchantment: Enchantment,
@@ -276,11 +279,11 @@ sealed class Action(
 
     @DisplayName("Close Menu")
     @Limit(1)
-    @AllScope
+    @MenuScope
     class CloseMenu : Action("CLOSE_MENU")
 
     @DisplayName("Drop Item")
-    @Limit(25)
+    @Limit(5) // TODO: double check
     @AllScope
     data class DropItem(
         val item: ItemStack?,
@@ -311,27 +314,19 @@ sealed class Action(
     ) : Action("LAUNCH_TO_TARGET")
 
     @DisplayName("Set Player Weather")
-    @Limit(1)
+    @Limit(5)
     @AllScope
     data class SetPlayerWeather(val weather: Weather) : Action("SET_PLAYER_WEATHER")
 
     @DisplayName("Set Player Time")
-    @Limit(1)
+    @Limit(5)
     @AllScope
     data class SetPlayerTime(val time: Time) : Action("SET_PLAYER_TIME")
 
     @DisplayName("Toggle Nametag Display")
-    @Limit(1)
+    @Limit(5)
     @AllScope
-    data class ToggleNametagDisplay(val displayNametag: Boolean) :
-        Action("TOGGLE_NAMETAG_DISPLAY")
-
-    @DisplayName("Balance Player Team")
-    @Limit(1)
-    @AllScope
-    class BalancePlayerTeam : Action("BALANCE_PLAYER_TEAM")
-
-
+    data class ToggleNametagDisplay(val displayNametag: Boolean) : Action("TOGGLE_NAMETAG_DISPLAY")
 }
 
 interface Keyed {
@@ -351,7 +346,7 @@ object KeyedSerializer : KSerializer<Keyed> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Keyed", PrimitiveKind.STRING)
 
     override fun deserialize(decoder: Decoder): Keyed {
-        error("not implemented!")
+        TODO("not implemented!")
     }
 
     override fun serialize(encoder: Encoder, value: Keyed) {

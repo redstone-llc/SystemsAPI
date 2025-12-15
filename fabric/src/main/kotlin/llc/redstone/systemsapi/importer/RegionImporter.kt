@@ -3,7 +3,6 @@ package llc.redstone.systemsapi.importer
 import kotlinx.coroutines.delay
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.api.Region
-import llc.redstone.systemsapi.data.Action
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.CommandUtils.getTabCompletions
 import llc.redstone.systemsapi.util.MenuUtils
@@ -42,7 +41,7 @@ internal class RegionImporter(override var name: String) : Region {
     }
 
     override suspend fun setName(newName: String) {
-        if (newName.length !in 1..50) error(("[Region $name] Invalid title '$newName'. must be between 1 and 50 characters long."))
+        if (newName.length !in 1..50) throw IllegalArgumentException("Region name length must be in range 1..50")
         openRegionEditMenu()
 
         MenuUtils.clickMenuSlot(MenuItems.RENAME_FUNCTION)
@@ -69,8 +68,7 @@ internal class RegionImporter(override var name: String) : Region {
         val keys: Array<Region.PvpSettings> = Region.PvpSettings.entries.toTypedArray()
 
         for (pvpSetting in keys) {
-            val setting = MenuUtils.findSlot(MC.currentScreen as GenericContainerScreen, pvpSetting.item)
-                ?: error("Couldn't find slot for $pvpSetting")
+            val setting = MenuUtils.findSlot(pvpSetting.item) ?: throw IllegalStateException("Couldn't find slot for $pvpSetting")
             when (setting.stack.item) {
                 Items.LIME_DYE -> map.putIfAbsent(pvpSetting, true)
                 Items.LIGHT_GRAY_DYE -> map.putIfAbsent(pvpSetting, false)
@@ -86,8 +84,7 @@ internal class RegionImporter(override var name: String) : Region {
 
         val keys: Array<Region.PvpSettings> = Region.PvpSettings.entries.toTypedArray()
         for (pvpSetting in keys) {
-            val settingItem = MenuUtils.findSlot(MC.currentScreen as GenericContainerScreen, pvpSetting.item)
-                ?: error("Couldn't find slot for $pvpSetting")
+            val settingItem = MenuUtils.findSlot(pvpSetting.item) ?: throw IllegalStateException("Couldn't find slot for $pvpSetting")
             val settingValue = when (settingItem.stack.item) {
                 Items.LIME_DYE -> true
                 Items.LIGHT_GRAY_DYE -> false

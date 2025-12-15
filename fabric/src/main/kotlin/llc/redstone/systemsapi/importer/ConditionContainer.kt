@@ -1,14 +1,13 @@
 package llc.redstone.systemsapi.importer
 
 import llc.redstone.systemsapi.SystemsAPI.MC
-import llc.redstone.systemsapi.data.Action
 import llc.redstone.systemsapi.data.Condition
 import llc.redstone.systemsapi.data.DisplayName
 import llc.redstone.systemsapi.data.VariableHolder
 import llc.redstone.systemsapi.util.ItemUtils.loreLines
 import llc.redstone.systemsapi.util.MenuUtils
-import llc.redstone.systemsapi.util.MenuUtils.Target
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
+import llc.redstone.systemsapi.util.MenuUtils.Target
 import llc.redstone.systemsapi.util.TextUtils
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.item.Items
@@ -19,7 +18,6 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotations
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
-import kotlin.text.contains
 
 //The title of the actions gui, either Actions: <name> or Edit Actions
 object ConditionContainer {
@@ -96,9 +94,9 @@ object ConditionContainer {
 
         MenuUtils.onOpen("Edit Conditions")
         val gui = MC.currentScreen as? GenericContainerScreen
-            ?: error("[ConditionContainer] exportConditions: Could not cast currentScreen as GenericContainerScreen.")
+            ?: throw ClassCastException("Expected GenericContainerScreen but found ${MC.currentScreen?.javaClass?.name}")
 
-        if (MenuUtils.findSlot(gui, MenuItems.NO_CONDITIONS, true) != null) return conditions
+        if (MenuUtils.findSlot(MenuItems.NO_CONDITIONS, true) != null) return conditions
 
         for (slotIndex in slots.values) {
             val slot = gui.screenHandler.getSlot(slotIndex)
@@ -117,7 +115,7 @@ object ConditionContainer {
             var parameters = constructor.parameters.toMutableList()
             var conditionProperties = conditionClass.memberProperties
             var properties = mutableListOf<Pair<KProperty1<Condition, *>, KParameter?>>()
-            var toRun = mutableListOf<Consumer<Condition>>()
+            val toRun = mutableListOf<Consumer<Condition>>()
 
             for (parm in parameters) {
                 properties.add(conditionProperties.find { it.name == parm.name } as KProperty1<Condition, *> to parm)
@@ -139,12 +137,10 @@ object ConditionContainer {
                         return@forEachIndexed
                     }
                     if (returnValue is VariableHolder) {
-                        if (returnValue == VariableHolder.Player) {
-                            conditionClass = Condition.PlayerVariableRequirement::class
-                        } else if (returnValue == VariableHolder.Global) {
-                            conditionClass = Condition.GlobalVariableRequirement::class
-                        } else if (returnValue == VariableHolder.Team) {
-                            conditionClass = Condition.TeamVariableRequirement::class
+                        conditionClass = when (returnValue) {
+                            VariableHolder.Player -> Condition.PlayerVariableRequirement::class
+                            VariableHolder.Global -> Condition.GlobalVariableRequirement::class
+                            VariableHolder.Team -> Condition.TeamVariableRequirement::class
                         }
                         constructor = conditionClass.primaryConstructor!!
                         parameters = constructor.parameters.toMutableList()

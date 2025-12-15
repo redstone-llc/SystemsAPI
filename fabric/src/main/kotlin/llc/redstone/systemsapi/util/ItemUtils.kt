@@ -7,21 +7,20 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.nbt.NbtOps
 import net.minecraft.network.packet.c2s.play.CreativeInventoryActionC2SPacket
-import net.minecraft.server.command.CommandManager
 import net.minecraft.world.GameMode
 import kotlin.jvm.optionals.getOrNull
 
 object ItemUtils {
     fun ItemStack.giveItem(slot: Int) {
-        val player = MC.player ?: error("[giveItem] Could not get the player")
-        val gameMode = player.gameMode ?: error("[giveItem] Could not get the player's gamemode")
+        val gameMode = MC.player
+            ?.gameMode ?: throw IllegalStateException("Could not determine player's game mode")
         if (gameMode != GameMode.CREATIVE) CommandUtils.runCommand("/gmc")
 
         val pkt = CreativeInventoryActionC2SPacket(
             slot,
             this
         )
-        MC.networkHandler?.sendPacket(pkt) ?: error("Something went wrong while creating item $item")
+        MC.networkHandler?.sendPacket(pkt) ?: throw IllegalStateException("Something went wrong while creating item ${item.name}")
 
         when (gameMode) {
             GameMode.SURVIVAL -> CommandUtils.runCommand("/gms")
@@ -31,16 +30,18 @@ object ItemUtils {
     }
 
     fun ItemStack.loreLine(line: Int, color: Boolean, filter: (String) -> Boolean = { true }): String {
-        val loreLine = get(DataComponentTypes.LORE)?.lines?.getOrNull(line)
-            ?: error("Could not find lore line $line for item $this")
-        val loreString = TextUtils.convertTextToString(loreLine, color)
+        val loreString = get(DataComponentTypes.LORE)
+            ?.lines
+            ?.getOrNull(line)
+            ?.let { loreLine -> TextUtils.convertTextToString(loreLine, color) }
+                         ?: throw IllegalStateException("Could not find lore line")
         return loreString.takeIf(filter)
-            ?: error("Lore line '$loreString' for item $this did not pass filter.")
+               ?: throw IllegalStateException("Lore line '$loreString' for item $this did not pass filter")
     }
 
     fun ItemStack.loreLine(color: Boolean, filter: (String) -> Boolean = { true }): String? {
         val loreLines = get(DataComponentTypes.LORE)?.lines
-            ?: error("Could not find lore line in item $this which matched filter.")
+            ?: throw IllegalStateException("Could not find lore line in item \$this which matched filter")
         val loreLine = loreLines.firstOrNull { line -> filter(TextUtils.convertTextToString(line, color)) }
             ?: return null
         return TextUtils.convertTextToString(loreLine, color)
@@ -64,7 +65,7 @@ object ItemUtils {
     fun toNBT(itemStack: ItemStack): NbtCompound {
         return ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, itemStack).result()
             .getOrNull()?.asCompound()?.getOrNull()
-            ?: error("Could not convert itemstack to nbt")
+            ?: throw IllegalStateException("Could not convert item to nbt")
     }
 
     fun createFromNBT(nbt: NbtCompound): ItemStack {
