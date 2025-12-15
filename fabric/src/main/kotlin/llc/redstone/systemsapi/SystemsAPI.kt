@@ -8,12 +8,14 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 object SystemsAPI : ClientModInitializer {
-    val MOD_ID = "systemsapi"
-    val LOGGER: Logger = LoggerFactory.getLogger("SystemsAPI")
-    val VERSION = /*$ mod_version*/ "0.0.1";
-    val MINECRAFT = /*$ minecraft*/ "1.21.9";
+    internal val MOD_ID = "systemsapi"
+    internal val LOGGER: Logger = LoggerFactory.getLogger("SystemsAPI")
+    internal val VERSION = /*$ mod_version*/ "0.0.1";
+    internal val MINECRAFT = /*$ minecraft*/ "1.21.9";
     val MC: MinecraftClient
         get() = MinecraftClient.getInstance()
+
+    var importing = false
 
     override fun onInitializeClient() {
         LOGGER.info("Loaded v$VERSION for Minecraft $MINECRAFT.")

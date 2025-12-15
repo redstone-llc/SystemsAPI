@@ -2,10 +2,7 @@ package llc.redstone.test
 
 import com.github.shynixn.mccoroutine.fabric.launch
 import com.github.shynixn.mccoroutine.fabric.mcCoroutineConfiguration
-import com.mojang.authlib.yggdrasil.YggdrasilEnvironment
-import com.mojang.authlib.yggdrasil.YggdrasilUserApiService
 import llc.redstone.systemsapi.SystemsAPI
-import llc.redstone.systemsapi.api.Event
 import llc.redstone.systemsapi.data.Action.*
 import llc.redstone.systemsapi.data.Comparison
 import llc.redstone.systemsapi.data.Condition.*
@@ -32,17 +29,12 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallba
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.*
-import net.minecraft.client.session.ProfileKeys
-import net.minecraft.client.session.Session
 import net.minecraft.item.Items
-import net.minecraft.nbt.NbtOps
+import net.minecraft.nbt.NbtIo
 import net.minecraft.text.MutableText
 import net.minecraft.text.PlainTextContent.of
-import net.minecraft.util.ApiServices
 import java.awt.Color
-import java.net.Proxy
-import java.util.Optional
-import kotlin.jvm.optionals.getOrNull
+import kotlin.io.path.Path
 
 class TestMod : ClientModInitializer {
     val MOD_ID = "testmod"
@@ -62,49 +54,6 @@ class TestMod : ClientModInitializer {
         }
 
 
-        //Login to an alterning account
-        val account = AlteningAccount.fromToken("85ew7-hczbx@alt.com")
-        val (compatSession, service) = account.login()
-
-        val session = Session(
-            compatSession.username,
-            compatSession.uuid,
-            compatSession.token,
-            Optional.empty(),
-            Optional.empty(),
-            /*? <1.21.9 {*//* Session.AccountType.byName(compatSession.type) *//*?}*/
-        )
-
-        val profileKeys = runCatching {
-            // In this case the environment doesn't matter, as it is only used for the profile key
-            val environment = YggdrasilEnvironment.PROD.environment
-            val userAuthenticationService = YggdrasilUserApiService(session.accessToken, Proxy.NO_PROXY, environment)
-            ProfileKeys.create(userAuthenticationService, session, MC.runDirectory.toPath())
-        }.onFailure {
-            LOGGER.error("Failed to create profile keys for ${session.username} due to ${it.message}")
-        }.getOrDefault(ProfileKeys.MISSING)
-
-        var field = MC::class.java.getDeclaredField("session")
-        field.isAccessible = true
-        field.set(MC, session)
-
-        field = MC::class.java.getDeclaredField("apiServices")
-        field.isAccessible = true
-        field.set(MC, ApiServices.create(service, MC.runDirectory))
-
-        field = MC::class.java.getDeclaredField("profileKeys")
-        field.isAccessible = true
-        field.set(MC, profileKeys)
-
-        var ran = false
-//        ClientEntityEvents.ENTITY_LOAD.register { entity, world ->
-//            if (ran) {
-//                return@register
-//            }
-//            ran = true
-//            CommandUtils.runCommand("myhouses test", 200)
-//        }
-
         ClientCommandRegistrationCallback.EVENT.register { dispatcher, registryAccess ->
             dispatcher.register(
                 literal("testmod")
@@ -112,7 +61,6 @@ class TestMod : ClientModInitializer {
                         launch {
                             val itemstack = Items.BIRCH_STAIRS.defaultStack
                             val nbt = ItemUtils.toNBT(itemstack)
-
                             val menuSlot = SystemsAPI.getHousingImporter().getMenu("test")!!.getMenuElement(10)
                             val testLocation = Location.Custom(
                                 x = 1.0,
