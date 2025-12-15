@@ -2,6 +2,7 @@ package llc.redstone.systemsapi.importer
 
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.data.Action
+import llc.redstone.systemsapi.data.ActionDefinition
 import llc.redstone.systemsapi.data.DisplayName
 import llc.redstone.systemsapi.data.VariableHolder
 import llc.redstone.systemsapi.util.ItemUtils.loreLines
@@ -156,7 +157,7 @@ class ActionContainer(val title: String = MC.currentScreen?.title?.string ?: thr
             }
 
             //Get the Display Name of the action and add it
-            val displayName = (action::class.annotations.find { it is DisplayName } as DisplayName).value
+            val displayName = (action::class.annotations.find { it is ActionDefinition } as ActionDefinition).displayName
             MenuUtils.clickMenuTargetPaginated(Target(MenuSlot(null, displayName)))
 
             //For change variable, because the holder isn't found in the parameters
