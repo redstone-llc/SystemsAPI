@@ -30,11 +30,9 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.*
 import net.minecraft.item.Items
-import net.minecraft.nbt.NbtIo
 import net.minecraft.text.MutableText
 import net.minecraft.text.PlainTextContent.of
 import java.awt.Color
-import kotlin.io.path.Path
 
 class TestMod : ClientModInitializer {
     val MOD_ID = "testmod"
@@ -61,7 +59,7 @@ class TestMod : ClientModInitializer {
                         launch {
                             val itemstack = Items.BIRCH_STAIRS.defaultStack
                             val nbt = ItemUtils.toNBT(itemstack)
-                            val menuSlot = SystemsAPI.getHousingImporter().getMenu("test")!!.getMenuElement(10)
+                            val function = SystemsAPI.getHousingImporter().getFunction("test")!!
                             val testLocation = Location.Custom(
                                 x = 1.0,
                                 y = 2.0,
@@ -281,8 +279,21 @@ class TestMod : ClientModInitializer {
                                     }
                                 }
 
-                                menuSlot.setItem(itemstack)
-                                menuSlot.getActionContainer()?.addActions(randomActions)
+                                val actions = listOf(
+                                    GiveItem(
+                                        item = ItemStack(
+                                            nbt = nbt,
+                                            relativeFileLocation = "test"
+                                        ),
+                                        allowMultiple = false,
+                                        inventorySlot = InventorySlot.HelmetSlot(),
+                                        replaceExistingItem = false
+                                    )
+                                )
+
+                                function.getActionContainer().getActions().forEach {
+                                    println(it)
+                                }
                             } catch (e: Exception) {
                                 MC.player?.sendMessage(
                                     MutableText.of(

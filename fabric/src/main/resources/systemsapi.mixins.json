@@ -4,6 +4,7 @@
   "package": "llc.redstone.systemsapi.mixins",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "CancelPauseScreenMixin",
     "ClientPlayNetworkHandlerMixin",
     "ItemReceiveMixin",
     "ScreenRenderMixin"

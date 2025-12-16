@@ -4,6 +4,8 @@ import llc.redstone.systemsapi.importer.ActionContainer
 import llc.redstone.systemsapi.importer.ConditionContainer
 
 interface House {
+    fun isImporting(): Boolean
+    fun setImporting(importing: Boolean)
     suspend fun getCommand(name: String): Command?
     suspend fun createCommand(name: String): Command
     suspend fun getAllCommands(): List<Command>

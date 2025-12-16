@@ -7,6 +7,16 @@ import llc.redstone.systemsapi.util.CommandUtils.getTabCompletions
 import llc.redstone.systemsapi.util.MenuUtils
 
 internal object HouseImporter : House {
+    private var importing = false
+    override fun isImporting(): Boolean {
+        return importing
+    }
+
+    override fun setImporting(importing: Boolean) {
+        this.importing = importing
+    }
+
+
     override suspend fun getCommand(name: String): Command? {
         val commandImporter = CommandImporter(name)
         return if (commandImporter.exists()) commandImporter else null
