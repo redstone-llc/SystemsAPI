@@ -124,7 +124,7 @@ object ConditionContainer {
             suspend fun args(indexAddition: Int = 1): MutableMap<KParameter, Any?> {
                 val args = mutableMapOf<KParameter, Any?>()
                 properties.forEachIndexed { index, (prop, param) ->
-                    val colorValue = loreLines.getOrNull(index + indexAddition - 1)?.split(": ")?.drop(1)?.joinToString(": ") ?: return@forEachIndexed
+                    val colorValue = (loreLines.getOrNull(index + indexAddition - 1)?.split(": ")?.drop(1)?.joinToString(": ") ?: return@forEachIndexed).replaceFirst("&f", "")
                     val value = colorValue.replace(Regex("&[0-9a-fk-or]"), "")
 
                     val returnValue = PropertySettings.export("Edit Conditions", prop, slot, slots[index + indexAddition]!!, value, colorValue)

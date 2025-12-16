@@ -10,6 +10,7 @@ import llc.redstone.systemsapi.importer.MenuImporter.MenuElementImporter.Compani
 import llc.redstone.systemsapi.util.ItemUtils
 import llc.redstone.systemsapi.util.ItemUtils.giveItem
 import llc.redstone.systemsapi.util.ItemUtils.loreLine
+import llc.redstone.systemsapi.util.ItemUtils.loreLines
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
 import llc.redstone.systemsapi.util.MenuUtils.Target
@@ -28,27 +29,30 @@ import kotlin.reflect.jvm.javaField
 object PropertySettings {
     suspend fun import(property: KProperty1<out PropertyHolder, *>, slot: Slot, value: Any?) {
         val slotIndex = slot.id
+        val index = slot.stack.loreLines(false).indexOfFirst { it == "Current Value:" }
+        val currentValueColor = slot.stack.loreLines(true).getOrNull(index + 1) ?: ""
+        val currentValue = currentValueColor.replace(Regex("&[0-9a-fk-or]"), "")
+
         when (property.returnType.classifier) {
             Int::class, Double::class, StatValue::class -> {
-                MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
-                TextUtils.input(value.toString(), 100L)
+                if (currentValue != value.toString()) {
+                    MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
+                    TextUtils.input(value.toString(), 100L)
+                }
             }
 
             String::class -> {
-                MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
                 val pagination = property.annotations.find { it is Pagination }
                 if (pagination != null) {
+                    if (currentValue == value) return
+                    MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
                     MenuUtils.onOpen("Select Option")
                     MenuUtils.clickMenuTargetPaginated(Target(MenuSlot(null, value.toString())))
                     return
                 }
-                TextUtils.input(value.toString(), 100L)
-            }
 
-            InventorySlot::class -> {
+                if (currentValueColor == value) return
                 MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
-                MenuUtils.onOpen("Select Inventory Slot")
-                MenuUtils.clickMenuSlot(MenuItems.MANUAL_INPUT)
                 TextUtils.input(value.toString(), 100L)
             }
 
@@ -66,9 +70,7 @@ object PropertySettings {
             }
 
             Boolean::class -> {
-                val line = slot.stack.loreLine(false, filter = { str -> str == "Disabled" || str == "Enabled" })
-                    ?: return
-                val currentValue = line == "Enabled"
+                val currentValue = currentValue == "Enabled"
                 val boolValue = value as Boolean
                 if (currentValue != boolValue) {
                     MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
@@ -98,7 +100,24 @@ object PropertySettings {
                 }
             }
 
+            InventorySlot::class -> {
+                if (currentValue == value.toString()) return
+
+                val operation = value as InventorySlot
+
+                MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
+                MenuUtils.onOpen("Select Inventory Slot")
+                MenuUtils.clickMenuTargetPaginated(Target(MenuSlot(null, operation.key)))
+
+                if (operation::class.annotations.find { it is CustomKey } != null) {
+                    TextUtils.input(value.toString(), 200L)
+                }
+                return
+            }
+
             StatOp::class -> {
+                if (currentValue == value.toString()) return
+
                 val operation = value as StatOp
 
                 val value = slot.stack.loreLine(false, filter = { str -> str == operation.key })
@@ -143,7 +162,8 @@ object PropertySettings {
                 return
             }
 
-            if (slot.stack.loreLine(false, filter = { str -> str == value.key }) == null) {
+            println("Importing keyed property ${property.name} with value ${keyed.key}")
+            if (currentValue != keyed.key) {
                 MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
                 MenuUtils.onOpen("Select Option")
                 if (keyed is KeyedLabeled) {
@@ -236,6 +256,9 @@ object PropertySettings {
 
             Location::class -> {
                 when (value) {
+                    "Not Set" -> {
+                        null
+                    }
                     "Invokers Location" -> {
                         Location.CurrentLocation
                     }

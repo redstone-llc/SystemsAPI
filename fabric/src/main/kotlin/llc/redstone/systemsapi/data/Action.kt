@@ -23,7 +23,7 @@ import net.minecraft.nbt.NbtCompound
 // TODO: verify these allowedScopes
 
 sealed class Action(
-    @Transient val actionName: String = ""
+    @Transient private val actionName: String = ""
 ): PropertyHolder {
     @ActionDefinition(
         displayName = "Conditional",
@@ -274,7 +274,7 @@ sealed class Action(
         ]
     )
     data class TeleportPlayer(
-        val location: Location,
+        val location: Location?,
         val preventInsideBlocks: Boolean = false,
     ) : Action("TELEPORT_PLAYER")
 
@@ -308,7 +308,7 @@ sealed class Action(
             Scope(ALL)
         ]
     )
-    data class SetCompassTarget(val location: Location) : Action("SET_COMPASS_TARGET")
+    data class SetCompassTarget(val location: Location?) : Action("SET_COMPASS_TARGET")
 
     @ActionDefinition(
         displayName = "Set Gamemode",
@@ -579,6 +579,11 @@ sealed class Location(override val key: String): Keyed {
 
     object CurrentLocation : Location("Current Location")
 
+    override fun toString(): String {
+        println(super.toString())
+        return super.toString()
+    }
+
     companion object {
         fun fromKey(key: String): Location? = when (key) {
             HouseSpawn.key -> HouseSpawn
@@ -635,7 +640,7 @@ sealed class StatValue {
     }
 }
 
-sealed class InventorySlot(override val key: String, val slot: Int): Keyed {
+open class InventorySlot(override val key: String, val slot: Int): Keyed {
     @CustomKey
     data class ManualInput(val inputSlot: Int) : InventorySlot("Manual Input", inputSlot)
     class HandSlot() : InventorySlot("Hand Slot", -2)

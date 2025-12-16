@@ -15,8 +15,6 @@ object SystemsAPI : ClientModInitializer {
     val MC: MinecraftClient
         get() = MinecraftClient.getInstance()
 
-    var importing = false
-
     override fun onInitializeClient() {
         LOGGER.info("Loaded v$VERSION for Minecraft $MINECRAFT.")
 

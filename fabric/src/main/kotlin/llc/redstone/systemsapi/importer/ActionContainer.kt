@@ -47,85 +47,107 @@ class ActionContainer(val title: String = MC.currentScreen?.title?.string ?: thr
     }
 
     suspend fun getActions(): List<Action> {
-        val actions = mutableListOf<Action>()
+        HouseImporter.setImporting(true)
+        try {
+            val actions = mutableListOf<Action>()
 
-        MenuUtils.onOpen(title)
+            MenuUtils.onOpen(title)
 
-        val gui = MC.currentScreen as? GenericContainerScreen
-            ?: throw ClassCastException("Expected GenericContainerScreen but found ${MC.currentScreen?.javaClass?.name}")
+            val gui = MC.currentScreen as? GenericContainerScreen
+                ?: throw ClassCastException("Expected GenericContainerScreen but found ${MC.currentScreen?.javaClass?.name}")
 
-        if (MenuUtils.findSlot(MenuItems.NO_ACTIONS, true) != null) return actions
+            if (MenuUtils.findSlot(MenuItems.NO_ACTIONS, true) != null) return actions
 
-        for (slotIndex in slots.values) {
-            val slot = gui.screenHandler.getSlot(slotIndex)
-            if (!slot.hasStack()) break //No more actions
+            for (slotIndex in slots.values) {
+                val slot = gui.screenHandler.getSlot(slotIndex)
+                if (!slot.hasStack()) break //No more actions
 
-            val item = slot.stack
-            val loreLines = item.loreLines(true).filter {
-                it.contains(":") //Only care about lines with properties
-            }
-
-            val name = TextUtils.convertTextToString(item.name, false)
-            var actionClass = Action::class.sealedSubclasses.firstOrNull() { it.findAnnotations(DisplayName::class).any { ann -> ann.value == name } }
-                ?: continue
-
-            var constructor = actionClass.primaryConstructor!!
-            var parameters = constructor.parameters.toMutableList()
-            var actionProperties = actionClass.memberProperties
-            var properties = mutableListOf<Pair<KProperty1<Action, *>, KParameter?>>()
-
-            for (parm in parameters) {
-                properties.add(actionProperties.find { it.name == parm.name } as KProperty1<Action, *> to parm)
-            }
-
-            suspend fun args(indexAddition: Int = 0): MutableMap<KParameter, Any?> {
-                val args = mutableMapOf<KParameter, Any?>()
-                properties.forEachIndexed { index, (prop, param) ->
-                    if (param == null) return@forEachIndexed
-                    val colorValue = loreLines.getOrNull(index + indexAddition)?.split(": ")?.drop(1)?.joinToString(": ") ?: return@forEachIndexed
-                    val value = colorValue.replace(Regex("&[0-9a-fk-or]"), "")
-
-                    val returnValue = PropertySettings.export(title, prop, slot, slots[index + indexAddition]!!, value, colorValue)
-                    if (returnValue is VariableHolder) {
-                        actionClass = when (returnValue) {
-                            VariableHolder.Player -> Action.PlayerVariable::class
-                            VariableHolder.Global -> Action.GlobalVariable::class
-                            VariableHolder.Team -> Action.TeamVariable::class
-                        }
-                        constructor = actionClass.primaryConstructor!!
-                        parameters = constructor.parameters.toMutableList()
-                        actionProperties = actionClass.memberProperties
-                        properties = mutableListOf()
-                        for (parm in parameters) {
-                            properties.add(actionProperties.find { it.name == parm.name } as KProperty1<Action, *> to parm)
-                        }
-                        // I hate recursion, but I think this is the cleanest way to handle it
-                        return args(1)
-                    }
-
-                    args[param] = returnValue
+                val item = slot.stack
+                val loreLines = item.loreLines(true).filter {
+                    it.contains(":") //Only care about lines with properties
                 }
-                return args
-            }
-            val args = args()
 
-            if (args.size != constructor.parameters.size) {
-                actionClass.constructors.forEach { newCon ->
-                    if (constructor.parameters.size == newCon.parameters.size) {
-                        actions.add(newCon.callBy(args))
-                    }
+                val name = TextUtils.convertTextToString(item.name, false)
+                var actionClass = Action::class.sealedSubclasses.firstOrNull() {
+                    it.findAnnotations(ActionDefinition::class).any { ann -> ann.displayName == name }
                 }
-            } else {
-                actions.add(constructor.callBy(args))
+                    ?: continue
+
+                var constructor = actionClass.primaryConstructor!!
+                var parameters = constructor.parameters.toMutableList()
+                var actionProperties = actionClass.memberProperties
+                var properties = mutableListOf<Pair<KProperty1<Action, *>, KParameter?>>()
+
+                for (parm in parameters) {
+                    properties.add(actionProperties.find { it.name == parm.name } as KProperty1<Action, *> to parm)
+                }
+
+                suspend fun args(indexAddition: Int = 0): MutableMap<KParameter, Any?> {
+                    val args = mutableMapOf<KParameter, Any?>()
+                    properties.forEachIndexed { index, (prop, param) ->
+                        if (param == null) return@forEachIndexed
+                        val colorValue =
+                            (loreLines.getOrNull(index + indexAddition)?.split(": ")?.drop(1)?.joinToString(": ")
+                                ?: return@forEachIndexed).replaceFirst("&f", "")
+                        val value = colorValue.replace(Regex("&[0-9a-fk-or]"), "")
+
+                        val returnValue = PropertySettings.export(
+                            title,
+                            prop,
+                            slot,
+                            slots[index + indexAddition]!!,
+                            value,
+                            colorValue
+                        )
+                        if (returnValue is VariableHolder) {
+                            actionClass = when (returnValue) {
+                                VariableHolder.Player -> Action.PlayerVariable::class
+                                VariableHolder.Global -> Action.GlobalVariable::class
+                                VariableHolder.Team -> Action.TeamVariable::class
+                            }
+                            constructor = actionClass.primaryConstructor!!
+                            parameters = constructor.parameters.toMutableList()
+                            actionProperties = actionClass.memberProperties
+                            properties = mutableListOf()
+                            for (parm in parameters) {
+                                properties.add(actionProperties.find { it.name == parm.name } as KProperty1<Action, *> to parm)
+                            }
+                            // I hate recursion, but I think this is the cleanest way to handle it
+                            return args(1)
+                        }
+
+                        args[param] = returnValue
+                    }
+                    return args
+                }
+
+                val args = args()
+
+                if (args.size != constructor.parameters.size) {
+                    actionClass.constructors.forEach { newCon ->
+                        if (constructor.parameters.size == newCon.parameters.size) {
+                            actions.add(newCon.callBy(args))
+                        }
+                    }
+                } else {
+                    actions.add(constructor.callBy(args))
+                }
             }
-        }
 
-        if (MenuUtils.findSlot(MenuUtils.GlobalMenuItems.NEXT_PAGE, true) != null) {
-            MenuUtils.clickMenuSlot(MenuUtils.GlobalMenuItems.NEXT_PAGE)
-            actions.addAll(getActions())
-        }
+            MenuUtils.onOpen(title)
+            if (MenuUtils.findSlot(MenuUtils.GlobalMenuItems.NEXT_PAGE, true) != null) {
+                MenuUtils.clickMenuSlot(MenuUtils.GlobalMenuItems.NEXT_PAGE)
+                actions.addAll(getActions())
+            }
 
-        return actions
+            HouseImporter.setImporting(false)
+
+            return actions
+        } catch (e: Exception) {
+            e.printStackTrace()
+            HouseImporter.setImporting(false)
+            throw e
+        }
     }
 
     suspend fun setActions(newActions: List<Action>) {
@@ -138,6 +160,8 @@ class ActionContainer(val title: String = MC.currentScreen?.title?.string ?: thr
 
     //List of actions to add to the container
     suspend fun addActions(actions: List<Action>) {
+        HouseImporter.setImporting(true)
+
         for (action in actions) {
             //Wait for the "Actions: <name>" or "Edit Actions" to open
             //We do this every iteration to make sure we are right back at the Actions page
@@ -188,6 +212,8 @@ class ActionContainer(val title: String = MC.currentScreen?.title?.string ?: thr
             }
             MenuUtils.onOpen(title)
         }
+
+        HouseImporter.setImporting(false)
     }
 
     object MenuItems {
