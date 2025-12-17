@@ -40,7 +40,30 @@ object TextUtils {
         }, delayedExecutor(delayMs, TimeUnit.MILLISECONDS))
     }
 
+    internal suspend fun reinput() {
+        val message = MenuUtils.lastInput ?: return
+        val screen = MC.currentScreen
+        if (screen is AnvilScreen) {
+            delay(100)
+            if (screen.screenHandler.setNewItemName(message)) {
+                MC.networkHandler?.sendPacket(RenameItemC2SPacket(message))
+            }
+            MenuUtils.interactionClick(2, 0)
+        } else if (screen is ChatScreen) { //If they have Housing Toolbox and the setting is enabled
+            sendMessage(message)
+        } else if (screen == null) {
+            MC.setScreen(
+                ChatScreen(
+                    /*? >=1.21.9 {*/ "", false /*?} else {*//* "" *//*?}*/
+                )
+            )
+            MenuUtils.onOpen(null, ChatScreen::class)
+            sendMessage(message)
+        }
+    }
+
     suspend fun input(message: String) {
+        MenuUtils.lastInput = message
         val screen = MenuUtils.onOpen(null, AnvilScreen::class, ChatScreen::class, null)
         if (screen is AnvilScreen) {
             delay(100)

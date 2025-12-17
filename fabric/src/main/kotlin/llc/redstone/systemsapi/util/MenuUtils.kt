@@ -33,6 +33,7 @@ object MenuUtils {
 
     //Used for error correction
     private var lastSlot: MenuSlot? = null
+    var lastInput: String? = null
     private var lastButton = 0
     private var attempted: Boolean = false
 
@@ -74,6 +75,7 @@ object MenuUtils {
             waitingOn = null
             currentScreen = null
             lastClick = null
+            lastInput = null
             attempted = false
         }
         attempts = 0
@@ -86,6 +88,7 @@ object MenuUtils {
                 } else {
                     attempted = true
                     lastSlot?.let { slot -> clickMenuTargets(Target(slot, lastButton)) }
+                    lastInput?.let { TextUtils.reinput() }
                     attempts = 0
                 }
             }
