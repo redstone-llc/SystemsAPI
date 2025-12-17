@@ -137,7 +137,10 @@ internal class CommandImporter(override var name: String) : Command {
     }
 
     suspend fun exists(): Boolean = getTabCompletions("command edit").contains(name)
-    fun create() = CommandUtils.runCommand("command create $name")
+    suspend fun create() {
+        if (this.exists()) throw IllegalStateException("Command already exists")
+        CommandUtils.runCommand("command create $name")
+    }
     override suspend fun delete() = CommandUtils.runCommand("command delete $name")
 
     object MenuItems {

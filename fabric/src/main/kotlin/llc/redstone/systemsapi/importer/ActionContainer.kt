@@ -3,14 +3,12 @@ package llc.redstone.systemsapi.importer
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.data.Action
 import llc.redstone.systemsapi.data.ActionDefinition
-import llc.redstone.systemsapi.data.DisplayName
 import llc.redstone.systemsapi.data.VariableHolder
 import llc.redstone.systemsapi.util.ItemUtils.loreLines
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
 import llc.redstone.systemsapi.util.MenuUtils.Target
 import llc.redstone.systemsapi.util.TextUtils
-import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.item.Items
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
@@ -53,8 +51,7 @@ class ActionContainer(val title: String = MC.currentScreen?.title?.string ?: thr
 
             MenuUtils.onOpen(title)
 
-            val gui = MC.currentScreen as? GenericContainerScreen
-                ?: throw ClassCastException("Expected GenericContainerScreen but found ${MC.currentScreen?.javaClass?.name}")
+            val gui = MenuUtils.currentMenu()
 
             if (MenuUtils.findSlot(MenuItems.NO_ACTIONS, true) != null) return actions
 
@@ -197,8 +194,7 @@ class ActionContainer(val title: String = MC.currentScreen?.title?.string ?: thr
 
                 //Make sure we are in the right gui before continuing
                 MenuUtils.onOpen("Action Settings")
-                val gui = MC.currentScreen as? GenericContainerScreen
-                    ?: throw ClassCastException("Expected GenericContainerScreen but found ${MC.currentScreen?.javaClass?.name}")
+                val gui = MenuUtils.currentMenu()
 
                 //Place in the gui to click
                 val slotIndex = slots[index]!!

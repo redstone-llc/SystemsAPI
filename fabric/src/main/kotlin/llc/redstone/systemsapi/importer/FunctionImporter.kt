@@ -87,7 +87,6 @@ internal class FunctionImporter(override var name: String) : Function {
 
     override suspend fun getIcon(): Item {
         openFunctionEditMenu()
-        val gui = MC.currentScreen as? GenericContainerScreen ?: throw ClassCastException("Expected GenericContainerScreen but found ${MC.currentScreen?.javaClass?.name}")
         val slot = MenuUtils.findSlot(MenuItems.EDIT_ICON) ?: throw IllegalStateException("Failed to find EDIT_ICON")
         return slot.stack.item
     }

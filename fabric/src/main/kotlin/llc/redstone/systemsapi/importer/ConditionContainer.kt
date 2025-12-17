@@ -12,9 +12,6 @@ import llc.redstone.systemsapi.util.MenuUtils.Target
 import llc.redstone.systemsapi.util.TextUtils
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.item.Items
-import java.util.function.Consumer
-import kotlin.math.PI
-import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotations
@@ -95,8 +92,7 @@ object ConditionContainer {
         val conditions = mutableListOf<Condition>()
 
         MenuUtils.onOpen("Edit Conditions")
-        val gui = MC.currentScreen as? GenericContainerScreen
-            ?: throw ClassCastException("Expected GenericContainerScreen but found ${MC.currentScreen?.javaClass?.name}")
+        val gui = MenuUtils.currentMenu()
 
         if (MenuUtils.findSlot(MenuItems.NO_CONDITIONS, true) != null) return conditions
 

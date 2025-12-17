@@ -1,13 +1,16 @@
 package llc.redstone.systemsapi.util
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeout
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.util.TextUtils.convertTextToString
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.client.gui.screen.ingame.HandledScreen
 import net.minecraft.item.Item
+import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
 import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket
 import net.minecraft.screen.slot.Slot
@@ -17,6 +20,30 @@ import net.minecraft.text.Text
 import kotlin.reflect.KClass
 
 object MenuUtils {
+
+    var pending: CompletableDeferred<ItemStack>? = null
+
+    fun onItemReceived(stack: ItemStack, slot: Int) {
+        pending?.let { current ->
+            if (slot != 67) return //Har har
+            pending = null
+            current.complete(stack)
+        }
+    }
+
+    // Returns an item that requires clicking and receiving in your inventory
+    suspend fun getItemFromMenu(click: suspend () -> Unit): ItemStack {
+        val deferred = CompletableDeferred<ItemStack>()
+        pending?.cancel()
+        pending = deferred
+
+        return try {
+            click()
+            withTimeout(1_000) { deferred.await() }
+        } finally {
+            if (pending === deferred) pending = null
+        }
+    }
 
     data class Target(val menuSlot: MenuSlot, val button: Int = 0)
     data class MenuSlot(val item: Item?, val label: String?, val slot: Int? = null)
@@ -38,7 +65,7 @@ object MenuUtils {
     private var attempted: Boolean = false
 
     suspend fun findSlot(menuSlot: MenuSlot, nullable: Boolean = false): Slot? {
-        val gui = MC.currentScreen as? GenericContainerScreen ?: throw ClassCastException("Expected GenericContainerScreen but found ${MC.currentScreen?.javaClass?.name}")
+        val gui = currentMenu()
         fun matches(slot: Slot): Boolean {
             val stack = slot.stack
             val customName = convertTextToString(stack.name ?: Text.of(""), false)
@@ -178,10 +205,13 @@ object MenuUtils {
     }
 
     fun clickPlayerSlot(slot: Int, button: Int = 0) {
-        val gui = MC.currentScreen as? GenericContainerScreen ?: throw ClassCastException("Expected GenericContainerScreen but found ${MC.currentScreen?.javaClass?.name}")
+        val gui = currentMenu()
         val playerSlot = slot + gui.screenHandler.slots.size - 45
         packetClick(playerSlot, button)
     }
+
+    fun currentMenu(): GenericContainerScreen =
+        MC.currentScreen as? GenericContainerScreen ?: throw ClassCastException("Expected GenericContainerScreen but found ${MC.currentScreen?.javaClass?.name}")
 
     object GlobalMenuItems {
         val NEXT_PAGE = MenuSlot(Items.ARROW, "Left-click for next page!")

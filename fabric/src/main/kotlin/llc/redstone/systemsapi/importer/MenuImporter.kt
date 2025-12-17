@@ -1,8 +1,6 @@
 package llc.redstone.systemsapi.importer
 
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withTimeout
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.api.Menu
 import llc.redstone.systemsapi.util.CommandUtils
@@ -59,7 +57,7 @@ internal class MenuImporter(override var title: String) : Menu {
         openMenuEditMenu()
         MenuUtils.clickMenuSlot(MenuItems.EDIT_MENU_ELEMENTS)
         MenuUtils.onOpen("Edit Elements: $title")
-        val gui = MC.currentScreen as? GenericContainerScreen ?: throw ClassCastException("Expected GenericContainerScreen but found ${MC.currentScreen?.javaClass?.name}")
+        val gui = MenuUtils.currentMenu()
         val numSlots = 9 * gui.screenHandler.rows
         return Array(numSlots) { index -> MenuElementImporter(index, title) }
     }
@@ -68,7 +66,7 @@ internal class MenuImporter(override var title: String) : Menu {
         openMenuEditMenu()
         MenuUtils.clickMenuSlot(MenuItems.EDIT_MENU_ELEMENTS)
         MenuUtils.onOpen("Edit Elements: $title")
-        val gui = MC.currentScreen as? GenericContainerScreen ?: throw ClassCastException("Expected GenericContainerScreen but found ${MC.currentScreen?.javaClass?.name}")
+        val gui = MenuUtils.currentMenu()
         val numSlots = 9 * gui.screenHandler.rows
         if (index !in 0..<numSlots) throw IllegalArgumentException("Index must be in 0..${numSlots-1}")
         return MenuElementImporter(index, title)
@@ -85,31 +83,12 @@ internal class MenuImporter(override var title: String) : Menu {
     }
 
     internal class MenuElementImporter(val slot: Int, val title: String) : Menu.MenuElement {
-        companion object {
-            var pending: CompletableDeferred<ItemStack>? = null
-
-            fun onItemReceived(stack: ItemStack, slot: Int) {
-                pending?.let { current ->
-                    if (slot != 67) return //Har har
-                    pending = null
-                    current.complete(stack)
-                }
-            }
-        }
-
         override suspend fun getItem(): ItemStack {
             MenuUtils.packetClick(slot, 1)
             MenuUtils.onOpen("Select an Item")
 
-            val deferred = CompletableDeferred<ItemStack>()
-            pending?.cancel()
-            pending = deferred
-
-            try {
+            return MenuUtils.getItemFromMenu {
                 MenuUtils.packetClick(13, 0)
-                return withTimeout(1_000) { deferred.await() }
-            } finally {
-                if (pending === deferred) pending = null
             }
         }
 
@@ -127,7 +106,7 @@ internal class MenuImporter(override var title: String) : Menu {
         }
 
         override suspend fun getActionContainer(): ActionContainer? {
-            val gui = MC.currentScreen as? GenericContainerScreen ?: throw ClassCastException("Expected GenericContainerScreen but found ${MC.currentScreen?.javaClass?.name}")
+            val gui = MenuUtils.currentMenu()
             val item = gui.screenHandler.inventory.getStack(slot)
             if (item.name.string == "Empty Slot" && item.get(DataComponentTypes.LORE)?.lines?.get(0)?.string == "Click to set item!") return null // Slot must first have an item before it can have an ActionContainer
 
