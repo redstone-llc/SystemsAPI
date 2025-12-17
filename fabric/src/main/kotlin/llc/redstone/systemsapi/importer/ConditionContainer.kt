@@ -4,6 +4,7 @@ import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.data.Condition
 import llc.redstone.systemsapi.data.DisplayName
 import llc.redstone.systemsapi.data.VariableHolder
+import llc.redstone.systemsapi.util.ItemUtils.loreLine
 import llc.redstone.systemsapi.util.ItemUtils.loreLines
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
@@ -12,6 +13,7 @@ import llc.redstone.systemsapi.util.TextUtils
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.item.Items
 import java.util.function.Consumer
+import kotlin.math.PI
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
@@ -107,6 +109,7 @@ object ConditionContainer {
                 it.contains(": ") //Only care about lines with properties
             }
 
+
             val name = TextUtils.convertTextToString(item.name, false)
             var conditionClass = Condition::class.sealedSubclasses.firstOrNull() { it.findAnnotations(DisplayName::class).any { ann -> ann.value == name } }
                 ?: continue
@@ -115,7 +118,6 @@ object ConditionContainer {
             var parameters = constructor.parameters.toMutableList()
             var conditionProperties = conditionClass.memberProperties
             var properties = mutableListOf<Pair<KProperty1<Condition, *>, KParameter?>>()
-            val toRun = mutableListOf<Consumer<Condition>>()
 
             for (parm in parameters) {
                 properties.add(conditionProperties.find { it.name == parm.name } as KProperty1<Condition, *> to parm)
@@ -124,18 +126,21 @@ object ConditionContainer {
             suspend fun args(indexAddition: Int = 1): MutableMap<KParameter, Any?> {
                 val args = mutableMapOf<KParameter, Any?>()
                 properties.forEachIndexed { index, (prop, param) ->
-                    val colorValue = (loreLines.getOrNull(index + indexAddition - 1)?.split(": ")?.drop(1)?.joinToString(": ") ?: return@forEachIndexed).replaceFirst("&f", "")
+                    if (param == null) return@forEachIndexed
+                    val colorValue =
+                        (loreLines.getOrNull(index + indexAddition - 1)?.split(": ")?.drop(1)?.joinToString(": ")
+                            ?: return@forEachIndexed).replaceFirst("&f", "")
                     val value = colorValue.replace(Regex("&[0-9a-fk-or]"), "")
 
-                    val returnValue = PropertySettings.export("Edit Conditions", prop, slot, slots[index + indexAddition]!!, value, colorValue)
-                    if (param == null) run {
-                        if (prop is KMutableProperty1<Condition, *>) {
-                            toRun.add (Consumer { condition ->
-                                prop.setter.call(condition, returnValue)
-                            })
-                        }
-                        return@forEachIndexed
-                    }
+                    val returnValue = PropertySettings.export(
+                        "Edit Conditions",
+                        prop,
+                        slot,
+                        slots[index + indexAddition]!!,
+                        value,
+                        colorValue
+                    )
+
                     if (returnValue is VariableHolder) {
                         conditionClass = when (returnValue) {
                             VariableHolder.Player -> Condition.PlayerVariableRequirement::class
@@ -172,7 +177,10 @@ object ConditionContainer {
 
             if (conditionInstance == null) continue
 
-            toRun.forEach { it.accept(conditionInstance) }
+            if (slot.stack.loreLine(false) {it == "Inverted"} != null) {
+                conditionInstance.inverted = true
+            }
+
             conditions.add(conditionInstance)
         }
 

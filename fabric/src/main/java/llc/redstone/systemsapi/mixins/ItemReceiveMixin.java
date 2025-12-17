@@ -16,8 +16,7 @@ public class ItemReceiveMixin {
         ItemStack stack = packet.getStack();
 
         if (stack.isEmpty()) return;
-
-        MenuImporter.MenuElementImporter.Companion.onItemReceived(stack);
+        MenuImporter.MenuElementImporter.Companion.onItemReceived(stack, packet.getSlot());
 
     }
 }

@@ -50,7 +50,7 @@ object MenuUtils {
         currentScreen = MC.currentScreen?.title?.string ?: "null"
 
         while (true) {
-            if (clickAttempts++ >= 5) error("Failed to find slot for $waitingOn in $currentScreen after $clickAttempts attempts.")
+            if (clickAttempts++ >= 10) error("Failed to find slot for $waitingOn in $currentScreen after $clickAttempts attempts.")
 
             val foundSlot = menuSlot.slot?.let { slot ->
                 gui.screenHandler.getSlot(slot).takeIf { matches(it) }
@@ -79,7 +79,7 @@ object MenuUtils {
         attempts = 0
         waitingOn = name ?: "null"
         while (true) {
-            if (attempts++ >= 5) run {
+            if (attempts++ >= 10) run {
                 if (attempted) {
                     attempted = false
                     error("Failed to find screen $waitingOn after $attempts attempts.")

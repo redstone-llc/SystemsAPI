@@ -26,7 +26,7 @@ sealed class Condition(
         val includeHigherGroups: Boolean,
     ) : Condition("IN_GROUP")
 
-
+    @DisplayName("Variable Requirement")
     sealed class VariableRequirement protected constructor(
         val holder: VariableHolder
     ): Condition("VARIABLE_REQUIREMENT")
@@ -36,6 +36,7 @@ sealed class Condition(
         val variable: String,
         val op: Comparison,
         val value: StatValue,
+        val fallbackValue: StatValue? = null,
     ) : VariableRequirement(VariableHolder.Player)
 
     @DisplayName("Variable Requirement")
@@ -44,6 +45,7 @@ sealed class Condition(
         val variable: String,
         val op: Comparison,
         val value: StatValue,
+        val fallbackValue: StatValue? = null
     ) : VariableRequirement(VariableHolder.Team)
 
     @DisplayName("Variable Requirement")
@@ -51,6 +53,7 @@ sealed class Condition(
         val variable: String,
         val op: Comparison,
         val value: StatValue,
+        val fallbackValue: StatValue? = null
     ) : VariableRequirement(VariableHolder.Global)
 
     @DisplayName("Required Permission")
@@ -164,17 +167,18 @@ sealed class Condition(
     ) : Condition("IS_ITEM")
 }
 
-enum class Comparison {
-    @SerialName("EQUAL")
-    Eq,
-    @SerialName("GREATER_THAN")
-    Gt,
-    @SerialName("GREATER_THAN_OR_EQUAL")
-    Ge,
-    @SerialName("LESS_THAN")
-    Lt,
-    @SerialName("LESS_THAN_OR_EQUAL")
-    Le;
+enum class Comparison(override val key: String): Keyed {
+    Eq("Equal"),
+    Gt("Greater Than"),
+    Ge("Greater Than or Equal"),
+    Lt("Less Than"),
+    Le("Less Than or Equal");
+
+    companion object {
+        fun fromKey(key: String): Comparison? {
+            return entries.find { it.key.equals(key, ignoreCase = true) }
+        }
+    }
 }
 
 enum class ItemCheck(override val key: String) : KeyedCycle {

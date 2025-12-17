@@ -557,6 +557,9 @@ sealed class Location(override val key: String): Keyed {
         val yaw: Float?,
     ) : Location("Custom Coordinates") {
         override fun toString(): String {
+            val x = if (x == 0.0) "" else x.toString()
+            val y = if (y == 0.0) "" else y.toString()
+            val z = if (z == 0.0) "" else z.toString()
             val xString = if (relX) "~$x" else x
             val yString = if (relY) "~$y" else y
             val zString = if (relZ) "~$z" else z
@@ -578,11 +581,6 @@ sealed class Location(override val key: String): Keyed {
 
 
     object CurrentLocation : Location("Current Location")
-
-    override fun toString(): String {
-        println(super.toString())
-        return super.toString()
-    }
 
     companion object {
         fun fromKey(key: String): Location? = when (key) {

@@ -137,6 +137,7 @@ class ActionContainer(val title: String = MC.currentScreen?.title?.string ?: thr
             MenuUtils.onOpen(title)
             if (MenuUtils.findSlot(MenuUtils.GlobalMenuItems.NEXT_PAGE, true) != null) {
                 MenuUtils.clickMenuSlot(MenuUtils.GlobalMenuItems.NEXT_PAGE)
+                MenuUtils.onOpen(" $title")
                 actions.addAll(getActions())
             }
 

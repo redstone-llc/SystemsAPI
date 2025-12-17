@@ -162,7 +162,6 @@ object PropertySettings {
                 return
             }
 
-            println("Importing keyed property ${property.name} with value ${keyed.key}")
             if (currentValue != keyed.key) {
                 MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
                 MenuUtils.onOpen("Select Option")
@@ -194,6 +193,7 @@ object PropertySettings {
             //Stat Values
             StatValue::class -> {
                 when {
+                    value == "Not Set" -> null
                     value.matches(Regex("-?\\d+")) -> StatValue.I32(value.toInt())
                     value.matches(Regex("-?\\d+")) -> StatValue.Lng(value.toLong())
                     value.matches(Regex("-?\\d+(\\.\\d+)?")) -> StatValue.Dbl(value.toDouble())
@@ -207,21 +207,25 @@ object PropertySettings {
                 val listType = field.actualTypeArguments[0]
                 if (listType == Action::class.java) {
                     MenuUtils.clickMenuSlot(MenuSlot(null, null, actionSlot.id))
-                    MenuUtils.onOpen("Settings")
+                    MenuUtils.onOpen("Action Settings")
                     MenuUtils.clickMenuSlot(MenuSlot(null, null, propertySlotIndex))
                     returnValue = genericContainer.getActions()
                 } else if (listType == Condition::class.java) {
                     MenuUtils.clickMenuSlot(MenuSlot(null, null, actionSlot.id))
-                    MenuUtils.onOpen("Settings")
+                    MenuUtils.onOpen("Action Settings")
                     MenuUtils.clickMenuSlot(MenuSlot(null, null, propertySlotIndex))
                     returnValue = ConditionContainer.exportConditions()
                 }
                 MenuUtils.clickMenuSlot(MenuItems.BACK)
-                MenuUtils.onOpen("Settings")
+                MenuUtils.onOpen("Action Settings")
                 MenuUtils.clickMenuSlot(MenuItems.BACK)
                 MenuUtils.onOpen(title)
 
                 returnValue
+            }
+
+            InventorySlot::class -> {
+                InventorySlot.fromKey(value)
             }
 
             ItemStack::class -> {
@@ -266,7 +270,7 @@ object PropertySettings {
                         Location.HouseSpawn
                     }
                     else -> {
-                        val parts = value.split(",")
+                        val parts = value.split(", ")
                         val xPart = parts[0]
                         val yPart = parts[1]
                         val zPart = parts[2]
@@ -282,8 +286,8 @@ object PropertySettings {
                         val x = xPart.removePrefix("~").toDoubleOrNull() ?: 0.0
                         val y = yPart.removePrefix("~").toDoubleOrNull() ?: 0.0
                         val z = zPart.removePrefix("~").toDoubleOrNull() ?: 0.0
-                        val pitch = pitchPart?.removePrefix("~")?.toFloatOrNull() ?: 0f
-                        val yaw = yawPart?.removePrefix("~")?.toFloatOrNull() ?: 0f
+                        val pitch = pitchPart?.removePrefix("~")?.toFloatOrNull()
+                        val yaw = yawPart?.removePrefix("~")?.toFloatOrNull()
 
                         Location.Custom(
                             relX = relX,
