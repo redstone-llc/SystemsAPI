@@ -19,19 +19,22 @@ import llc.redstone.systemsapi.data.enums.PotionEffect
 import llc.redstone.systemsapi.data.enums.Sound
 import net.minecraft.nbt.NbtCompound
 
-// TODO: verify these limits
-// TODO: verify these allowedScopes
-
 sealed class Action(
     @Transient private val actionName: String = ""
 ): PropertyHolder {
     @ActionDefinition(
         displayName = "Conditional",
-        limit = 25,
-        allowedScopes = [
+        defaultLimit = 25,
+        scopes = [
             Scope(FUNCTION),
             Scope(MENU),
-            Scope(EVENT, 40)
+            Scope(EVENT, 40, [
+                Events.PLAYER_JOIN, Events.PLAYER_QUIT, Events.PLAYER_DEATH, Events.PLAYER_KILL,
+                Events.PLAYER_RESPAWN, Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH,
+                Events.PLAYER_ENTER_PORTAL, Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR,
+                Events.COMPLETE_PARKOUR, Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM,
+                Events.PLAYER_TOGGLE_SNEAK, Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class Conditional(
@@ -43,18 +46,31 @@ sealed class Action(
 
     @ActionDefinition(
         displayName = "Cancel Event",
-        limit = 1,
-        allowedScopes = [
-            Scope(EVENT, allowedEvents = [Events.PLAYER_DAMAGE])
+        defaultLimit = 1,
+        scopes = [
+            Scope(EVENT, events = [
+                Events.PLAYER_DEATH, Events.FISH_CATCH, Events.PLAYER_DAMAGE, Events.PLAYER_DROP_ITEM,
+                Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     class CancelEvent : Action("CANCEL_EVENT")
 
     @ActionDefinition(
         displayName = "Change Player's Group",
-        limit = 1,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 1,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL, Events.PLAYER_DAMAGE,
+                Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR, Events.PLAYER_DROP_ITEM,
+                Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK, Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class ChangePlayerGroup(
@@ -64,27 +80,53 @@ sealed class Action(
 
     @ActionDefinition(
         displayName = "Kill Player",
-        limit = 1,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 1,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM)
         ]
     )
     class KillPlayer : Action("KILL")
 
     @ActionDefinition(
         displayName = "Full Heal",
-        limit = 5,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 5,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     class FullHeal : Action("FULL_HEAL")
 
     @ActionDefinition(
         displayName = "Display Title",
-        limit = 5,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 5,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class DisplayTitle(
@@ -97,27 +139,60 @@ sealed class Action(
 
     @ActionDefinition(
         displayName = "Display Action Bar",
-        limit = 5,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 5,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class DisplayActionBar(val message: String) : Action("ACTION_BAR")
 
     @ActionDefinition(
         displayName = "Reset Inventory",
-        limit = 1,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 1,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     class ResetInventory : Action("RESET_INVENTORY")
 
     @ActionDefinition(
         displayName = "Change Max Health",
-        limit = 5,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 5,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class ChangeMaxHealth(
@@ -128,18 +203,39 @@ sealed class Action(
 
     @ActionDefinition(
         displayName = "Parkour Checkpoint",
-        limit = 1,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 1,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     class ParkourCheckpoint : Action("PARKOUR_CHECKPOINT")
 
     @ActionDefinition(
         displayName = "Give Item",
-        limit = 40,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 40,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class GiveItem(
@@ -151,27 +247,59 @@ sealed class Action(
 
     @ActionDefinition(
         displayName = "Remove Item",
-        limit = 40,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 40,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class RemoveItem(val item: ItemStack?) : Action("REMOVE_ITEM")
 
     @ActionDefinition(
         displayName = "Send a Chat Message",
-        limit = 20,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 20,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class SendMessage(val message: String) : Action("SEND_MESSAGE")
 
     @ActionDefinition(
         displayName = "Apply Potion Effect",
-        limit = 22,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 22,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class ApplyPotionEffect(
@@ -186,36 +314,73 @@ sealed class Action(
 
     @ActionDefinition(
         displayName = "Clear All Potion Effects",
-        limit = 5,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 5,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     class ClearAllPotionEffects : Action("CLEAR_EFFECTS")
 
     @ActionDefinition(
         displayName = "Give Experience Levels",
-        limit = 5,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 5,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class GiveExperienceLevels(val levels: Int) : Action("GIVE_EXP_LEVELS")
 
     @ActionDefinition(
         displayName = "Send to Lobby",
-        limit = 1,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 1,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM)
         ]
     )
     data class SendToLobby(val location: Lobby) : Action("SEND_TO_LOBBY")
 
     @ActionDefinition(
         displayName = "Change Variable",
-        limit = 25,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 25,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_QUIT, Events.PLAYER_DEATH, Events.PLAYER_KILL,
+                Events.PLAYER_RESPAWN, Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH,
+                Events.PLAYER_ENTER_PORTAL, Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR,
+                Events.COMPLETE_PARKOUR, Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM,
+                Events.PLAYER_TOGGLE_SNEAK, Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     sealed class ChangeVariable protected constructor(
@@ -224,9 +389,20 @@ sealed class Action(
 
     @ActionDefinition(
         displayName = "Change Variable",
-        limit = 25,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 25,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_QUIT, Events.PLAYER_DEATH, Events.PLAYER_KILL,
+                Events.PLAYER_RESPAWN, Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH,
+                Events.PLAYER_ENTER_PORTAL, Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR,
+                Events.COMPLETE_PARKOUR, Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM,
+                Events.PLAYER_TOGGLE_SNEAK, Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class PlayerVariable(
@@ -238,9 +414,20 @@ sealed class Action(
 
     @ActionDefinition(
         displayName = "Change Variable",
-        limit = 25,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 25,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_QUIT, Events.PLAYER_DEATH, Events.PLAYER_KILL,
+                Events.PLAYER_RESPAWN, Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH,
+                Events.PLAYER_ENTER_PORTAL, Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR,
+                Events.COMPLETE_PARKOUR, Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM,
+                Events.PLAYER_TOGGLE_SNEAK, Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     class TeamVariable(
@@ -254,9 +441,20 @@ sealed class Action(
 
     @ActionDefinition(
         displayName = "Change Variable",
-        limit = 25,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 25,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_QUIT, Events.PLAYER_DEATH, Events.PLAYER_KILL,
+                Events.PLAYER_RESPAWN, Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH,
+                Events.PLAYER_ENTER_PORTAL, Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR,
+                Events.COMPLETE_PARKOUR, Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM,
+                Events.PLAYER_TOGGLE_SNEAK, Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class GlobalVariable(
@@ -268,9 +466,20 @@ sealed class Action(
 
     @ActionDefinition(
         displayName = "Teleport Player",
-        limit = 5,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 5,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class TeleportPlayer(
@@ -280,18 +489,40 @@ sealed class Action(
 
     @ActionDefinition(
         displayName = "Fail Parkour",
-        limit = 1,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 1,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class FailParkour(val reason: String) : Action("FAIL_PARKOUR")
 
     @ActionDefinition(
         displayName = "Play Sound",
-        limit = 25,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 25,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class PlaySound(
@@ -303,27 +534,60 @@ sealed class Action(
 
     @ActionDefinition(
         displayName = "Set Compass Target",
-        limit = 5,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 5,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class SetCompassTarget(val location: Location?) : Action("SET_COMPASS_TARGET")
 
     @ActionDefinition(
         displayName = "Set Gamemode",
-        limit = 1,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 1,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class SetGameMode(val gamemode: GameMode) : Action("SET_GAMEMODE")
 
     @ActionDefinition(
         displayName = "Change Health",
-        limit = 5,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 5,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class ChangeHealth(
@@ -333,9 +597,20 @@ sealed class Action(
 
     @ActionDefinition(
         displayName = "Change Hunger Level",
-        limit = 5,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 5,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class ChangeHunger(
@@ -345,8 +620,8 @@ sealed class Action(
 
     @ActionDefinition(
         displayName = "Use/Remove Held Item",
-        limit = 1,
-        allowedScopes = [
+        defaultLimit = 1,
+        scopes = [
             Scope(ITEM)
         ]
     )
@@ -354,11 +629,19 @@ sealed class Action(
 
     @ActionDefinition(
         displayName = "Random Action",
-        limit = 25,
-        allowedScopes = [
+        defaultLimit = 25,
+        scopes = [
             Scope(FUNCTION),
-            Scope(EVENT),
-            Scope(MENU)
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class RandomAction(
@@ -367,26 +650,48 @@ sealed class Action(
 
     @ActionDefinition(
         displayName = "Trigger Function",
-        limit = 10,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 10,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class ExecuteFunction(@property:Pagination val name: String, val global: Boolean) : Action("TRIGGER_FUNCTION")
 
     @ActionDefinition(
         displayName = "Apply Inventory Layout",
-        limit = 5,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 5,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class ApplyInventoryLayout(@property:Pagination val layout: String) : Action("APPLY_LAYOUT")
 
     @ActionDefinition(
         displayName = "Exit",
-        limit = 1,
-        allowedScopes = [
+        defaultLimit = 1,
+        scopes = [
             Scope(CONDITIONAL)
         ]
     )
@@ -394,9 +699,20 @@ sealed class Action(
     
     @ActionDefinition(
         displayName = "Enchant Held Item",
-        limit = 25,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 25,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class EnchantHeldItem(
@@ -406,35 +722,68 @@ sealed class Action(
     
     @ActionDefinition(
         displayName = "Pause Execution",
-        limit = 30,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 30,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class PauseExecution(val ticks: Int) : Action("PAUSE")
 
     @ActionDefinition(
         displayName = "Set Player Team",
-        limit = 1,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 1,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class SetPlayerTeam(@property:Pagination val team: String) : Action("SET_PLAYER_TEAM")
 
     @ActionDefinition(
         displayName = "Display Menu",
-        limit = 10,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 10,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class DisplayMenu(@property:Pagination val menu: String) : Action("DISPLAY_MENU")
 
     @ActionDefinition(
         displayName = "Close Menu",
-        limit = 1,
-        allowedScopes = [
+        defaultLimit = 1,
+        scopes = [
             Scope(MENU)
         ]
     )
@@ -442,9 +791,19 @@ sealed class Action(
 
     @ActionDefinition(
         displayName = "Drop Item",
-        limit = 5,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 5,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class DropItem(
@@ -460,9 +819,20 @@ sealed class Action(
 
     @ActionDefinition(
         displayName = "Change Velocity",
-        limit = 5,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 5,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class ChangeVelocity(
@@ -473,9 +843,20 @@ sealed class Action(
 
     @ActionDefinition(
         displayName = "Launch to Target",
-        limit = 5,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 5,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class LaunchToTarget(
@@ -485,27 +866,60 @@ sealed class Action(
 
     @ActionDefinition(
         displayName = "Set Player Weather",
-        limit = 5,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 5,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class SetPlayerWeather(val weather: Weather) : Action("SET_PLAYER_WEATHER")
 
     @ActionDefinition(
         displayName = "Set Player Time",
-        limit = 5,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 5,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class SetPlayerTime(val time: Time) : Action("SET_PLAYER_TIME")
 
     @ActionDefinition(
         displayName = "Toggle Nametag Display",
-        limit = 5,
-        allowedScopes = [
-            Scope(ALL)
+        defaultLimit = 5,
+        scopes = [
+            Scope(FUNCTION),
+            Scope(REGION),
+            Scope(COMMAND),
+            Scope(MENU),
+            Scope(ITEM),
+            Scope(EVENT, events = [
+                Events.PLAYER_JOIN, Events.PLAYER_DEATH, Events.PLAYER_KILL, Events.PLAYER_RESPAWN,
+                Events.GROUP_CHANGE, Events.PVP_STATE_CHANGE, Events.FISH_CATCH, Events.PLAYER_ENTER_PORTAL,
+                Events.PLAYER_DAMAGE, Events.PLAYER_BLOCK_BREAK, Events.START_PARKOUR, Events.COMPLETE_PARKOUR,
+                Events.PLAYER_DROP_ITEM, Events.PLAYER_PICK_UP_ITEM, Events.PLAYER_CHANGE_HELD_ITEM, Events.PLAYER_TOGGLE_SNEAK,
+                Events.PLAYER_TOGGLE_FLIGHT
+            ])
         ]
     )
     data class ToggleNametagDisplay(val displayNametag: Boolean) : Action("TOGGLE_NAMETAG_DISPLAY")
