@@ -95,6 +95,21 @@ internal object HouseImporter : House {
             .mapNotNull { getRegion(it) }
     }
 
+    override suspend fun getTeam(name: String): Team? {
+        val teamImporter = TeamImporter(name)
+        return if (teamImporter.exists()) teamImporter else null
+    }
+
+    override suspend fun createTeam(name: String): Team {
+        val teamImporter = TeamImporter(name)
+        teamImporter.create()
+        return teamImporter
+    }
+
+    override suspend fun getAllTeams(): List<Team> {
+        TODO("Teams don't have tab completion...")
+    }
+
     override suspend fun getOpenActionContainer(): ActionContainer? {
         try {
             return ActionContainer()

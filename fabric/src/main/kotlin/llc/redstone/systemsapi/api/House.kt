@@ -34,9 +34,9 @@ interface House {
 //    suspend fun setScoreboardLines(lines: List<String>)
 //    suspend fun setScoreboardLine(line: String, index: Int)
 //
-//    suspend fun getTeam(name: String): Team?
-//    suspend fun createTeam(name: String): Team // throws error if team exists
-//    suspend fun getAllTeams(): List<Team>
+    suspend fun getTeam(name: String): Team?
+    suspend fun createTeam(name: String): Team // throws error if team exists
+    suspend fun getAllTeams(): List<Team>
 
     suspend fun getOpenActionContainer(): ActionContainer?
     suspend fun getOpenConditionContainer(): ConditionContainer?

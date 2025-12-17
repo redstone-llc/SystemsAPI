@@ -1,6 +1,5 @@
 package llc.redstone.systemsapi.api
 
-import llc.redstone.systemsapi.data.Action
 import llc.redstone.systemsapi.importer.ActionContainer
 
 interface Command {

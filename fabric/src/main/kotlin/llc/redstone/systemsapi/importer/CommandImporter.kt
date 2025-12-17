@@ -138,10 +138,7 @@ internal class CommandImporter(override var name: String) : Command {
 
     suspend fun exists(): Boolean = getTabCompletions("command edit").contains(name)
     fun create() = CommandUtils.runCommand("command create $name")
-
-    override suspend fun delete() {
-        CommandUtils.runCommand("command delete $name")
-    }
+    override suspend fun delete() = CommandUtils.runCommand("command delete $name")
 
     object MenuItems {
         val RENAME_COMMAND = MenuSlot(Items.ANVIL, "Rename Command")

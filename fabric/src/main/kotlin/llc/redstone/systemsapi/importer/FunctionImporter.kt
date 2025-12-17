@@ -142,10 +142,7 @@ internal class FunctionImporter(override var name: String) : Function {
 
     suspend fun exists(): Boolean = getTabCompletions("function edit").contains(name)
     fun create() = CommandUtils.runCommand("function create $name")
-
-    override suspend fun delete() {
-        CommandUtils.runCommand("function delete $name")
-    }
+    override suspend fun delete() = CommandUtils.runCommand("function delete $name")
 
     object MenuItems {
         val RENAME_FUNCTION = MenuSlot(Items.ANVIL, "Rename Function")

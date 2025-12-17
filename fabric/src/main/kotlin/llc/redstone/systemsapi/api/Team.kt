@@ -17,20 +17,20 @@ interface Team {
 
     suspend fun delete()
 
-    enum class TeamColor {
-        DARK_BLUE,
-        DARK_GREEN,
-        DARK_AQUA,
-        DARK_RED,
-        DARK_PURPLE,
-        GOLD,
-        GRAY,
-        DARK_GRAY,
-        BLUE,
-        GREEN,
-        AQUA,
-        RED,
-        LIGHT_PURPLE,
-        YELLOW,
+    enum class TeamColor(val displayName: String) {
+        DARK_BLUE("Dark Blue"),
+        DARK_GREEN("Dark Green"),
+        DARK_AQUA("Dark Aqua"),
+        DARK_RED("Dark Red"),
+        DARK_PURPLE("Dark Purple"),
+        GOLD("Gold"),
+        GRAY("Gray"),
+        DARK_GRAY("Dark Gray"),
+        BLUE("Blue"),
+        GREEN("Green"),
+        AQUA("Aqua"),
+        RED("Red"),
+        LIGHT_PURPLE("Light Purple"),
+        YELLOW("Yellow"),
     }
 }

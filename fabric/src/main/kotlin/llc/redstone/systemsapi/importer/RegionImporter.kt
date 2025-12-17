@@ -112,9 +112,8 @@ internal class RegionImporter(override var name: String) : Region {
         return ActionContainer("Edit Actions")
     }
 
-    fun create() = CommandUtils.runCommand("region create $name")
     suspend fun exists(): Boolean = getTabCompletions("region edit").contains(name)
-
+    fun create() = CommandUtils.runCommand("region create $name")
     override suspend fun delete() {
         CommandUtils.runCommand("region delete $name")
     }

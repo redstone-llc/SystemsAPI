@@ -74,8 +74,8 @@ internal class MenuImporter(override var title: String) : Menu {
         return MenuElementImporter(index, title)
     }
 
-    fun create() = CommandUtils.runCommand("menus create $title")
     suspend fun exists(): Boolean = CommandUtils.getTabCompletions("menus edit").contains(title)
+    fun create() = CommandUtils.runCommand("menus create $title")
     override suspend fun delete() = CommandUtils.runCommand("menus delete $title")
 
     object MenuItems {
