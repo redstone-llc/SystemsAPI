@@ -88,8 +88,9 @@ internal class MenuImporter(override var title: String) : Menu {
         companion object {
             var pending: CompletableDeferred<ItemStack>? = null
 
-            fun onItemReceived(stack: ItemStack) {
+            fun onItemReceived(stack: ItemStack, slot: Int) {
                 pending?.let { current ->
+                    if (slot != 67) return //Har har
                     pending = null
                     current.complete(stack)
                 }

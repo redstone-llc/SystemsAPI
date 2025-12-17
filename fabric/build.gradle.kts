@@ -9,7 +9,6 @@ base.archivesName = property("mod.id") as String
 group = "llc.redstone"
 
 repositories {
-
     /**
      * Restricts dependency search of the given [groups] to the [maven URL][url],
      * improving the setup speed.
@@ -66,6 +65,16 @@ publishing {
             groupId = project.group.toString()
             artifactId = "SystemsAPI"
             version = project.version.toString()
+        }
+    }
+    repositories {
+        maven {
+            name = "releasesRepo"
+            url = uri("https://repo.redstone.llc/releases")
+            credentials {
+                username = property("releasesRepoUsername") as String
+                password = property("releasesRepoPassword") as String
+            }
         }
     }
 }

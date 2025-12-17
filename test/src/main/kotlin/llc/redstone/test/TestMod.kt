@@ -59,7 +59,7 @@ class TestMod : ClientModInitializer {
                         launch {
                             val itemstack = Items.BIRCH_STAIRS.defaultStack
                             val nbt = ItemUtils.toNBT(itemstack)
-                            val function = SystemsAPI.getHousingImporter().getFunction("test")!!
+                            val function = SystemsAPI.getHousingImporter().getFunction("test2")!!
                             val testLocation = Location.Custom(
                                 x = 1.0,
                                 y = 2.0,
@@ -291,9 +291,16 @@ class TestMod : ClientModInitializer {
                                     )
                                 )
 
-                                function.getActionContainer().getActions().forEach {
-                                    println(it)
-                                }
+                                function.getActionContainer().addActions(
+                                    listOf(
+                                        PlayerVariable(
+                                            variable = "testvar",
+                                            op = StatOp.Dec,
+                                            amount = StatValue.I32(1),
+                                            unset = false
+                                        ),
+                                    )
+                                )
                             } catch (e: Exception) {
                                 MC.player?.sendMessage(
                                     MutableText.of(

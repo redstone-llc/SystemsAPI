@@ -33,6 +33,7 @@ object MenuUtils {
 
     //Used for error correction
     private var lastSlot: MenuSlot? = null
+    var lastInput: String? = null
     private var lastButton = 0
     private var attempted: Boolean = false
 
@@ -50,7 +51,7 @@ object MenuUtils {
         currentScreen = MC.currentScreen?.title?.string ?: "null"
 
         while (true) {
-            if (clickAttempts++ >= 5) error("Failed to find slot for $waitingOn in $currentScreen after $clickAttempts attempts.")
+            if (clickAttempts++ >= 10) error("Failed to find slot for $waitingOn in $currentScreen after $clickAttempts attempts.")
 
             val foundSlot = menuSlot.slot?.let { slot ->
                 gui.screenHandler.getSlot(slot).takeIf { matches(it) }
@@ -74,18 +75,20 @@ object MenuUtils {
             waitingOn = null
             currentScreen = null
             lastClick = null
+            lastInput = null
             attempted = false
         }
         attempts = 0
         waitingOn = name ?: "null"
         while (true) {
-            if (attempts++ >= 5) run {
+            if (attempts++ >= 10) run {
                 if (attempted) {
                     attempted = false
                     error("Failed to find screen $waitingOn after $attempts attempts.")
                 } else {
                     attempted = true
                     lastSlot?.let { slot -> clickMenuTargets(Target(slot, lastButton)) }
+                    lastInput?.let { TextUtils.reinput() }
                     attempts = 0
                 }
             }
