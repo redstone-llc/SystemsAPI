@@ -18,12 +18,12 @@ SystemsAPI is a fabric library that abstracts Hypixel Housing's house systems fo
 > [!WARNING]
 > This project is a work in progress! Expect constant changes to API structure at this stage.
 
-## Features:
+## Features
 - [x] Action importing
   - [x] Error correction (catches when things don't go how they should, and tries again automatically)
   - [ ] Optimized importing (optimally keeps/changes existing actions to make imports quick!)
 - [x] Action exporting
-- [ ] System abstraction (methods for programmatically interacting with any/all Housing systems.)
+- [x] System abstraction (methods for programmatically interacting with any/all Housing systems.)
     - [x] Functions
     - [x] Events
     - [x] Commands
