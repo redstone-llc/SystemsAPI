@@ -5,14 +5,14 @@ import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.data.*
 import llc.redstone.systemsapi.importer.ActionContainer.MenuItems
 import llc.redstone.systemsapi.util.ItemConverterUtils
+import llc.redstone.systemsapi.util.ItemStackUtils.getLoreLine
+import llc.redstone.systemsapi.util.ItemStackUtils.getLoreLineMatches
 import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
-import llc.redstone.systemsapi.util.ItemStackUtils.loreLine
 import llc.redstone.systemsapi.util.ItemStackUtils.loreLines
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
 import llc.redstone.systemsapi.util.MenuUtils.Target
 import llc.redstone.systemsapi.util.TextUtils
-import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.nbt.NbtOps
 import net.minecraft.screen.slot.Slot
 import java.lang.reflect.ParameterizedType
@@ -118,7 +118,7 @@ object PropertySettings {
 
                 val operation = value as StatOp
 
-                val value = slot.stack.loreLine(false, filter = { str -> str == operation.key })
+                val value = slot.stack.getLoreLineMatches(false, filter = { str -> str == operation.key })
                 if (value == null) {
                     MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
                     MenuUtils.onOpen("Select Option")
@@ -126,7 +126,7 @@ object PropertySettings {
                     if (operation.advanced) {
                         val advancedOperationsValue = MenuUtils.findSlot(MenuItems.TOGGLE_ADVANCED_OPERATIONS)
                             ?.stack
-                            ?.loreLine(4, false)
+                            ?.getLoreLine(4, false)
                             ?.equals("Enabled")
                             ?: throw IllegalStateException("Failed to get the status of advanced operations toggle")
                         if (advancedOperationsValue) MenuUtils.clickMenuSlot(MenuItems.TOGGLE_ADVANCED_OPERATIONS)
@@ -147,7 +147,7 @@ object PropertySettings {
                 val holderIndex = entries.indexOf(keyed) + 1
                 val stack = slot.stack
 
-                val current = stack.loreLine(true) { str -> str.contains("➠") } ?: return
+                val current = stack.getLoreLineMatches(true) { str -> str.contains("➠") } ?: return
                 val currentHolder = entries.find { current.contains(it.key) }
                 val currentIndex = if (currentHolder != null) entries.indexOf(currentHolder) + 1 else 0
                 if (currentHolder != keyed) {

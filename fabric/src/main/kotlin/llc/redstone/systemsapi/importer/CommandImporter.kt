@@ -5,7 +5,7 @@ import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.api.Command
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.CommandUtils.getTabCompletions
-import llc.redstone.systemsapi.util.ItemStackUtils.loreLine
+import llc.redstone.systemsapi.util.ItemStackUtils.getProperty
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
 import llc.redstone.systemsapi.util.TextUtils
@@ -53,8 +53,7 @@ internal class CommandImporter(override var name: String) : Command {
 
         val mode = MenuUtils.findSlot(MenuItems.TOGGLE_COMMAND_MODE)
             ?.stack
-            ?.loreLine(1, false)
-            ?.substringAfter("Current: ")
+            ?.getProperty("Current")
             ?.let { if (it == "Self") Command.CommandMode.SELF else Command.CommandMode.TARGETED }
             ?: throw IllegalStateException("Failed to get the command mode")
         return mode
@@ -65,8 +64,7 @@ internal class CommandImporter(override var name: String) : Command {
 
         val mode = MenuUtils.findSlot(MenuItems.TOGGLE_COMMAND_MODE)
             ?.stack
-            ?.loreLine(1, false)
-            ?.substringAfter("Current: ")
+            ?.getProperty("Current")
             ?.let { if (it == "Self") Command.CommandMode.SELF else Command.CommandMode.TARGETED }
             ?: throw IllegalStateException("Failed to set the command mode to ${newCommandMode.name}")
         if (mode == newCommandMode) return
@@ -79,8 +77,7 @@ internal class CommandImporter(override var name: String) : Command {
 
         val priority = MenuUtils.findSlot(MenuItems.REQUIRED_GROUP_PRIORITY)
             ?.stack
-            ?.loreLine(4, false)
-            ?.substringAfter("Current: ")
+            ?.getProperty("Current")
             ?.toIntOrNull()
             ?: throw IllegalStateException("Failed to get the required group priority")
 
@@ -92,8 +89,7 @@ internal class CommandImporter(override var name: String) : Command {
 
         val priority = MenuUtils.findSlot(MenuItems.REQUIRED_GROUP_PRIORITY)
             ?.stack
-            ?.loreLine(4, false)
-            ?.substringAfter("Current: ")
+            ?.getProperty("Current")
             ?.toIntOrNull()
             ?: throw IllegalStateException("Failed to set the required group priority to $newPriority.")
         if (priority == newPriority) return

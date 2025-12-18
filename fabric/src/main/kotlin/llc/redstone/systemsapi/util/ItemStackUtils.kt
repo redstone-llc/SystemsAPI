@@ -26,14 +26,21 @@ object ItemStackUtils {
         }
     }
 
-    fun ItemStack.loreLine(line: Int, color: Boolean, filter: (String) -> Boolean = { true }): String {
-        return this.loreLines(color)
-            .getOrNull(line)
-            ?.takeIf(filter)
-            ?: throw IllegalStateException("No lore line $line for item $this passed filter")
+    fun ItemStack.getProperty(key: String): String? {
+        return this.get(DataComponentTypes.LORE)
+            ?.lines
+            ?.firstNotNullOfOrNull { line ->
+                line.string.substringAfter("$key: ").takeIf { it != line.string }
+            }
     }
 
-    fun ItemStack.loreLine(color: Boolean, filter: (String) -> Boolean = { true }): String {
+    fun ItemStack.getLoreLine(line: Int, color: Boolean): String {
+        return this.loreLines(color)
+            .getOrNull(line)
+            ?: throw IllegalStateException("Lore index out of bounds")
+    }
+
+    fun ItemStack.getLoreLineMatches(color: Boolean, filter: (String) -> Boolean = { true }): String {
         return this.loreLines(color)
             .firstOrNull { line -> filter(line) }
             ?: throw IllegalStateException("No lore lines for item $this passed filter")

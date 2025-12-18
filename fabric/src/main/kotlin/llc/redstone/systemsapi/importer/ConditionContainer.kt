@@ -4,7 +4,7 @@ import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.data.Condition
 import llc.redstone.systemsapi.data.DisplayName
 import llc.redstone.systemsapi.data.VariableHolder
-import llc.redstone.systemsapi.util.ItemStackUtils.loreLine
+import llc.redstone.systemsapi.util.ItemStackUtils.getLoreLineMatches
 import llc.redstone.systemsapi.util.ItemStackUtils.loreLines
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
@@ -173,7 +173,7 @@ object ConditionContainer {
 
             if (conditionInstance == null) continue
 
-            if (slot.stack.loreLine(false) {it == "Inverted"} != null) {
+            if (slot.stack.getLoreLineMatches(false) {it == "Inverted"} != null) {
                 conditionInstance.inverted = true
             }
 

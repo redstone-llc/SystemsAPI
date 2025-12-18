@@ -7,8 +7,8 @@ import llc.redstone.systemsapi.data.ItemStack
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.CommandUtils.getTabCompletions
 import llc.redstone.systemsapi.util.ItemConverterUtils
+import llc.redstone.systemsapi.util.ItemStackUtils.getProperty
 import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
-import llc.redstone.systemsapi.util.ItemStackUtils.loreLine
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
 import llc.redstone.systemsapi.util.MenuUtils.Target
@@ -86,8 +86,8 @@ internal class FunctionImporter(override var name: String) : Function {
         MenuUtils.clickMenuSlot(MenuItems.EDIT_ICON)
         MenuUtils.onOpen("Select an Item")
 
-        val itemstack = ItemConverterUtils.createFromNBT(newIcon.nbt ?: return)
-        itemstack.giveItem(26)
+        val itemStack = ItemConverterUtils.createFromNBT(newIcon.nbt ?: return)
+        itemStack.giveItem(26)
         MenuUtils.clickPlayerSlot(26)
         delay(50)
     }
@@ -97,8 +97,7 @@ internal class FunctionImporter(override var name: String) : Function {
 
         val ticks = MenuUtils.findSlot(MenuItems.AUTOMATIC_EXECUTION)
             ?.stack
-            ?.loreLine(5, false)
-            ?.substringAfter("Current: ")
+            ?.getProperty("Current")
             ?.let { if (it == "Disabled") 0 else it.toIntOrNull() }
             ?: throw IllegalStateException("Failed to find automatic execution ticks")
 
@@ -111,8 +110,7 @@ internal class FunctionImporter(override var name: String) : Function {
 
         val ticks = MenuUtils.findSlot(MenuItems.AUTOMATIC_EXECUTION)
             ?.stack
-            ?.loreLine(5, false)
-            ?.substringAfter("Current: ")
+            ?.getProperty("Current")
             ?.let { if (it == "Disabled") 0 else it.toIntOrNull() }
             ?: throw IllegalStateException("Failed to set automatic execution")
         if (ticks == newAutomaticExecution) return
@@ -136,11 +134,5 @@ internal class FunctionImporter(override var name: String) : Function {
         val EDIT_ICON = MenuSlot(null, "Edit Icon")
         val AUTOMATIC_EXECUTION = MenuSlot(Items.COMPARATOR, "Automatic Execution")
         val BACK = MenuSlot(Items.ARROW, "Go Back")
-    }
-
-    object LoreFilters {
-        val RENAME_LORE_FILTER: (String) -> Boolean = { loreLine ->
-            !loreLine.contains("Click to rename!")
-        }
     }
 }

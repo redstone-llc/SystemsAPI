@@ -3,7 +3,7 @@ package llc.redstone.systemsapi.importer
 import llc.redstone.systemsapi.api.Scoreboard
 import llc.redstone.systemsapi.importer.ScoreboardImporter.LineType.Companion.fromItemStack
 import llc.redstone.systemsapi.util.CommandUtils
-import llc.redstone.systemsapi.util.ItemStackUtils.loreLine
+import llc.redstone.systemsapi.util.ItemStackUtils.getProperty
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.TextUtils
 import net.minecraft.item.Items
@@ -106,16 +106,15 @@ class ScoreboardImporter : Scoreboard {
                         CustomLine(text)
                     }
                     "Variable Value" -> {
-                        val scope = when (stack.loreLine(1, false).substringAfter("Holder: ")) {
+                        val scope = when (stack.getProperty("Holder")) {
                             "Player" -> VariableType.Player
                             "Global" -> VariableType.Global
                             "Team" -> {
-                                VariableType.Team(stack.loreLine(2, false).substringAfter("Team: "))
+                                VariableType.Team(stack.getProperty("Team") ?: throw IllegalStateException("Could not find variable team"))
                             }
-
-                            else -> throw IllegalStateException("Unknown variable type $name")
+                            else -> throw IllegalStateException("Could not find variable holder")
                         }
-                        val key = if (scope is VariableType.Team) stack.loreLine(3, false).substringAfter("Team: ") else stack.loreLine(2, false).substringAfter("Team: ")
+                        val key = stack.getProperty("Variable") ?: throw IllegalStateException("Could not find variable key")
                         VariableValue(scope, key)
                     }
                     else -> typesByDisplayName[name]

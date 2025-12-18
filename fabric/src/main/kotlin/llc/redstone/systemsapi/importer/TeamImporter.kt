@@ -4,7 +4,7 @@ import kotlinx.coroutines.delay
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.api.Team
 import llc.redstone.systemsapi.util.CommandUtils
-import llc.redstone.systemsapi.util.ItemStackUtils.loreLine
+import llc.redstone.systemsapi.util.ItemStackUtils.getProperty
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
 import llc.redstone.systemsapi.util.TextUtils
@@ -41,8 +41,9 @@ class TeamImporter(override var name: String) : Team {
 
         val tag = MenuUtils.findSlot(MenuItems.CHANGE_TAG)
             ?.stack
-            ?.loreLine(3, false)
-                  ?: throw IllegalStateException("Failed to get team tag")
+            ?.getProperty("Current Tag")
+            ?.removeSurrounding("[", "]")
+            ?: throw IllegalStateException("Failed to get team tag")
 
         return tag
     }
@@ -52,8 +53,9 @@ class TeamImporter(override var name: String) : Team {
 
         val tag = MenuUtils.findSlot(MenuItems.CHANGE_TAG)
             ?.stack
-            ?.loreLine(3, false)
-                  ?: throw IllegalStateException("Failed to get team tag")
+            ?.getProperty("Current Tag")
+            ?.removeSurrounding("[", "]")
+            ?: throw IllegalStateException("Failed to get team tag")
 
         if (tag == newTag) return
 
@@ -67,8 +69,7 @@ class TeamImporter(override var name: String) : Team {
         val color = Team.TeamColor.entries.find {
             it.displayName == MenuUtils.findSlot(MenuItems.CHANGE_COLOR)
                 ?.stack
-                ?.loreLine(2, false)
-                ?.substringAfter("Current Color: ")
+                ?.getProperty("Current Color")
         } ?: throw IllegalStateException("Failed to get team color")
 
         return color
@@ -80,8 +81,7 @@ class TeamImporter(override var name: String) : Team {
         val color = Team.TeamColor.entries.find {
             it.displayName == MenuUtils.findSlot(MenuItems.CHANGE_COLOR)
                 ?.stack
-                ?.loreLine(2, false)
-                ?.substringAfter("Current Color: ")
+                ?.getProperty("Current Color")
         } ?: throw IllegalStateException("Failed to get team color")
 
         if (color == newColor) return
@@ -96,8 +96,7 @@ class TeamImporter(override var name: String) : Team {
 
         val friendlyFire = MenuUtils.findSlot(MenuItems.FRIENDLY_FIRE)
             ?.stack
-            ?.loreLine(4, false)
-            ?.substringAfter("Current Value: ")
+            ?.getProperty("Current Value")
             ?.equals("Enabled") ?: throw IllegalStateException("Failed to get team friendly fire")
 
         return friendlyFire
@@ -108,8 +107,7 @@ class TeamImporter(override var name: String) : Team {
 
         val friendlyFire = MenuUtils.findSlot(MenuItems.FRIENDLY_FIRE)
             ?.stack
-            ?.loreLine(4, false)
-            ?.substringAfter("Current Value: ")
+            ?.getProperty("Current Value")
             ?.equals("Enabled") ?: throw IllegalStateException("Failed to get team friendly fire")
 
         if (friendlyFire == newFriendlyFire) return
