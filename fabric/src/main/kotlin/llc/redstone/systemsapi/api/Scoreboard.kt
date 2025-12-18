@@ -1,6 +1,8 @@
 package llc.redstone.systemsapi.api
 
+import llc.redstone.systemsapi.importer.ScoreboardImporter
+
 interface Scoreboard {
-    suspend fun getLines(): List<String>
-    suspend fun setLines(newLines: List<String>)
+    suspend fun getLines(): List<ScoreboardImporter.LineType>
+    suspend fun setLines(newLines: List<ScoreboardImporter.LineType>)
 }
