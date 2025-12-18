@@ -1,12 +1,9 @@
 package llc.redstone.systemsapi.importer
 
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withTimeout
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.data.*
 import llc.redstone.systemsapi.importer.ActionContainer.MenuItems
-import llc.redstone.systemsapi.importer.MenuImporter.MenuElementImporter.Companion.pending
 import llc.redstone.systemsapi.util.ItemUtils
 import llc.redstone.systemsapi.util.ItemUtils.giveItem
 import llc.redstone.systemsapi.util.ItemUtils.loreLine
@@ -234,15 +231,8 @@ object PropertySettings {
                 MenuUtils.clickMenuSlot(MenuSlot(null, null, propertySlotIndex))
                 MenuUtils.onOpen("Select an Item")
 
-                val deferred = CompletableDeferred<net.minecraft.item.ItemStack>()
-                pending?.cancel()
-                pending = deferred
-
-                val item = try {
+                val item = MenuUtils.getItemFromMenu {
                     MenuUtils.interactionClick(13, 0)
-                    withTimeout(1_000) { deferred.await() }
-                } finally {
-                    if (pending === deferred) pending = null
                 }
                 val nbt = net.minecraft.item.ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, item).result().getOrNull()
                     ?.asCompound()?.getOrNull() ?: error("[Item action] Could not get NBT from item $item")
