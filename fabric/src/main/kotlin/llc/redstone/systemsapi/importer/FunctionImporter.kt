@@ -143,7 +143,7 @@ internal class FunctionImporter(override var name: String) : Function {
     fun create() = CommandUtils.runCommand("function create $name")
     override suspend fun delete() = CommandUtils.runCommand("function delete $name")
 
-    object MenuItems {
+    private object MenuItems {
         val RENAME_FUNCTION = MenuSlot(Items.ANVIL, "Rename Function")
         val SET_DESCRIPTION = MenuSlot(Items.BOOK, "Edit Description")
         val EDIT_ICON = MenuSlot(null, "Edit Icon")

@@ -118,7 +118,7 @@ internal class RegionImporter(override var name: String) : Region {
         CommandUtils.runCommand("region delete $name")
     }
 
-    object MenuItems {
+    private object MenuItems {
         val RENAME_FUNCTION = MenuSlot(Items.NAME_TAG, "Rename Region")
         val TELEPORT_TO_REGION = MenuSlot(Items.ENDER_PEARL, "Teleport to Region")
         val MOVE_REGION = MenuSlot(Items.STICK, "Move Region")

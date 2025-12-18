@@ -143,7 +143,7 @@ internal class CommandImporter(override var name: String) : Command {
     }
     override suspend fun delete() = CommandUtils.runCommand("command delete $name")
 
-    object MenuItems {
+    private object MenuItems {
         val RENAME_COMMAND = MenuSlot(Items.ANVIL, "Rename Command")
         val TOGGLE_COMMAND_MODE = MenuSlot(null, "Toggle Command Mode")
         val REQUIRED_GROUP_PRIORITY = MenuSlot(Items.FILLED_MAP, "Required Group Priority")

@@ -128,7 +128,7 @@ class TeamImporter(override var name: String) : Team {
 
     override suspend fun delete() = CommandUtils.runCommand("team delete $name")
 
-    object MenuItems {
+    private object MenuItems {
         val RENAME_TEAM = MenuSlot(Items.PAPER, "Rename Team")
         val CHANGE_TAG = MenuSlot(Items.OAK_SIGN, "Change Tag")
         val CHANGE_COLOR = MenuSlot(Items.REDSTONE, "Change Color")
