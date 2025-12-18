@@ -19,7 +19,7 @@ public abstract class CommandSuggestionMixin {
             cancellable = true
     )
     private void onCommandSuggestions(CommandSuggestionsS2CPacket packet, CallbackInfo ci) {
-        if (MenuUtils.INSTANCE.getPendingStack() == null) return;
+        if (CommandUtils.INSTANCE.getPending() == null) return;
 
         Suggestions suggestions = packet.getSuggestions();
         CommandUtils.INSTANCE.handleSuggestions(suggestions);

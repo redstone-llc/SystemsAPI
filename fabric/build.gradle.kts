@@ -64,13 +64,14 @@ publishing {
             from(components["java"])
             groupId = project.group.toString()
             artifactId = "SystemsAPI"
-            version = project.version.toString()
+            version = "dev"
         }
     }
     repositories {
         maven {
             name = "releasesRepo"
             url = uri("https://repo.redstone.llc/releases")
+            version = project.version.toString()
             credentials {
                 username = property("releasesRepoUsername") as String
                 password = property("releasesRepoPassword") as String

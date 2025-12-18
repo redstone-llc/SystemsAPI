@@ -14,7 +14,8 @@ import java.util.concurrent.TimeUnit
 
 object TextUtils {
 
-    fun convertTextToString(text: Text, colors: Boolean = true): String {
+    fun convertTextToString(text: Text?, colors: Boolean = true): String? {
+        if (text == null) return null
         return text.siblings.joinToString("") {
             var part = it.string
             val style = it.style

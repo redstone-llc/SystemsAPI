@@ -12,6 +12,7 @@ import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
 import llc.redstone.systemsapi.util.MenuUtils.Target
 import llc.redstone.systemsapi.util.TextUtils
+import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.nbt.NbtOps
 import net.minecraft.screen.slot.Slot
 import java.lang.reflect.ParameterizedType
@@ -229,12 +230,13 @@ object PropertySettings {
             ItemStack::class -> {
                 MenuUtils.clickMenuSlot(MenuSlot(null, null, actionSlot.id))
                 MenuUtils.onOpen("Settings")
+
+                val stack = MenuUtils.findSlot(MenuSlot(slot=propertySlotIndex))?.stack
+
                 MenuUtils.clickMenuSlot(MenuSlot(null, null, propertySlotIndex))
                 MenuUtils.onOpen("Select an Item")
-                val compareStack = MenuUtils.findSlot(MenuSlot(null, null, 13))?.stack
-                    ?: error("Could not find item in Select an Item menu")
 
-                val item = MenuUtils.getItemFromMenu(value, compareStack) {
+                val item = MenuUtils.getItemFromMenu(value, stack) {
                     MenuUtils.interactionClick(13, 0)
                 }
                 val nbt = net.minecraft.item.ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, item).result().getOrNull()

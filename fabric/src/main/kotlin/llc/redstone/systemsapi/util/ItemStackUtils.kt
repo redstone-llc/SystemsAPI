@@ -42,6 +42,6 @@ object ItemStackUtils {
     fun ItemStack.loreLines(color: Boolean): List<String> {
         val loreLines = this.get(DataComponentTypes.LORE)?.lines
             ?: return emptyList()
-        return loreLines.map { TextUtils.convertTextToString(it, color) }
+        return loreLines.map { TextUtils.convertTextToString(it, color)!! }
     }
 }

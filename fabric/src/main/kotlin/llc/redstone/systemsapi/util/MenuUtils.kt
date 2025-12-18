@@ -9,6 +9,7 @@ import llc.redstone.systemsapi.util.TextUtils.convertTextToString
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.client.gui.screen.ingame.HandledScreen
+import net.minecraft.client.resource.language.I18n
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
@@ -17,6 +18,7 @@ import net.minecraft.screen.slot.Slot
 import net.minecraft.screen.slot.SlotActionType
 import net.minecraft.screen.sync.ItemStackHash
 import net.minecraft.text.Text
+import net.minecraft.util.Identifier
 import kotlin.reflect.KClass
 
 object MenuUtils {
@@ -49,11 +51,17 @@ object MenuUtils {
     fun onItemReceived(stack: ItemStack) {
         pendingStack?.let { current ->
             if (pendingItemDisplayName != null) {
-                val customName = convertTextToString(stack.name ?: Text.of(""), false)
-                if (customName != pendingItemDisplayName) return
+                //Translate text to string
+                val customName =
+                    convertTextToString(stack.customName, false) ?: I18n.translate(stack.item.translationKey)
+                val words = customName.split(" ")
+                for (word in words) {
+                    if (!pendingItemDisplayName!!.contains(word)) return
+                }
             }
 
             if (pendingItemCompareStack != null) {
+                println("${stack.item} != ${pendingItemCompareStack!!.item}")
                 if (stack.item != pendingItemCompareStack!!.item) return
             }
 
@@ -113,7 +121,9 @@ object MenuUtils {
             val stack = slot.stack
             val customName = convertTextToString(stack.name ?: Text.of(""), false)
             return (menuSlot.item == null || stack.item == menuSlot.item) &&
+                    (stack.item != Items.AIR) &&
                     (menuSlot.label == null || customName == menuSlot.label)
+
         }
 
         clickAttempts = 0

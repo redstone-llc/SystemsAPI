@@ -24,7 +24,7 @@ object CommandUtils {
         }
     }
 
-    private var pending: CompletableDeferred<List<String>>? = null
+    var pending: CompletableDeferred<List<String>>? = null
     suspend fun getTabCompletions(baseCommand: String): List<String> {
         val partialCommand = buildString {
             append(if (baseCommand.startsWith('/')) baseCommand else "/$baseCommand")
