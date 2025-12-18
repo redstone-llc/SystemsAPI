@@ -22,7 +22,7 @@ import llc.redstone.systemsapi.data.enums.Lobby
 import llc.redstone.systemsapi.data.enums.Permission
 import llc.redstone.systemsapi.data.enums.PotionEffect
 import llc.redstone.systemsapi.data.enums.Sound
-import llc.redstone.systemsapi.util.ItemUtils
+import llc.redstone.systemsapi.util.ItemConverterUtils
 import net.fabricmc.api.ClientModInitializer
 import net.minecraft.client.MinecraftClient
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
@@ -58,7 +58,7 @@ class TestMod : ClientModInitializer {
                     .executes {
                         launch {
                             val itemstack = Items.BIRCH_STAIRS.defaultStack
-                            val nbt = ItemUtils.toNBT(itemstack)
+                            val nbt = ItemConverterUtils.toNBT(itemstack)
                             val function = SystemsAPI.getHousingImporter().getFunction("test2")!!
                             val testLocation = Location.Custom(
                                 x = 1.0,

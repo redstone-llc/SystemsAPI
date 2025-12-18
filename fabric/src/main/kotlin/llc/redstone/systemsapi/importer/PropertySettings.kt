@@ -4,10 +4,11 @@ import kotlinx.coroutines.delay
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.data.*
 import llc.redstone.systemsapi.importer.ActionContainer.MenuItems
-import llc.redstone.systemsapi.util.ItemUtils
-import llc.redstone.systemsapi.util.ItemUtils.giveItem
-import llc.redstone.systemsapi.util.ItemUtils.loreLine
-import llc.redstone.systemsapi.util.ItemUtils.loreLines
+import llc.redstone.systemsapi.util.ItemConverterUtils
+import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
+import llc.redstone.systemsapi.util.ItemStackUtils.loreLine
+import llc.redstone.systemsapi.util.ItemStackUtils.loreLineReturnable
+import llc.redstone.systemsapi.util.ItemStackUtils.loreLines
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
 import llc.redstone.systemsapi.util.MenuUtils.Target
@@ -58,7 +59,7 @@ object PropertySettings {
                 MenuUtils.onOpen("Select an Item")
 
                 val nbt = (value as ItemStack).nbt ?: error("[Item action] ItemStack has no NBT data")
-                val item = ItemUtils.createFromNBT(nbt)
+                val item = ItemConverterUtils.createFromNBT(nbt)
                 val player = MC.player ?: error("[Item action] Could not get the player")
                 val oldStack = player.inventory.getStack(26)
                 item.giveItem(26)
@@ -125,8 +126,9 @@ object PropertySettings {
                     if (operation.advanced) {
                         val advancedOperationsValue = MenuUtils.findSlot(MenuItems.TOGGLE_ADVANCED_OPERATIONS)
                             ?.stack
-                            ?.loreLine(4, false)
-                            ?.equals("Enabled") ?: throw IllegalStateException("Failed to get the status of advanced operations toggle")
+                            ?.loreLineReturnable(4, false) { line ->
+                                line == "Enabled"
+                            } ?: throw IllegalStateException("Failed to get the status of advanced operations toggle")
                         if (advancedOperationsValue) MenuUtils.clickMenuSlot(MenuItems.TOGGLE_ADVANCED_OPERATIONS)
                     }
 

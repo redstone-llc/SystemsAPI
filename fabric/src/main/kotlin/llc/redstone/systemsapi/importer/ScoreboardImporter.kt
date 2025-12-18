@@ -3,7 +3,7 @@ package llc.redstone.systemsapi.importer
 import llc.redstone.systemsapi.api.Scoreboard
 import llc.redstone.systemsapi.importer.ScoreboardImporter.LineType.Companion.fromItemStack
 import llc.redstone.systemsapi.util.CommandUtils
-import llc.redstone.systemsapi.util.ItemUtils.loreLine
+import llc.redstone.systemsapi.util.ItemStackUtils.loreLine
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.TextUtils
 import net.minecraft.item.Items

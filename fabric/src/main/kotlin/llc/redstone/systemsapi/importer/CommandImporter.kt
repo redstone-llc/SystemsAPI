@@ -5,7 +5,7 @@ import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.api.Command
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.CommandUtils.getTabCompletions
-import llc.redstone.systemsapi.util.ItemUtils.loreLine
+import llc.redstone.systemsapi.util.ItemStackUtils.loreLine
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
 import llc.redstone.systemsapi.util.TextUtils
@@ -54,11 +54,9 @@ internal class CommandImporter(override var name: String) : Command {
         val mode = MenuUtils.findSlot(MenuItems.TOGGLE_COMMAND_MODE)
             ?.stack
             ?.loreLine(1, false)
-            ?.split(" ")
-            ?.getOrNull(1)
-            ?.let { value -> if (value == "Self") Command.CommandMode.SELF else Command.CommandMode.TARGETED }
-                   ?: throw IllegalStateException("Failed to find the command mode")
-
+            ?.substringAfter("Current: ")
+            ?.let { if (it == "Self") Command.CommandMode.SELF else Command.CommandMode.TARGETED }
+            ?: throw IllegalStateException("Failed to get the command mode")
         return mode
     }
 
@@ -68,10 +66,9 @@ internal class CommandImporter(override var name: String) : Command {
         val mode = MenuUtils.findSlot(MenuItems.TOGGLE_COMMAND_MODE)
             ?.stack
             ?.loreLine(1, false)
-            ?.split(" ")
-            ?.getOrNull(1)
-            ?.let { value -> if (value == "Self") Command.CommandMode.SELF else Command.CommandMode.TARGETED }
-                   ?: throw IllegalStateException("Failed to set the command mode to ${newCommandMode.name}")
+            ?.substringAfter("Current: ")
+            ?.let { if (it == "Self") Command.CommandMode.SELF else Command.CommandMode.TARGETED }
+            ?: throw IllegalStateException("Failed to set the command mode to ${newCommandMode.name}")
         if (mode == newCommandMode) return
 
         MenuUtils.clickMenuSlot(MenuItems.TOGGLE_COMMAND_MODE)
@@ -83,10 +80,9 @@ internal class CommandImporter(override var name: String) : Command {
         val priority = MenuUtils.findSlot(MenuItems.REQUIRED_GROUP_PRIORITY)
             ?.stack
             ?.loreLine(4, false)
-            ?.split(" ")
-            ?.getOrNull(1)
+            ?.substringAfter("Current: ")
             ?.toIntOrNull()
-                       ?: throw IllegalStateException("Failed to get the required group priority")
+            ?: throw IllegalStateException("Failed to get the required group priority")
 
         return priority
     }
@@ -97,10 +93,9 @@ internal class CommandImporter(override var name: String) : Command {
         val priority = MenuUtils.findSlot(MenuItems.REQUIRED_GROUP_PRIORITY)
             ?.stack
             ?.loreLine(4, false)
-            ?.split(" ")
-            ?.getOrNull(1)
+            ?.substringAfter("Current: ")
             ?.toIntOrNull()
-                       ?: throw IllegalStateException("Failed to set the required group priority to $newPriority.")
+            ?: throw IllegalStateException("Failed to set the required group priority to $newPriority.")
         if (priority == newPriority) return
 
         MenuUtils.clickMenuSlot(MenuItems.REQUIRED_GROUP_PRIORITY)
@@ -114,10 +109,11 @@ internal class CommandImporter(override var name: String) : Command {
             ?.stack
             ?.item
             ?.let { item -> item == Items.LIME_DYE }
-                     ?: throw IllegalStateException("Failed to get the listed value")
+            ?: throw IllegalStateException("Failed to get the listed value")
 
         return listed
     }
+
     override suspend fun setListed(newListed: Boolean) {
         openCommandEditMenu()
 
@@ -125,7 +121,7 @@ internal class CommandImporter(override var name: String) : Command {
             ?.stack
             ?.item
             ?.let { item -> item == Items.LIME_DYE }
-                     ?: throw IllegalStateException("Failed to set the listed value to $newListed.")
+            ?: throw IllegalStateException("Failed to set the listed value to $newListed.")
         if (listed == newListed) return
 
         MenuUtils.clickMenuSlot(MenuItems.LISTED)
@@ -141,6 +137,7 @@ internal class CommandImporter(override var name: String) : Command {
         if (this.exists()) throw IllegalStateException("Command already exists")
         CommandUtils.runCommand("command create $name")
     }
+
     override suspend fun delete() = CommandUtils.runCommand("command delete $name")
 
     private object MenuItems {

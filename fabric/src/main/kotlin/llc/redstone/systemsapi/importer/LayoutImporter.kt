@@ -3,7 +3,7 @@ package llc.redstone.systemsapi.importer
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.api.Layout
 import llc.redstone.systemsapi.util.CommandUtils
-import llc.redstone.systemsapi.util.ItemUtils.giveItem
+import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen

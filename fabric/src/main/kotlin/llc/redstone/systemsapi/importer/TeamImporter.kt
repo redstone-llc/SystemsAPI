@@ -4,7 +4,7 @@ import kotlinx.coroutines.delay
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.api.Team
 import llc.redstone.systemsapi.util.CommandUtils
-import llc.redstone.systemsapi.util.ItemUtils.loreLine
+import llc.redstone.systemsapi.util.ItemStackUtils.loreLine
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
 import llc.redstone.systemsapi.util.TextUtils

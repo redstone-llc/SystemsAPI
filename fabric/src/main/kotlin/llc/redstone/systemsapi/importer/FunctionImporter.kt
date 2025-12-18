@@ -6,8 +6,9 @@ import llc.redstone.systemsapi.api.Function
 import llc.redstone.systemsapi.data.ItemStack
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.CommandUtils.getTabCompletions
-import llc.redstone.systemsapi.util.ItemUtils
-import llc.redstone.systemsapi.util.ItemUtils.loreLine
+import llc.redstone.systemsapi.util.ItemConverterUtils
+import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
+import llc.redstone.systemsapi.util.ItemStackUtils.loreLine
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
 import llc.redstone.systemsapi.util.MenuUtils.Target
@@ -85,8 +86,8 @@ internal class FunctionImporter(override var name: String) : Function {
         MenuUtils.clickMenuSlot(MenuItems.EDIT_ICON)
         MenuUtils.onOpen("Select an Item")
 
-        val itemstack = ItemUtils.createFromNBT(newIcon.nbt ?: return)
-        ItemUtils.placeInventory(itemstack, 26)
+        val itemstack = ItemConverterUtils.createFromNBT(newIcon.nbt ?: return)
+        itemstack.giveItem(26)
         MenuUtils.clickPlayerSlot(26)
         delay(50)
     }
@@ -94,13 +95,12 @@ internal class FunctionImporter(override var name: String) : Function {
     override suspend fun getAutomaticExecution(): Int {
         openFunctionEditMenu()
 
-        val ticks = MenuUtils.findSlot( MenuItems.AUTOMATIC_EXECUTION)
+        val ticks = MenuUtils.findSlot(MenuItems.AUTOMATIC_EXECUTION)
             ?.stack
             ?.loreLine(5, false)
-            ?.split(" ")
-            ?.getOrNull(1)
-            ?.let { value -> if (value == "Disabled") 0 else value.toIntOrNull() }
-            ?: throw IllegalStateException("Failed to get automatic execution")
+            ?.substringAfter("Current: ")
+            ?.let { if (it == "Disabled") 0 else it.toIntOrNull() }
+            ?: throw IllegalStateException("Failed to find automatic execution ticks")
 
         return ticks
     }
@@ -112,9 +112,8 @@ internal class FunctionImporter(override var name: String) : Function {
         val ticks = MenuUtils.findSlot(MenuItems.AUTOMATIC_EXECUTION)
             ?.stack
             ?.loreLine(5, false)
-            ?.split(" ")
-            ?.getOrNull(1)
-            ?.let { value -> if (value == "Disabled") 0 else value.toIntOrNull() }
+            ?.substringAfter("Current: ")
+            ?.let { if (it == "Disabled") 0 else it.toIntOrNull() }
             ?: throw IllegalStateException("Failed to set automatic execution")
         if (ticks == newAutomaticExecution) return
 
