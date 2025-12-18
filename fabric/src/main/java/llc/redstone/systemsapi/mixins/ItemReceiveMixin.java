@@ -17,6 +17,6 @@ public class ItemReceiveMixin {
 
         ItemStack stack = packet.getStack();
         if (stack.isEmpty()) return;
-        MenuUtils.INSTANCE.onItemReceived(stack, packet.getSlot());
+        MenuUtils.INSTANCE.onItemReceived(stack);
     }
 }

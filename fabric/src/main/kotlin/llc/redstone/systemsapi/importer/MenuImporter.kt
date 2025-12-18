@@ -87,7 +87,9 @@ internal class MenuImporter(override var title: String) : Menu {
             MenuUtils.packetClick(slot, 1)
             MenuUtils.onOpen("Select an Item")
 
-            return MenuUtils.getItemFromMenu {
+            val stack = MenuUtils.findSlot(MenuSlot(slot = 13))?.stack
+                ?: throw IllegalStateException("Could not find item in slot 13")
+            return MenuUtils.getItemFromMenu(null, stack) {
                 MenuUtils.packetClick(13, 0)
             }
         }

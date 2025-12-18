@@ -38,7 +38,10 @@ class LayoutImporter(override var name: String) : Layout {
         openLayoutMenu()
         openArmorSelection(label)
 
-        return MenuUtils.getItemFromMenu {
+        //TODO look and see if the item name can also be found
+        val stack = MenuUtils.findSlot(MenuSlot(slot = 13))?.stack
+            ?: throw IllegalStateException("Could not find armor piece in layout '$name' for slot '$label'")
+        return MenuUtils.getItemFromMenu(null, stack) {
             MenuUtils.packetClick(13, 0)
         }
     }

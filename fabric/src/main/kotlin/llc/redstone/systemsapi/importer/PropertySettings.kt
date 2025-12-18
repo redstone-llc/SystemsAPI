@@ -230,12 +230,14 @@ object PropertySettings {
                 MenuUtils.onOpen("Settings")
                 MenuUtils.clickMenuSlot(MenuSlot(null, null, propertySlotIndex))
                 MenuUtils.onOpen("Select an Item")
+                val compareStack = MenuUtils.findSlot(MenuSlot(null, null, 13))?.stack
+                    ?: error("Could not find item in Select an Item menu")
 
-                val item = MenuUtils.getItemFromMenu {
+                val item = MenuUtils.getItemFromMenu(value, compareStack) {
                     MenuUtils.interactionClick(13, 0)
                 }
                 val nbt = net.minecraft.item.ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, item).result().getOrNull()
-                    ?.asCompound()?.getOrNull() ?: error("[Item action] Could not get NBT from item $item")
+                    ?.asCompound()?.getOrNull() ?: error("Could not get NBT from item $item")
 
                 MenuUtils.clickMenuSlot(MenuItems.BACK)
                 MenuUtils.onOpen("Settings")

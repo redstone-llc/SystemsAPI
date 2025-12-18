@@ -22,11 +22,21 @@ import kotlin.reflect.KClass
 object MenuUtils {
 
     var pendingStack: CompletableDeferred<ItemStack>? = null
+    var pendingItemDisplayName: String? = null
+    var pendingItemCompareStack: ItemStack? = null
+
+
     // Returns an item that requires clicking and receiving in your inventory
-    suspend fun getItemFromMenu(click: suspend () -> Unit): ItemStack {
+    // Display Name shouldn't have colors in it, but can, compareStack only looks at the item type
+    suspend fun getItemFromMenu(
+        displayName: String?, compareStack: ItemStack?,
+        click: suspend () -> Unit
+    ): ItemStack {
         val deferred = CompletableDeferred<ItemStack>()
         pendingStack?.cancel()
         pendingStack = deferred
+        pendingItemDisplayName = displayName
+        pendingItemCompareStack = compareStack
 
         return try {
             click()
@@ -35,10 +45,22 @@ object MenuUtils {
             if (pendingStack === deferred) pendingStack = null
         }
     }
-    fun onItemReceived(stack: ItemStack, slot: Int) {
+
+    fun onItemReceived(stack: ItemStack) {
         pendingStack?.let { current ->
-            if (slot != 67) return //Har har
+            if (pendingItemDisplayName != null) {
+                val customName = convertTextToString(stack.name ?: Text.of(""), false)
+                if (customName != pendingItemDisplayName) return
+            }
+
+            if (pendingItemCompareStack != null) {
+                if (stack.item != pendingItemCompareStack!!.item) return
+            }
+
             pendingStack = null
+            pendingItemDisplayName = null
+            pendingItemCompareStack = null
+
             current.complete(stack)
         }
     }
@@ -57,6 +79,7 @@ object MenuUtils {
             if (pendingString === deferred) pendingString = null
         }
     }
+
     fun onPreviousInputReceived(value: String) {
         pendingString?.let { current ->
             pendingString = null
@@ -66,7 +89,7 @@ object MenuUtils {
 
 
     data class Target(val menuSlot: MenuSlot, val button: Int = 0)
-    data class MenuSlot(val item: Item?, val label: String?, val slot: Int? = null)
+    data class MenuSlot(val item: Item? = null, val label: String? = null, val slot: Int? = null)
 
     //Debug info
     var waitingOn: String? = null
@@ -90,7 +113,7 @@ object MenuUtils {
             val stack = slot.stack
             val customName = convertTextToString(stack.name ?: Text.of(""), false)
             return (menuSlot.item == null || stack.item == menuSlot.item) &&
-                   (menuSlot.label == null || customName == menuSlot.label)
+                    (menuSlot.label == null || customName == menuSlot.label)
         }
 
         clickAttempts = 0
@@ -104,7 +127,8 @@ object MenuUtils {
                 gui.screenHandler.getSlot(slot).takeIf { matches(it) }
             } ?: gui.screenHandler.slots.firstOrNull { matches(it) }
 
-            lastClick = convertTextToString(foundSlot?.stack?.name ?: Text.of("null")) + " slot ${foundSlot?.id ?: "null"}"
+            lastClick =
+                convertTextToString(foundSlot?.stack?.name ?: Text.of("null")) + " slot ${foundSlot?.id ?: "null"}"
             lastSlot = menuSlot
 
             if (nullable || (foundSlot != null)) return foundSlot
@@ -176,7 +200,8 @@ object MenuUtils {
     }
 
     fun interactionClick(slot: Int, button: Int = 0) {
-        val gui = MC.currentScreen as? HandledScreen<*> ?: error("[interactionClick] Current screen is not a HandledScreen")
+        val gui =
+            MC.currentScreen as? HandledScreen<*> ?: error("[interactionClick] Current screen is not a HandledScreen")
 
         lastButton = button
         MC.interactionManager?.clickSlot(
@@ -231,7 +256,8 @@ object MenuUtils {
     }
 
     fun currentMenu(): GenericContainerScreen =
-        MC.currentScreen as? GenericContainerScreen ?: throw ClassCastException("Expected GenericContainerScreen but found ${MC.currentScreen?.javaClass?.name}")
+        MC.currentScreen as? GenericContainerScreen
+            ?: throw ClassCastException("Expected GenericContainerScreen but found ${MC.currentScreen?.javaClass?.name}")
 
     object GlobalMenuItems {
         val NEXT_PAGE = MenuSlot(Items.ARROW, "Left-click for next page!")
