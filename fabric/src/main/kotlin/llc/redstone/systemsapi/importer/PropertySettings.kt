@@ -7,7 +7,6 @@ import llc.redstone.systemsapi.importer.ActionContainer.MenuItems
 import llc.redstone.systemsapi.util.ItemConverterUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
 import llc.redstone.systemsapi.util.ItemStackUtils.loreLine
-import llc.redstone.systemsapi.util.ItemStackUtils.loreLineReturnable
 import llc.redstone.systemsapi.util.ItemStackUtils.loreLines
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
@@ -126,9 +125,9 @@ object PropertySettings {
                     if (operation.advanced) {
                         val advancedOperationsValue = MenuUtils.findSlot(MenuItems.TOGGLE_ADVANCED_OPERATIONS)
                             ?.stack
-                            ?.loreLineReturnable(4, false) { line ->
-                                line == "Enabled"
-                            } ?: throw IllegalStateException("Failed to get the status of advanced operations toggle")
+                            ?.loreLine(4, false)
+                            ?.equals("Enabled")
+                            ?: throw IllegalStateException("Failed to get the status of advanced operations toggle")
                         if (advancedOperationsValue) MenuUtils.clickMenuSlot(MenuItems.TOGGLE_ADVANCED_OPERATIONS)
                     }
 
