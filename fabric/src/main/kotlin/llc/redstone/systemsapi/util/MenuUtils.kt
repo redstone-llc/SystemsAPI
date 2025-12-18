@@ -21,29 +21,49 @@ import kotlin.reflect.KClass
 
 object MenuUtils {
 
-    var pending: CompletableDeferred<ItemStack>? = null
-
-    fun onItemReceived(stack: ItemStack, slot: Int) {
-        pending?.let { current ->
-            if (slot != 67) return //Har har
-            pending = null
-            current.complete(stack)
-        }
-    }
-
+    var pendingStack: CompletableDeferred<ItemStack>? = null
     // Returns an item that requires clicking and receiving in your inventory
     suspend fun getItemFromMenu(click: suspend () -> Unit): ItemStack {
         val deferred = CompletableDeferred<ItemStack>()
-        pending?.cancel()
-        pending = deferred
+        pendingStack?.cancel()
+        pendingStack = deferred
 
         return try {
             click()
             withTimeout(1_000) { deferred.await() }
         } finally {
-            if (pending === deferred) pending = null
+            if (pendingStack === deferred) pendingStack = null
         }
     }
+    fun onItemReceived(stack: ItemStack, slot: Int) {
+        pendingStack?.let { current ->
+            if (slot != 67) return //Har har
+            pendingStack = null
+            current.complete(stack)
+        }
+    }
+
+
+    var pendingString: CompletableDeferred<String>? = null
+    suspend fun getPreviousInput(click: suspend () -> Unit): String {
+        val deferred = CompletableDeferred<String>()
+        pendingString?.cancel()
+        pendingString = deferred
+
+        return try {
+            click()
+            withTimeout(1_000) { deferred.await() }
+        } finally {
+            if (pendingString === deferred) pendingString = null
+        }
+    }
+    fun onPreviousInputReceived(value: String) {
+        pendingString?.let { current ->
+            pendingString = null
+            current.complete(value)
+        }
+    }
+
 
     data class Target(val menuSlot: MenuSlot, val button: Int = 0)
     data class MenuSlot(val item: Item?, val label: String?, val slot: Int? = null)

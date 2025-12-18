@@ -62,24 +62,12 @@ internal class FunctionImporter(override var name: String) : Function {
     override suspend fun getDescription(): String {
         openFunctionEditMenu()
 
-        val description = MenuUtils.findSlot(MenuItems.SET_DESCRIPTION)
-            ?.stack
-            ?.loreLine(2, false, LoreFilters.RENAME_LORE_FILTER)
-                          ?: throw IllegalStateException("Failed to get description")
-
-        return description
+        return MenuUtils.getPreviousInput { MenuUtils.clickMenuSlot(MenuItems.SET_DESCRIPTION) }
     }
 
     override suspend fun setDescription(newDescription: String) {
         if (newDescription.length !in 1..120) throw IllegalArgumentException("Description length must be in range 1..120")
         openFunctionEditMenu()
-
-        val description = MenuUtils.findSlot(MenuItems.SET_DESCRIPTION)
-            ?.stack
-            ?.loreLine(2, false, LoreFilters.RENAME_LORE_FILTER)
-                          ?: throw IllegalStateException("Failed to set description")
-
-        if (description == newDescription) return
 
         MenuUtils.clickMenuSlot(MenuItems.SET_DESCRIPTION)
         TextUtils.input(newDescription, 100L)
