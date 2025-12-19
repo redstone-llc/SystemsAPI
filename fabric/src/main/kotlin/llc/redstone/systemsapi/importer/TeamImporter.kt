@@ -1,6 +1,7 @@
 package llc.redstone.systemsapi.importer
 
 import kotlinx.coroutines.delay
+import llc.redstone.systemsapi.SystemsAPI.LOGGER
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.api.Team
 import llc.redstone.systemsapi.util.CommandUtils
@@ -18,7 +19,6 @@ class TeamImporter(override var name: String) : Team {
     }
 
     private suspend fun openTeamMenu() {
-        if (!this.exists()) throw IllegalStateException("Team does not exist")
         if (isTeamMenuOpen()) return
 
         CommandUtils.runCommand("team edit $name")
@@ -76,6 +76,7 @@ class TeamImporter(override var name: String) : Team {
     }
 
     override suspend fun setColor(newColor: Team.TeamColor) {
+        if (newColor == Team.TeamColor.WHITE) throw IllegalArgumentException("Housing does not support setting the team color as White")
         openTeamMenu()
 
         val color = Team.TeamColor.entries.find {
@@ -105,23 +106,38 @@ class TeamImporter(override var name: String) : Team {
     override suspend fun setFriendlyFire(newFriendlyFire: Boolean) {
         openTeamMenu()
 
-        val friendlyFire = MenuUtils.findSlot(MenuItems.FRIENDLY_FIRE)
-            ?.stack
-            ?.getProperty("Current Value")
-            ?.equals("Enabled") ?: throw IllegalStateException("Failed to get team friendly fire")
+        for (attempt in 1..10) {
+            val friendlyFire = MenuUtils.findSlot(MenuItems.FRIENDLY_FIRE)
+                ?.stack
+                ?.getProperty("Current Value")
+                ?.equals("Enabled") ?: throw IllegalStateException("Failed to get team friendly fire")
 
-        if (friendlyFire == newFriendlyFire) return
+            if (friendlyFire == newFriendlyFire) return
 
-        MenuUtils.clickMenuSlot(MenuItems.FRIENDLY_FIRE)
+            LOGGER.info("attempt $attempt")
+
+            MenuUtils.clickMenuSlot(MenuItems.FRIENDLY_FIRE)
+            delay(50)
+        }
+        throw IllegalStateException("Failed to set team friendly fire")
     }
 
+    // TODO: Make this work for paginated menus i guess
     suspend fun exists(): Boolean {
-        TODO("Teams don't have tab completion...")
+        CommandUtils.runCommand("team")
+        MenuUtils.onOpen("Teams")
+
+        val gui = MenuUtils.currentMenu()
+        val slot = gui.screenHandler.slots
+            .find { it.stack.name.string == name }
+            ?: return false
+        return slot.id <= 44
     }
 
     suspend fun create() {
         if (this.exists()) throw IllegalStateException("Team already exists")
         CommandUtils.runCommand("team create $name")
+        MenuUtils.onOpen("Manage Team: $name")
     }
 
     override suspend fun delete() = CommandUtils.runCommand("team delete $name")
