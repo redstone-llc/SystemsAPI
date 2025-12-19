@@ -32,5 +32,6 @@ interface Team {
         RED("Red"),
         LIGHT_PURPLE("Light Purple"),
         YELLOW("Yellow"),
+        WHITE("White")
     }
 }
