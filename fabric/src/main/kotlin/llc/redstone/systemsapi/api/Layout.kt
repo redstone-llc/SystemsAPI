@@ -7,16 +7,16 @@ interface Layout {
 
     suspend fun getName(): String = name
 
-    suspend fun getHelmet(): ItemStack
+    suspend fun getHelmet(): ItemStack?
     suspend fun setHelmet(stack: ItemStack)
 
-    suspend fun getChestplate(): ItemStack
+    suspend fun getChestplate(): ItemStack?
     suspend fun setChestplate(stack: ItemStack)
 
-    suspend fun getLeggings(): ItemStack
+    suspend fun getLeggings(): ItemStack?
     suspend fun setLeggings(stack: ItemStack)
 
-    suspend fun getBoots(): ItemStack
+    suspend fun getBoots(): ItemStack?
     suspend fun setBoots(stack: ItemStack)
 
     suspend fun getHotbar(): Array<ItemStack>
