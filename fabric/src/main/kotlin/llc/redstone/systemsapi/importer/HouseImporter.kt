@@ -58,6 +58,22 @@ internal object HouseImporter : House {
             .mapNotNull { getFunction(it) }
     }
 
+    override suspend fun getInventoryLayout(name: String): Layout? {
+        val layout = LayoutImporter(name)
+        return if (layout.exists()) layout else null
+    }
+
+    override suspend fun createInventoryLayout(name: String): Layout {
+        val layout = LayoutImporter(name)
+        layout.create()
+        return layout
+    }
+
+    override suspend fun getAllInventoryLayouts(): List<Layout> {
+        return getTabCompletions("layout edit")
+            .mapNotNull { getInventoryLayout(it) }
+    }
+
     override suspend fun getMenu(title: String): Menu? {
         val menuImporter = MenuImporter(title)
         return if (menuImporter.exists()) menuImporter else null
@@ -95,6 +111,14 @@ internal object HouseImporter : House {
             .mapNotNull { getRegion(it) }
     }
 
+    override suspend fun getScoreboardLines(): List<Scoreboard.LineType> {
+        return ScoreboardImporter.getLines()
+    }
+
+    override suspend fun setScoreboardLines(lines: List<Scoreboard.LineType>) {
+        ScoreboardImporter.setLines(lines)
+    }
+
     override suspend fun getTeam(name: String): Team? {
         val teamImporter = TeamImporter(name)
         return if (teamImporter.exists()) teamImporter else null
@@ -111,10 +135,10 @@ internal object HouseImporter : House {
     }
 
     override suspend fun getOpenActionContainer(): ActionContainer? {
-        try {
-            return ActionContainer()
+        return try {
+            ActionContainer()
         } catch (e: Exception) {
-            return null
+            null
         }
     }
 

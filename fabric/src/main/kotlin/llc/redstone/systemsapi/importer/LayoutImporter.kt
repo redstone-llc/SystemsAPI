@@ -68,7 +68,6 @@ class LayoutImporter(override var name: String) : Layout {
         }
     }
 
-
     override suspend fun getHelmet(): ItemStack = getArmorPiece("Helmet")
     override suspend fun setHelmet(stack: ItemStack) = setArmorPiece("Helmet", stack)
 

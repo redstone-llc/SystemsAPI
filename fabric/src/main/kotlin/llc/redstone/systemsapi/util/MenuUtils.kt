@@ -4,7 +4,10 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
+import llc.redstone.systemsapi.SystemsAPI.LOGGER
 import llc.redstone.systemsapi.SystemsAPI.MC
+import llc.redstone.systemsapi.util.ItemStackUtils.getLoreLineMatches
+import llc.redstone.systemsapi.util.ItemStackUtils.loreLines
 import llc.redstone.systemsapi.util.TextUtils.convertTextToString
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
@@ -18,7 +21,6 @@ import net.minecraft.screen.slot.Slot
 import net.minecraft.screen.slot.SlotActionType
 import net.minecraft.screen.sync.ItemStackHash
 import net.minecraft.text.Text
-import net.minecraft.util.Identifier
 import kotlin.reflect.KClass
 
 object MenuUtils {
@@ -89,6 +91,7 @@ object MenuUtils {
     }
 
     fun onPreviousInputReceived(value: String) {
+        CommandUtils.runCommand("chatinput cancel", 0)
         pendingString?.let { current ->
             pendingString = null
             current.complete(value)
@@ -263,6 +266,21 @@ object MenuUtils {
         val gui = currentMenu()
         val playerSlot = slot + gui.screenHandler.slots.size - 45
         packetClick(playerSlot, button)
+    }
+
+    suspend fun selectKeyedCycle(slot: Slot, value: String) {
+        for (i in 0 until slot.stack.loreLines(false).size - 3) {
+            val stack = currentMenu().screenHandler.getSlot(slot.id).stack
+            val current = stack.getLoreLineMatches(false) { str -> str.contains("➠") }
+            LOGGER.info("Selected cycle: $current")
+            val currentValue = current.substringAfter("➠ ")
+            if (currentValue != value) {
+                packetClick(slot.id)
+                delay(100)
+            } else return
+        }
+
+        throw IllegalStateException("Could not find the correct selection for KeyedCycle")
     }
 
     fun currentMenu(): GenericContainerScreen =

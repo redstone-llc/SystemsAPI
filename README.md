@@ -34,7 +34,7 @@ SystemsAPI is a fabric library that abstracts Hypixel Housing's house systems fo
     - [x] Commands
     - [x] Custom Menus
     - [x] Regions
-    - [ ] Scoreboard
+    - [x] Scoreboard
     - [ ] Teams
     - [ ] NPCs
     - [ ] Inventory Layouts
