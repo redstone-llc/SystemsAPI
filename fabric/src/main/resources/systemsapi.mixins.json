@@ -5,9 +5,10 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "CancelPauseScreenMixin",
-    "ChatMessageMixin",
     "CommandSuggestionMixin",
     "ItemReceiveMixin",
+    "ReceiveGameruleValue",
+    "ReceivePreviousInputMixin",
     "ScreenRenderMixin"
   ],
   "injectors": {

@@ -147,5 +147,13 @@ internal object HouseImporter : House {
         return ConditionContainer
     }
 
+    override suspend fun getGamerule(gamerule: Gamerule.Gamerules): Boolean {
+        return GameruleImporter.getGamerule(gamerule)
+    }
+
+    override suspend fun setGamerule(gamerule: Gamerule.Gamerules, newValue: Boolean) {
+        GameruleImporter.setGamerule(gamerule, newValue)
+    }
+
 
 }

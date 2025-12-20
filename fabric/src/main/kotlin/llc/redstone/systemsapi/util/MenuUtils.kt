@@ -44,12 +44,11 @@ object MenuUtils {
 
         return try {
             click()
-            withTimeout(1_000) { deferred.await() }
+            withTimeout(1000) { deferred.await() }
         } finally {
             if (pendingStack === deferred) pendingStack = null
         }
     }
-
     fun onItemReceived(stack: ItemStack) {
         pendingStack?.let { current ->
             if (pendingItemDisplayName != null) {
@@ -84,13 +83,12 @@ object MenuUtils {
 
         return try {
             click()
-            withTimeout(1_000) { deferred.await() }
+            withTimeout(1000) { deferred.await() }
         } finally {
             if (pendingString === deferred) pendingString = null
         }
     }
-
-    fun onPreviousInputReceived(value: String) {
+    fun receivePreviousInput(value: String) {
         CommandUtils.runCommand("chatinput cancel", 0)
         pendingString?.let { current ->
             pendingString = null

@@ -26,6 +26,9 @@ interface House {
     suspend fun createMenu(title: String): Menu
     suspend fun getAllMenus(): List<Menu>
 
+//    suspend fun getNpc(name: String): Npc?
+//    suspend fun getAllNpcs(): List<Npc>
+
     suspend fun getRegion(name: String): Region?
     suspend fun createRegion(name: String): Region
     suspend fun getAllRegions(): List<Region>
@@ -39,4 +42,7 @@ interface House {
 
     suspend fun getOpenActionContainer(): ActionContainer?
     suspend fun getOpenConditionContainer(): ConditionContainer?
+
+    suspend fun getGamerule(gamerule: Gamerule.Gamerules): Boolean
+    suspend fun setGamerule(gamerule: Gamerule.Gamerules, newValue: Boolean)
 }
