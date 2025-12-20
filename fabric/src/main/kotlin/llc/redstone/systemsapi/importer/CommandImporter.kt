@@ -5,10 +5,10 @@ import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.api.Command
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.CommandUtils.getTabCompletions
+import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.getProperty
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
-import llc.redstone.systemsapi.util.TextUtils
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.item.Items
 
@@ -43,7 +43,7 @@ internal class CommandImporter(override var name: String) : Command {
         openCommandEditMenu()
 
         MenuUtils.clickMenuSlot(MenuItems.RENAME_COMMAND)
-        TextUtils.input(newName, 100L)
+        InputUtils.textInput(newName, 100L)
 
         name = newName
     }
@@ -95,7 +95,7 @@ internal class CommandImporter(override var name: String) : Command {
         if (priority == newPriority) return
 
         MenuUtils.clickMenuSlot(MenuItems.REQUIRED_GROUP_PRIORITY)
-        TextUtils.input(newPriority.toString(), 100L)
+        InputUtils.textInput(newPriority.toString(), 100L)
     }
 
     override suspend fun getListed(): Boolean {

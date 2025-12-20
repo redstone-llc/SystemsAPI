@@ -2,6 +2,8 @@ package llc.redstone.test
 
 import com.github.shynixn.mccoroutine.fabric.launch
 import com.github.shynixn.mccoroutine.fabric.mcCoroutineConfiguration
+import llc.redstone.systemsapi.SystemsAPI
+import llc.redstone.systemsapi.api.HouseSettings
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
@@ -36,7 +38,8 @@ class TestMod : ClientModInitializer {
                     .executes {
                         launch {
                             try {
-                                // Put stuff in here
+                                SystemsAPI.getHousingImporter().getHouseSettings().setHouseTags(setOf(HouseSettings.HouseTag.GUILD_HANGOUT, HouseSettings.HouseTag.PARKOUR, HouseSettings.HouseTag.MINIGAME))
+                                LOGGER.info(SystemsAPI.getHousingImporter().getHouseSettings().getHouseTags().toString())
                             } catch (e: Exception) {
                                 e.printStackTrace()
                                 MC.player?.sendMessage(

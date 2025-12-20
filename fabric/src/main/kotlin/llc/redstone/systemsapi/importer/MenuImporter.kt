@@ -4,10 +4,10 @@ import kotlinx.coroutines.delay
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.api.Menu
 import llc.redstone.systemsapi.util.CommandUtils
+import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
-import llc.redstone.systemsapi.util.TextUtils
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.component.DataComponentTypes
 import net.minecraft.item.ItemStack
@@ -30,7 +30,7 @@ internal class MenuImporter(override var title: String) : Menu {
         if (newTitle.length !in 1..32) throw IllegalArgumentException("Title length must be in range 1..32")
         openMenuEditMenu()
         MenuUtils.clickMenuSlot(MenuItems.CHANGE_TITLE)
-        TextUtils.input(newTitle, 100L)
+        InputUtils.textInput(newTitle, 100L)
         title = newTitle
     }
 
@@ -89,7 +89,7 @@ internal class MenuImporter(override var title: String) : Menu {
 
             val stack = MenuUtils.findSlot(MenuSlot(slot = 13))?.stack
                 ?: throw IllegalStateException("Could not find item in slot 13")
-            return MenuUtils.getItemFromMenu(null, stack) {
+            return InputUtils.getItemFromMenu(null, stack) {
                 MenuUtils.packetClick(13, 0)
             }
         }

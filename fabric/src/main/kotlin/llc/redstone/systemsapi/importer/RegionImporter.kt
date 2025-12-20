@@ -5,10 +5,10 @@ import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.api.Region
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.CommandUtils.getTabCompletions
+import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
 import llc.redstone.systemsapi.util.MenuUtils.Target
-import llc.redstone.systemsapi.util.TextUtils
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.item.Items
 
@@ -45,7 +45,7 @@ internal class RegionImporter(override var name: String) : Region {
         openRegionEditMenu()
 
         MenuUtils.clickMenuSlot(MenuItems.RENAME_FUNCTION)
-        TextUtils.input(newName, 100L)
+        InputUtils.textInput(newName, 100L)
 
         name = newName
     }

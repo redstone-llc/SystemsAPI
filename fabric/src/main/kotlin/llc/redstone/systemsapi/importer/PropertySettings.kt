@@ -4,6 +4,7 @@ import kotlinx.coroutines.delay
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.data.*
 import llc.redstone.systemsapi.importer.ActionContainer.MenuItems
+import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.ItemConverterUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.getLoreLine
 import llc.redstone.systemsapi.util.ItemStackUtils.getLoreLineMatches
@@ -12,7 +13,6 @@ import llc.redstone.systemsapi.util.ItemStackUtils.loreLines
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
 import llc.redstone.systemsapi.util.MenuUtils.Target
-import llc.redstone.systemsapi.util.TextUtils
 import net.minecraft.nbt.NbtOps
 import net.minecraft.screen.slot.Slot
 import java.lang.reflect.ParameterizedType
@@ -35,7 +35,7 @@ object PropertySettings {
             Int::class, Double::class, StatValue::class -> {
                 if (currentValue != value.toString()) {
                     MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
-                    TextUtils.input(value.toString(), 100L)
+                    _root_ide_package_.llc.redstone.systemsapi.util.InputUtils.textInput(value.toString(), 100L)
                 }
             }
 
@@ -51,7 +51,7 @@ object PropertySettings {
 
                 if (currentValueColor == value) return
                 MenuUtils.clickMenuSlot(MenuSlot(null, null, slotIndex))
-                TextUtils.input(value.toString(), 100L)
+                _root_ide_package_.llc.redstone.systemsapi.util.InputUtils.textInput(value.toString(), 100L)
             }
 
             ItemStack::class -> {
@@ -108,7 +108,7 @@ object PropertySettings {
                 MenuUtils.clickMenuTargetPaginated(Target(MenuSlot(null, operation.key)))
 
                 if (operation::class.annotations.find { it is CustomKey } != null) {
-                    TextUtils.input(value.toString(), 200L)
+                    _root_ide_package_.llc.redstone.systemsapi.util.InputUtils.textInput(value.toString(), 200L)
                 }
                 return
             }
@@ -171,7 +171,7 @@ object PropertySettings {
                 }
 
                 if (keyed::class.annotations.find { it is CustomKey } != null) {
-                    TextUtils.input(value.toString(), 200L)
+                    InputUtils.textInput(value.toString(), 200L)
                 }
             }
 
@@ -236,7 +236,7 @@ object PropertySettings {
                 MenuUtils.clickMenuSlot(MenuSlot(null, null, propertySlotIndex))
                 MenuUtils.onOpen("Select an Item")
 
-                val item = MenuUtils.getItemFromMenu(value, stack) {
+                val item = InputUtils.getItemFromMenu(value, stack) {
                     MenuUtils.interactionClick(13, 0)
                 }
                 val nbt = net.minecraft.item.ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, item).result().getOrNull()

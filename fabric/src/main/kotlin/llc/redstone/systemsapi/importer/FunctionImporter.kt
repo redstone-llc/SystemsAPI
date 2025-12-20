@@ -6,13 +6,13 @@ import llc.redstone.systemsapi.api.Function
 import llc.redstone.systemsapi.data.ItemStack
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.CommandUtils.getTabCompletions
+import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.ItemConverterUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.getProperty
 import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
 import llc.redstone.systemsapi.util.MenuUtils.Target
-import llc.redstone.systemsapi.util.TextUtils
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.item.Item
 import net.minecraft.item.Items
@@ -55,7 +55,7 @@ internal class FunctionImporter(override var name: String) : Function {
         openFunctionEditMenu()
 
         MenuUtils.clickMenuSlot(MenuItems.RENAME_FUNCTION)
-        TextUtils.input(newName, 100L)
+        InputUtils.textInput(newName, 100L)
 
         name = newName
     }
@@ -63,7 +63,7 @@ internal class FunctionImporter(override var name: String) : Function {
     override suspend fun getDescription(): String {
         openFunctionEditMenu()
 
-        return MenuUtils.getPreviousInput { MenuUtils.clickMenuSlot(MenuItems.SET_DESCRIPTION) }
+        return InputUtils.getPreviousInput { MenuUtils.clickMenuSlot(MenuItems.SET_DESCRIPTION) }
     }
 
     override suspend fun setDescription(newDescription: String) {
@@ -71,7 +71,7 @@ internal class FunctionImporter(override var name: String) : Function {
         openFunctionEditMenu()
 
         MenuUtils.clickMenuSlot(MenuItems.SET_DESCRIPTION)
-        TextUtils.input(newDescription, 100L)
+        InputUtils.textInput(newDescription, 100L)
     }
 
     override suspend fun getIcon(): Item {
@@ -116,7 +116,7 @@ internal class FunctionImporter(override var name: String) : Function {
         if (ticks == newAutomaticExecution) return
 
         MenuUtils.clickMenuSlot(MenuItems.AUTOMATIC_EXECUTION)
-        TextUtils.input(newAutomaticExecution.toString(), 100L)
+        InputUtils.textInput(newAutomaticExecution.toString(), 100L)
     }
 
     override suspend fun getActionContainer(): ActionContainer {

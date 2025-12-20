@@ -1,6 +1,6 @@
 package llc.redstone.systemsapi.mixins;
 
-import llc.redstone.systemsapi.util.MenuUtils;
+import llc.redstone.systemsapi.util.InputUtils;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
 import net.minecraft.text.ClickEvent;
@@ -20,7 +20,7 @@ public class ReceivePreviousInputMixin {
             cancellable = true
     )
     private void onGameMessage(GameMessageS2CPacket packet, CallbackInfo ci) {
-        if (MenuUtils.INSTANCE.getPendingString() == null) return;
+        if (InputUtils.INSTANCE.getPendingString() == null) return;
 
         Text message = packet.content();
         if (message.getSiblings().isEmpty()) return;
@@ -34,7 +34,7 @@ public class ReceivePreviousInputMixin {
         if (suggestCommand == null) return;
 
         ci.cancel();
-        MenuUtils.INSTANCE.receivePreviousInput(suggestCommand.command());
+        InputUtils.INSTANCE.receivePreviousInput(suggestCommand.command());
     }
 
 }

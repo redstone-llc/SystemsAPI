@@ -1,5 +1,6 @@
 package llc.redstone.systemsapi.api
 
+import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.getProperty
 import llc.redstone.systemsapi.util.MenuUtils
 import net.minecraft.item.Items
@@ -41,7 +42,7 @@ interface Scoreboard {
                     "Custom Line" -> {
                         MenuUtils.packetClick(slot)
                         MenuUtils.onOpen("Item Settings")
-                        val text = MenuUtils.getPreviousInput { MenuUtils.clickMenuSlot(MenuUtils.MenuSlot(Items.PAPER, "Text")) }
+                        val text = InputUtils.getPreviousInput { MenuUtils.clickMenuSlot(MenuUtils.MenuSlot(Items.PAPER, "Text")) }
                         MenuUtils.onOpen("Item Settings")
                         MenuUtils.clickMenuSlot(MenuItems.GO_BACK)
                         MenuUtils.onOpen("Scoreboard Editor")

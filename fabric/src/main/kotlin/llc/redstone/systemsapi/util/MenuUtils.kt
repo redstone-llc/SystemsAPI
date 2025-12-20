@@ -1,20 +1,13 @@
 package llc.redstone.systemsapi.util
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withTimeout
-import llc.redstone.systemsapi.SystemsAPI.LOGGER
 import llc.redstone.systemsapi.SystemsAPI.MC
-import llc.redstone.systemsapi.util.ItemStackUtils.getLoreLineMatches
-import llc.redstone.systemsapi.util.ItemStackUtils.loreLines
 import llc.redstone.systemsapi.util.TextUtils.convertTextToString
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.client.gui.screen.ingame.HandledScreen
-import net.minecraft.client.resource.language.I18n
 import net.minecraft.item.Item
-import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
 import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket
 import net.minecraft.screen.slot.Slot
@@ -25,80 +18,9 @@ import kotlin.reflect.KClass
 
 object MenuUtils {
 
-    var pendingStack: CompletableDeferred<ItemStack>? = null
-    var pendingItemDisplayName: String? = null
-    var pendingItemCompareStack: ItemStack? = null
-
-
-    // Returns an item that requires clicking and receiving in your inventory
-    // Display Name shouldn't have colors in it, but can, compareStack only looks at the item type
-    suspend fun getItemFromMenu(
-        displayName: String?, compareStack: ItemStack?,
-        click: suspend () -> Unit
-    ): ItemStack {
-        val deferred = CompletableDeferred<ItemStack>()
-        pendingStack?.cancel()
-        pendingStack = deferred
-        pendingItemDisplayName = displayName
-        pendingItemCompareStack = compareStack
-
-        return try {
-            click()
-            withTimeout(1000) { deferred.await() }
-        } finally {
-            if (pendingStack === deferred) pendingStack = null
-        }
-    }
-    fun onItemReceived(stack: ItemStack) {
-        pendingStack?.let { current ->
-            if (pendingItemDisplayName != null) {
-                //Translate text to string
-                val customName =
-                    convertTextToString(stack.customName, false) ?: I18n.translate(stack.item.translationKey)
-                val words = customName.split(" ")
-                for (word in words) {
-                    if (!pendingItemDisplayName!!.contains(word)) return
-                }
-            }
-
-            if (pendingItemCompareStack != null) {
-                println("${stack.item} != ${pendingItemCompareStack!!.item}")
-                if (stack.item != pendingItemCompareStack!!.item) return
-            }
-
-            pendingStack = null
-            pendingItemDisplayName = null
-            pendingItemCompareStack = null
-
-            current.complete(stack)
-        }
-    }
-
-
-    var pendingString: CompletableDeferred<String>? = null
-    suspend fun getPreviousInput(click: suspend () -> Unit): String {
-        val deferred = CompletableDeferred<String>()
-        pendingString?.cancel()
-        pendingString = deferred
-
-        return try {
-            click()
-            withTimeout(1000) { deferred.await() }
-        } finally {
-            if (pendingString === deferred) pendingString = null
-        }
-    }
-    fun receivePreviousInput(value: String) {
-        CommandUtils.runCommand("chatinput cancel", 0)
-        pendingString?.let { current ->
-            pendingString = null
-            current.complete(value)
-        }
-    }
-
 
     data class Target(val menuSlot: MenuSlot, val button: Int = 0)
-    data class MenuSlot(val item: Item? = null, val label: String? = null, val slot: Int? = null)
+    data class MenuSlot(val item: Item? = null, val label: String? = null, val slot: Int? = null, val partial: Boolean = false)
 
     //Debug info
     var waitingOn: String? = null
@@ -170,7 +92,7 @@ object MenuUtils {
                 } else {
                     attempted = true
                     lastSlot?.let { slot -> clickMenuTargets(Target(slot, lastButton)) }
-                    lastInput?.let { TextUtils.reinput() }
+                    lastInput?.let { InputUtils.textReinput() }
                     attempts = 0
                 }
             }
@@ -239,7 +161,7 @@ object MenuUtils {
         val match = attempts.firstNotNullOfOrNull {
             try {
                 it to findSlot(it.menuSlot)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 null
             }
         }
@@ -264,21 +186,6 @@ object MenuUtils {
         val gui = currentMenu()
         val playerSlot = slot + gui.screenHandler.slots.size - 45
         packetClick(playerSlot, button)
-    }
-
-    suspend fun selectKeyedCycle(slot: Slot, value: String) {
-        for (i in 0 until slot.stack.loreLines(false).size - 3) {
-            val stack = currentMenu().screenHandler.getSlot(slot.id).stack
-            val current = stack.getLoreLineMatches(false) { str -> str.contains("➠") }
-            LOGGER.info("Selected cycle: $current")
-            val currentValue = current.substringAfter("➠ ")
-            if (currentValue != value) {
-                packetClick(slot.id)
-                delay(100)
-            } else return
-        }
-
-        throw IllegalStateException("Could not find the correct selection for KeyedCycle")
     }
 
     fun currentMenu(): GenericContainerScreen =

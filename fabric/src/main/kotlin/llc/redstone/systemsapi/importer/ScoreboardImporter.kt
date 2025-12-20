@@ -4,8 +4,9 @@ import kotlinx.coroutines.delay
 import llc.redstone.systemsapi.SystemsAPI.LOGGER
 import llc.redstone.systemsapi.api.Scoreboard
 import llc.redstone.systemsapi.util.CommandUtils
+import llc.redstone.systemsapi.util.InputUtils
+import llc.redstone.systemsapi.util.InputUtils.setKeyedCycle
 import llc.redstone.systemsapi.util.MenuUtils
-import llc.redstone.systemsapi.util.TextUtils
 import net.minecraft.item.Items
 
 object ScoreboardImporter : Scoreboard {
@@ -64,7 +65,7 @@ object ScoreboardImporter : Scoreboard {
                     MenuUtils.packetClick(itemIndex)
                     MenuUtils.onOpen("Item Settings")
                     MenuUtils.clickMenuSlot(MenuUtils.MenuSlot(null, "Text"))
-                    TextUtils.input(line.text)
+                    InputUtils.textInput(line.text)
                     MenuUtils.onOpen("Item Settings")
                     MenuUtils.clickMenuSlot(MenuItems.GO_BACK)
                     MenuUtils.onOpen("Scoreboard Editor")
@@ -80,7 +81,7 @@ object ScoreboardImporter : Scoreboard {
 
                     // Cycle through to the correct scope
                     val slot = MenuUtils.findSlot(MenuUtils.MenuSlot(null, "Holder")) ?: throw IllegalStateException("Could not find Holder slot")
-                    MenuUtils.selectKeyedCycle(slot, line.scope.displayName)
+                    setKeyedCycle(slot, line.scope.displayName)
 
                     if (line.scope is Scoreboard.VariableType.Team) {
                         MenuUtils.clickMenuSlot(MenuUtils.MenuSlot(Items.OAK_SIGN, "Team"))
@@ -89,7 +90,7 @@ object ScoreboardImporter : Scoreboard {
                         MenuUtils.onOpen("Item Settings")
                     }
                     MenuUtils.clickMenuSlot(MenuUtils.MenuSlot(Items.PAPER, "Variable"))
-                    TextUtils.input(line.key)
+                    InputUtils.textInput(line.key)
                     MenuUtils.onOpen("Item Settings")
                     MenuUtils.clickMenuSlot(MenuItems.GO_BACK)
                     MenuUtils.onOpen("Scoreboard Editor")

@@ -43,6 +43,8 @@ interface House {
     suspend fun getOpenActionContainer(): ActionContainer?
     suspend fun getOpenConditionContainer(): ConditionContainer?
 
+    suspend fun getHouseSettings(): HouseSettings
+
     suspend fun getGamerule(gamerule: Gamerule.Gamerules): Boolean
     suspend fun setGamerule(gamerule: Gamerule.Gamerules, newValue: Boolean)
 }

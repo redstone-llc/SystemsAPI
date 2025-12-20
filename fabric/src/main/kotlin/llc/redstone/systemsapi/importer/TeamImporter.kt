@@ -5,10 +5,10 @@ import llc.redstone.systemsapi.SystemsAPI.LOGGER
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.api.Team
 import llc.redstone.systemsapi.util.CommandUtils
+import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.getProperty
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
-import llc.redstone.systemsapi.util.TextUtils
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.item.Items
 
@@ -31,7 +31,7 @@ class TeamImporter(override var name: String) : Team {
         openTeamMenu()
 
         MenuUtils.clickMenuSlot(MenuItems.RENAME_TEAM)
-        TextUtils.input(newName, 100L)
+        InputUtils.textInput(newName, 100L)
 
         name = newName
     }
@@ -60,7 +60,7 @@ class TeamImporter(override var name: String) : Team {
         if (tag == newTag) return
 
         MenuUtils.clickMenuSlot(MenuItems.CHANGE_TAG)
-        TextUtils.input(newTag, 100L)
+        InputUtils.textInput(newTag, 100L)
     }
 
     override suspend fun getColor(): Team.TeamColor {

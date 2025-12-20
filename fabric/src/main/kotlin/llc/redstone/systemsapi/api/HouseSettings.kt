@@ -21,14 +21,14 @@ interface HouseSettings {
 
 
     enum class HouseTag(val displayName: String) {
-        ROLEPLAY("Roleplay"),
-        GENERAL("General"),
-        PARKOUR("Parkour"),
-        MAZE("Maze"),
-        CHAT("Chat"),
-        GUILD_HANGOUT("Guild Hangout"),
-        BUILD("Build"),
-        MINIGAME("Minigame")
+        ROLEPLAY("Roleplay (RP)"),
+        GENERAL("General (GEN)"),
+        PARKOUR("Parkour (P)"),
+        MAZE("Maze (MAZE)"),
+        CHAT("Chat (C)"),
+        GUILD_HANGOUT("Guild Hangout (GH)"),
+        BUILD("Build (B)"),
+        MINIGAME("Minigame (M)")
     }
     enum class HouseLanguage(val displayName: String) {
         ENGLISH("English"),

@@ -4,6 +4,7 @@ import kotlinx.coroutines.delay
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.api.Layout
 import llc.redstone.systemsapi.util.CommandUtils
+import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
@@ -41,7 +42,7 @@ class LayoutImporter(override var name: String) : Layout {
         val stack = MenuUtils.findSlot(MenuSlot(slot = 13))?.stack
             ?: throw IllegalStateException("Could not find armor piece in layout '$name' for slot '$label'")
         if (stack.name.string != "Current Item") return null
-        return MenuUtils.getItemFromMenu(null, stack) {
+        return InputUtils.getItemFromMenu(null, stack) {
             MenuUtils.packetClick(13, 0)
         }
     }
