@@ -7,7 +7,6 @@ import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
 import llc.redstone.systemsapi.util.MenuUtils
-import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.component.DataComponentTypes
 import net.minecraft.item.Item
@@ -49,10 +48,8 @@ internal class MenuImporter(override var title: String) : Menu {
         openMenuEditMenu()
         MenuItems.CHANGE_MENU_SIZE.click()
         MenuUtils.onOpen("Change Menu Size")
-        MenuUtils.clickMenuSlot(
-            if (newSize == 1) MenuSlot(Items.BEACON, "1 Row")
-            else MenuSlot(Items.BEACON, "$newSize Rows")
-        )
+        if (newSize == 1) MenuUtils.clickItems("1 Row", Items.BEACON)
+        else MenuUtils.clickItems("$newSize Rows", Items.BEACON)
     }
 
     override suspend fun getAllMenuElements(): Array<Menu.MenuElement> {

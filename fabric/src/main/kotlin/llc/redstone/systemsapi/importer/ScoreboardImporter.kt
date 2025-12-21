@@ -52,7 +52,7 @@ object ScoreboardImporter : Scoreboard {
         newLines.forEach { line ->
             MenuItems.ADD_ITEM.click()
             MenuUtils.onOpen("Add Scoreboard Item")
-            MenuUtils.clickMenuSlot(MenuUtils.MenuSlot(null, line.displayName))
+            MenuUtils.clickItems(line.displayName)
             MenuUtils.onOpen("Scoreboard Editor")
 
             val gui = MenuUtils.currentMenu()
@@ -66,7 +66,7 @@ object ScoreboardImporter : Scoreboard {
 
                     MenuUtils.packetClick(itemIndex)
                     MenuUtils.onOpen("Item Settings")
-                    MenuUtils.clickMenuSlot(MenuUtils.MenuSlot(null, "Text"))
+                    MenuUtils.clickItems("Text")
                     InputUtils.textInput(line.text)
                     MenuUtils.onOpen("Item Settings")
                     MenuItems.GO_BACK.click()

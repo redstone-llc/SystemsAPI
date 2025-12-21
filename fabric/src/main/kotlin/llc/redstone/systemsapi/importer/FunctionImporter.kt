@@ -10,8 +10,6 @@ import llc.redstone.systemsapi.util.ItemConverterUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.getProperty
 import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
 import llc.redstone.systemsapi.util.MenuUtils
-import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
-import llc.redstone.systemsapi.util.MenuUtils.Target
 import net.minecraft.item.Item
 import net.minecraft.item.Items
 import net.minecraft.screen.slot.Slot
@@ -34,8 +32,7 @@ internal class FunctionImporter(override var name: String) : Function {
             CommandUtils.runCommand("functions")
             MenuUtils.onOpen("Functions")
 
-            if (!MenuUtils.clickMenuTargetPaginated(Target(MenuSlot(null, name), 1))) return false
-
+            MenuUtils.clickItems(name, paginated = true)
             MenuUtils.onOpen("Edit: $name")
             delay(50)
         }

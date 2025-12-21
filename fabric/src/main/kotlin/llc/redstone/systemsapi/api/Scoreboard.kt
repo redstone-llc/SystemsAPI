@@ -3,7 +3,9 @@ package llc.redstone.systemsapi.api
 import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.getProperty
 import llc.redstone.systemsapi.util.MenuUtils
+import net.minecraft.item.Item
 import net.minecraft.item.Items
+import net.minecraft.screen.slot.Slot
 
 interface Scoreboard {
     suspend fun getLines(): List<LineType>
@@ -42,9 +44,11 @@ interface Scoreboard {
                     "Custom Line" -> {
                         MenuUtils.packetClick(slot)
                         MenuUtils.onOpen("Item Settings")
-                        val text = InputUtils.getPreviousInput { MenuUtils.clickMenuSlot(MenuUtils.MenuSlot(Items.PAPER, "Text")) }
+                        val text = InputUtils.getPreviousInput {
+                            MenuUtils.clickItems("Text", Items.PAPER)
+                        }
                         MenuUtils.onOpen("Item Settings")
-                        MenuUtils.clickMenuSlot(MenuItems.GO_BACK)
+                        MenuItems.GO_BACK.click()
                         MenuUtils.onOpen("Scoreboard Editor")
                         CustomLine(text)
                     }
@@ -64,9 +68,16 @@ interface Scoreboard {
                 }
             }
 
-            private object MenuItems {
-                val GO_BACK = MenuUtils.MenuSlot(Items.ARROW, "Go Back")
+            private enum class MenuItems(
+                val label: String,
+                val type: Item? = null
+            ) {
+                GO_BACK("Go Back", Items.ARROW);
+
+                suspend fun click() = if (type != null) MenuUtils.clickItems(label, type) else MenuUtils.clickItems(label)
+                fun find(): Slot = if (type != null) MenuUtils.findSlots(label, type).first() else MenuUtils.findSlots(label).first()
             }
+
         }
     }
 }

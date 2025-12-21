@@ -223,13 +223,15 @@ object MenuUtils {
 
     // TODO: Check to make sure `paginated` works
     suspend fun clickItems(predicate: (ItemStack) -> Boolean, packet: Boolean = true, button: Int = 0, paginated: Boolean = false) {
-        val slots = findSlots(predicate)
+        var slots = findSlots(predicate)
         if (paginated && slots.isEmpty()) {
-            val nextPageSlot = findSlots("Left-click for next page!", Items.ARROW).firstOrNull() ?: return
-            packetClick(nextPageSlot.id)
-            delay(200)
-            clickItems(predicate, packet, button, true)
-            return
+            repeat(50) {
+                val nextPageSlot = findSlots("Left-click for next page!", Items.ARROW).firstOrNull() ?: return
+                packetClick(nextPageSlot.id)
+                delay(200)
+                slots = findSlots(predicate)
+                if (slots.isNotEmpty()) return@repeat
+            }
         }
         slots.forEach { slot ->
             when (packet) {

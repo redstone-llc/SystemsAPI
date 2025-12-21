@@ -17,7 +17,8 @@ object HouseSettingsImporter : HouseSettings {
 
         CommandUtils.runCommand("menu")
         MenuUtils.onOpen("Housing Menu")
-        MenuUtils.clickMenuSlot(MenuUtils.MenuSlot(Items.COMPARATOR, "House Settings"))
+        MenuItems.HOUSE_SETTINGS.click()
+
         MenuUtils.onOpen("House Settings")
     }
 
@@ -155,6 +156,7 @@ object HouseSettingsImporter : HouseSettings {
         val label: String,
         val type: Item? = null
     ) {
+        HOUSE_SETTINGS("House Settings", Items.COMPARATOR),
         TIME_SELECTOR("Time Selector", Items.CLOCK),
         MAX_PLAYERS("Max Players *", Items.PLAYER_HEAD),
         HOUSE_TAGS("House Tags", Items.NAME_TAG),
