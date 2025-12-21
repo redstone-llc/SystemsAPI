@@ -1,7 +1,6 @@
 package llc.redstone.systemsapi.importer
 
 import kotlinx.coroutines.delay
-import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.api.Function
 import llc.redstone.systemsapi.data.ItemStack
 import llc.redstone.systemsapi.util.CommandUtils
@@ -13,19 +12,21 @@ import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
 import llc.redstone.systemsapi.util.MenuUtils.Target
-import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.item.Item
 import net.minecraft.item.Items
+import net.minecraft.screen.slot.Slot
 
 internal class FunctionImporter(override var name: String) : Function {
-    private fun isFunctionEditMenuOpen(): Boolean {
-        val container = MC.currentScreen as? GenericContainerScreen ?: return false
-        return container.title.string.contains("Edit: $name")
+    private fun isFunctionEditMenuOpen(): Boolean = try {
+        MenuUtils.currentMenu().title.string.contains("Edit: $name")
+    } catch (_: Exception) {
+        false
     }
 
-    private fun isActionsMenuOpen(): Boolean {
-        val container = MC.currentScreen as? GenericContainerScreen ?: return false
-        return container.title.string.contains("Actions: $name")
+    private fun isActionsMenuOpen(): Boolean = try {
+        MenuUtils.currentMenu().title.string.contains("Actions: $name")
+    } catch (_: Exception) {
+        false
     }
 
     private suspend fun openFunctionEditMenu(): Boolean {
@@ -54,7 +55,7 @@ internal class FunctionImporter(override var name: String) : Function {
         if (newName.length !in 1..50) throw IllegalArgumentException("Title length must be in range 1..50")
         openFunctionEditMenu()
 
-        MenuUtils.clickMenuSlot(MenuItems.RENAME_FUNCTION)
+        MenuItems.RENAME_FUNCTION.click()
         InputUtils.textInput(newName, 100L)
 
         name = newName
@@ -63,27 +64,27 @@ internal class FunctionImporter(override var name: String) : Function {
     override suspend fun getDescription(): String {
         openFunctionEditMenu()
 
-        return InputUtils.getPreviousInput { MenuUtils.clickMenuSlot(MenuItems.SET_DESCRIPTION) }
+        return InputUtils.getPreviousInput { MenuItems.EDIT_DESCRIPTION.click() }
     }
 
     override suspend fun setDescription(newDescription: String) {
         if (newDescription.length !in 1..120) throw IllegalArgumentException("Description length must be in range 1..120")
         openFunctionEditMenu()
 
-        MenuUtils.clickMenuSlot(MenuItems.SET_DESCRIPTION)
+        MenuItems.EDIT_DESCRIPTION.click()
         InputUtils.textInput(newDescription, 100L)
     }
 
     override suspend fun getIcon(): Item {
         openFunctionEditMenu()
-        val slot = MenuUtils.findSlot(MenuItems.EDIT_ICON) ?: throw IllegalStateException("Failed to find EDIT_ICON")
+        val slot = MenuItems.EDIT_ICON.find()
         return slot.stack.item
     }
 
     override suspend fun setIcon(newIcon: ItemStack) {
         openFunctionEditMenu()
 
-        MenuUtils.clickMenuSlot(MenuItems.EDIT_ICON)
+        MenuItems.EDIT_ICON.click()
         MenuUtils.onOpen("Select an Item")
 
         val itemStack = ItemConverterUtils.createFromNBT(newIcon.nbt ?: return)
@@ -95,8 +96,8 @@ internal class FunctionImporter(override var name: String) : Function {
     override suspend fun getAutomaticExecution(): Int {
         openFunctionEditMenu()
 
-        val ticks = MenuUtils.findSlot(MenuItems.AUTOMATIC_EXECUTION)
-            ?.stack
+        val ticks = MenuItems.AUTOMATIC_EXECUTION.find()
+            .stack
             ?.getProperty("Current")
             ?.let { if (it == "Disabled") 0 else it.toIntOrNull() }
             ?: throw IllegalStateException("Failed to find automatic execution ticks")
@@ -108,14 +109,14 @@ internal class FunctionImporter(override var name: String) : Function {
         if (newAutomaticExecution !in 0..18000) throw IllegalArgumentException("Automatic execution ticks must be in range 1..18000")
         openFunctionEditMenu()
 
-        val ticks = MenuUtils.findSlot(MenuItems.AUTOMATIC_EXECUTION)
-            ?.stack
+        val ticks = MenuItems.AUTOMATIC_EXECUTION.find()
+            .stack
             ?.getProperty("Current")
             ?.let { if (it == "Disabled") 0 else it.toIntOrNull() }
             ?: throw IllegalStateException("Failed to set automatic execution")
         if (ticks == newAutomaticExecution) return
 
-        MenuUtils.clickMenuSlot(MenuItems.AUTOMATIC_EXECUTION)
+        MenuItems.AUTOMATIC_EXECUTION.click()
         InputUtils.textInput(newAutomaticExecution.toString(), 100L)
     }
 
@@ -128,11 +129,17 @@ internal class FunctionImporter(override var name: String) : Function {
     fun create() = CommandUtils.runCommand("function create $name")
     override suspend fun delete() = CommandUtils.runCommand("function delete $name")
 
-    private object MenuItems {
-        val RENAME_FUNCTION = MenuSlot(Items.ANVIL, "Rename Function")
-        val SET_DESCRIPTION = MenuSlot(Items.BOOK, "Edit Description")
-        val EDIT_ICON = MenuSlot(null, "Edit Icon")
-        val AUTOMATIC_EXECUTION = MenuSlot(Items.COMPARATOR, "Automatic Execution")
-        val BACK = MenuSlot(Items.ARROW, "Go Back")
+    private enum class MenuItems(
+        val label: String,
+        val type: Item? = null
+    ) {
+        RENAME_FUNCTION("Rename Function", Items.ANVIL),
+        EDIT_DESCRIPTION("Edit Description", Items.BOOK),
+        EDIT_ICON("Edit Icon"),
+        AUTOMATIC_EXECUTION("Automatic Execution", Items.COMPARATOR),
+        BACK("Go Back", Items.ARROW);
+
+        fun click() = if (type != null) MenuUtils.clickItems(label, type) else MenuUtils.clickItems(label)
+        fun find(): Slot = if (type != null) MenuUtils.findSlots(label, type).first() else MenuUtils.findSlots(label).first()
     }
 }

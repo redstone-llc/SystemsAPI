@@ -7,10 +7,10 @@ import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.CommandUtils.getTabCompletions
 import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.MenuUtils
-import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
-import llc.redstone.systemsapi.util.MenuUtils.Target
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
+import net.minecraft.item.Item
 import net.minecraft.item.Items
+import net.minecraft.screen.slot.Slot
 
 internal class RegionImporter(override var name: String) : Region {
     private fun isRegionEditMenuOpen(): Boolean {
@@ -29,14 +29,14 @@ internal class RegionImporter(override var name: String) : Region {
     private suspend fun openEntryActionsEditMenu() {
         openRegionEditMenu()
 
-        MenuUtils.clickMenuSlot(MenuItems.ENTRY_ACTIONS)
+        MenuItems.ENTRY_ACTIONS.click()
         MenuUtils.onOpen("Edit Actions")
     }
 
     private suspend fun openExitActionsEditMenu() {
         openRegionEditMenu()
 
-        MenuUtils.clickMenuSlot(MenuItems.EXIT_ACTIONS)
+        MenuItems.EXIT_ACTIONS.click()
         MenuUtils.onOpen("Edit Actions")
     }
 
@@ -44,7 +44,7 @@ internal class RegionImporter(override var name: String) : Region {
         if (newName.length !in 1..50) throw IllegalArgumentException("Region name length must be in range 1..50")
         openRegionEditMenu()
 
-        MenuUtils.clickMenuSlot(MenuItems.RENAME_FUNCTION)
+        MenuItems.RENAME_REGION.click()
         InputUtils.textInput(newName, 100L)
 
         name = newName
@@ -52,23 +52,23 @@ internal class RegionImporter(override var name: String) : Region {
 
     override suspend fun teleportToRegion() {
         openRegionEditMenu()
-        MenuUtils.clickMenuSlot(MenuItems.TELEPORT_TO_REGION)
+        MenuItems.TELEPORT_TO_REGION.click()
     }
 
     override suspend fun moveRegion() {
         openRegionEditMenu()
-        MenuUtils.clickMenuSlot(MenuItems.MOVE_REGION)
+        MenuItems.MOVE_REGION.click()
     }
 
     override suspend fun getPvpSettings(): MutableMap<Region.PvpSettings, Boolean> {
         openRegionEditMenu()
-        MenuUtils.clickMenuSlot(MenuItems.PVP_SETTINGS)
+        MenuItems.PVP_SETTINGS.click()
 
         val map = mutableMapOf<Region.PvpSettings, Boolean>()
         val keys: Array<Region.PvpSettings> = Region.PvpSettings.entries.toTypedArray()
 
         for (pvpSetting in keys) {
-            val setting = MenuUtils.findSlot(pvpSetting.item) ?: throw IllegalStateException("Couldn't find slot for $pvpSetting")
+            val setting = MenuUtils.findSlots(pvpSetting.label).first()
             when (setting.stack.item) {
                 Items.LIME_DYE -> map.putIfAbsent(pvpSetting, true)
                 Items.LIGHT_GRAY_DYE -> map.putIfAbsent(pvpSetting, false)
@@ -80,11 +80,11 @@ internal class RegionImporter(override var name: String) : Region {
 
     override suspend fun setPvpSettings(newPvpSettings: MutableMap<Region.PvpSettings, Boolean>) {
         openRegionEditMenu()
-        MenuUtils.clickMenuSlot(MenuItems.PVP_SETTINGS)
+        MenuItems.PVP_SETTINGS.click()
 
         val keys: Array<Region.PvpSettings> = Region.PvpSettings.entries.toTypedArray()
         for (pvpSetting in keys) {
-            val settingItem = MenuUtils.findSlot(pvpSetting.item) ?: throw IllegalStateException("Couldn't find slot for $pvpSetting")
+            val settingItem = MenuUtils.findSlots(pvpSetting.label).first()
             val settingValue = when (settingItem.stack.item) {
                 Items.LIME_DYE -> true
                 Items.LIGHT_GRAY_DYE -> false
@@ -92,13 +92,13 @@ internal class RegionImporter(override var name: String) : Region {
             }
             // Unset settings which aren't provided
             if (!newPvpSettings.contains(pvpSetting)) {
-                if (settingValue != null) MenuUtils.clickMenuTargets(Target(pvpSetting.item, 1))
+                if (settingValue != null) MenuUtils.clickItems(pvpSetting.label, button = 1)
                 continue
             }
             // Set values which are provided
             val newSetting = newPvpSettings[pvpSetting]
             if (newSetting == settingValue) continue
-            MenuUtils.clickMenuSlot(pvpSetting.item)
+            MenuUtils.clickItems(pvpSetting.label)
         }
     }
 
@@ -118,12 +118,19 @@ internal class RegionImporter(override var name: String) : Region {
         CommandUtils.runCommand("region delete $name")
     }
 
-    private object MenuItems {
-        val RENAME_FUNCTION = MenuSlot(Items.NAME_TAG, "Rename Region")
-        val TELEPORT_TO_REGION = MenuSlot(Items.ENDER_PEARL, "Teleport to Region")
-        val MOVE_REGION = MenuSlot(Items.STICK, "Move Region")
-        val PVP_SETTINGS = MenuSlot(Items.IRON_SWORD, "PvP Settings")
-        val ENTRY_ACTIONS = MenuSlot(Items.PAPER, "Entry Actions")
-        val EXIT_ACTIONS = MenuSlot(Items.PAPER, "Exit Actions")
+    private enum class MenuItems(
+        val label: String,
+        val type: Item? = null
+    ) {
+        RENAME_REGION("Rename Region", Items.NAME_TAG),
+        TELEPORT_TO_REGION("Teleport to Region", Items.ENDER_PEARL),
+        MOVE_REGION("Move Region", Items.STICK),
+        PVP_SETTINGS("PvP Settings", Items.IRON_SWORD),
+        ENTRY_ACTIONS("Entry Actions", Items.PAPER),
+        EXIT_ACTIONS("Exit Actions", Items.PAPER);
+
+        fun click() = if (type != null) MenuUtils.clickItems(label, type) else MenuUtils.clickItems(label)
+        fun find(): Slot = if (type != null) MenuUtils.findSlots(label, type).first() else MenuUtils.findSlots(label).first()
     }
+
 }

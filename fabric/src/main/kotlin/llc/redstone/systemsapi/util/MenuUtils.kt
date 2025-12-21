@@ -8,6 +8,7 @@ import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.client.gui.screen.ingame.HandledScreen
 import net.minecraft.item.Item
+import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
 import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket
 import net.minecraft.screen.slot.Slot
@@ -18,9 +19,8 @@ import kotlin.reflect.KClass
 
 object MenuUtils {
 
-
     data class Target(val menuSlot: MenuSlot, val button: Int = 0)
-    data class MenuSlot(val item: Item? = null, val label: String? = null, val slot: Int? = null, val partial: Boolean = false)
+    data class MenuSlot(val item: Item? = null, val label: String? = null, val slot: Int? = null)
 
     //Debug info
     var waitingOn: String? = null
@@ -115,37 +115,6 @@ object MenuUtils {
         }
     }
 
-    fun packetClick(slot: Int, button: Int = 0) {
-        val gui = MC.currentScreen as? HandledScreen<*> ?: error("[packetClick] Current screen is not a HandledScreen")
-
-        val pkt = ClickSlotC2SPacket(
-            gui.screenHandler.syncId,
-            gui.screenHandler.revision,
-            slot.toShort(),
-            button.toByte(),
-            SlotActionType.PICKUP,
-            Int2ObjectOpenHashMap(),
-            ItemStackHash.EMPTY
-        )
-        lastButton = button
-
-        MC.networkHandler?.sendPacket(pkt) ?: error("Failed to send click packet")
-    }
-
-    fun interactionClick(slot: Int, button: Int = 0) {
-        val gui =
-            MC.currentScreen as? HandledScreen<*> ?: error("[interactionClick] Current screen is not a HandledScreen")
-
-        lastButton = button
-        MC.interactionManager?.clickSlot(
-            gui.screenHandler.syncId,
-            slot,
-            button,
-            SlotActionType.PICKUP,
-            MC.player
-        )
-    }
-
     suspend fun clickMenuSlot(vararg slots: MenuSlot): Boolean =
         clickMenuTargets(*slots.map { Target(it) }.toTypedArray())
 
@@ -188,11 +157,108 @@ object MenuUtils {
         packetClick(playerSlot, button)
     }
 
-    fun currentMenu(): GenericContainerScreen =
-        MC.currentScreen as? GenericContainerScreen
-            ?: throw ClassCastException("Expected GenericContainerScreen but found ${MC.currentScreen?.javaClass?.name}")
-
     object GlobalMenuItems {
         val NEXT_PAGE = MenuSlot(Items.ARROW, "Left-click for next page!")
+    }
+
+    // ESSENTIAL
+
+    fun packetClick(slot: Int, button: Int = 0) {
+        val gui = MC.currentScreen as? HandledScreen<*> ?: error("[packetClick] Current screen is not a HandledScreen")
+
+        val pkt = ClickSlotC2SPacket(
+            gui.screenHandler.syncId,
+            gui.screenHandler.revision,
+            slot.toShort(),
+            button.toByte(),
+            SlotActionType.PICKUP,
+            Int2ObjectOpenHashMap(),
+            ItemStackHash.EMPTY
+        )
+        lastButton = button
+
+        MC.networkHandler?.sendPacket(pkt) ?: error("Failed to send click packet")
+    }
+
+    fun interactionClick(slot: Int, button: Int = 0) {
+        val gui =
+            MC.currentScreen as? HandledScreen<*> ?: error("[interactionClick] Current screen is not a HandledScreen")
+
+        lastButton = button
+        MC.interactionManager?.clickSlot(
+            gui.screenHandler.syncId,
+            slot,
+            button,
+            SlotActionType.PICKUP,
+            MC.player
+        )
+    }
+
+    fun currentMenu(): GenericContainerScreen =
+        MC.currentScreen as? GenericContainerScreen
+        ?: throw ClassCastException("Expected GenericContainerScreen but found ${MC.currentScreen?.javaClass?.name}")
+
+    // NEW FUNCTIONS
+
+    // Helper functions for finding slots
+
+    fun findSlots(predicate: (ItemStack) -> Boolean): List<Slot> {
+        return currentMenu().screenHandler.slots.filter { predicate(it.stack) }
+    }
+
+    fun findSlots(name: String): List<Slot> {
+        return findSlots {
+            it.name.string == name
+        }
+    }
+
+    fun findSlots(name: String, item: Item): List<Slot> {
+        return findSlots {
+            it.name.string == name &&
+            it.item == item
+        }
+    }
+
+    // Helper classes for clicking items
+
+    // TODO: Check to make sure `paginated` works
+    suspend fun clickItems(predicate: (ItemStack) -> Boolean, packet: Boolean = true, button: Int = 0, paginated: Boolean = false) {
+        val slots = findSlots(predicate)
+        if (paginated && slots.isEmpty()) {
+            val nextPageSlot = findSlots("Left-click for next page!", Items.ARROW).firstOrNull() ?: return
+            packetClick(nextPageSlot.id)
+            delay(200)
+            clickItems(predicate, packet, button, true)
+            return
+        }
+        slots.forEach { slot ->
+            when (packet) {
+                true -> packetClick(slot.id, button)
+                false -> interactionClick(slot.id, button)
+            }
+        }
+    }
+
+    suspend fun clickItems(name: String, packet: Boolean = false, button: Int = 0, paginated: Boolean = false) {
+        clickItems(
+            {
+                it.name.string == name
+            },
+            packet,
+            button,
+            paginated
+        )
+    }
+
+    suspend fun clickItems(name: String, item: Item, packet: Boolean = true, button: Int = 0, paginated: Boolean = false) {
+        clickItems(
+            {
+                it.name.string == name &&
+                it.item == item
+            },
+            packet,
+            button,
+            paginated
+        )
     }
 }

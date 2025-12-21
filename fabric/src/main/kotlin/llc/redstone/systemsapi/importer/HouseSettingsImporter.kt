@@ -4,15 +4,13 @@ import kotlinx.coroutines.delay
 import llc.redstone.systemsapi.api.HouseSettings
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.MenuUtils
+import net.minecraft.item.Item
 import net.minecraft.item.Items
+import net.minecraft.screen.slot.Slot
 
 object HouseSettingsImporter : HouseSettings {
 
-    private fun isSettingsMenuOpen(): Boolean = try {
-        MenuUtils.currentMenu().title.string == "House Settings"
-    } catch (e: Exception) {
-        false
-    }
+    private fun isSettingsMenuOpen(): Boolean = runCatching { MenuUtils.currentMenu().title.string == "House Settings" }.getOrDefault(false)
 
     private suspend fun openSettingsMenu() {
         if (isSettingsMenuOpen()) return
@@ -35,7 +33,7 @@ object HouseSettingsImporter : HouseSettings {
     override suspend fun getHouseTags(): Set<HouseSettings.HouseTag> {
         openSettingsMenu()
 
-        MenuUtils.clickMenuSlot(MenuItems.HOUSE_TAGS)
+        MenuItems.HOUSE_TAGS.click()
         MenuUtils.onOpen("House Tags")
 
         val tags = MenuUtils.currentMenu().screenHandler.inventory.asSequence()
@@ -47,7 +45,7 @@ object HouseSettingsImporter : HouseSettings {
             }
             .toSet()
 
-        MenuUtils.clickMenuSlot(MenuItems.MAIN_MENU)
+        MenuItems.MAIN_MENU.click()
         MenuUtils.onOpen("House Settings")
 
         return tags
@@ -56,7 +54,7 @@ object HouseSettingsImporter : HouseSettings {
     override suspend fun setHouseTags(newTags: Set<HouseSettings.HouseTag>) {
         openSettingsMenu()
 
-        MenuUtils.clickMenuSlot(MenuItems.HOUSE_TAGS)
+        MenuItems.HOUSE_TAGS.click()
         MenuUtils.onOpen("House Tags")
 
         // Deselect first
@@ -81,7 +79,7 @@ object HouseSettingsImporter : HouseSettings {
     override suspend fun getHouseLanguages(): Set<HouseSettings.HouseLanguage> {
         openSettingsMenu()
 
-        MenuUtils.clickMenuSlot(MenuItems.HOUSE_LANGUAGE)
+        MenuItems.HOUSE_LANGUAGE.click()
         MenuUtils.onOpen("House Language")
 
         val languages = MenuUtils.currentMenu().screenHandler.inventory.asSequence()
@@ -93,7 +91,7 @@ object HouseSettingsImporter : HouseSettings {
             }
             .toSet()
 
-        MenuUtils.clickMenuSlot(MenuItems.MAIN_MENU)
+        MenuItems.MAIN_MENU.click()
         MenuUtils.onOpen("House Settings")
 
         return languages
@@ -102,7 +100,7 @@ object HouseSettingsImporter : HouseSettings {
     override suspend fun setHouseLanguages(newLanguages: Set<HouseSettings.HouseLanguage>) {
         openSettingsMenu()
 
-        MenuUtils.clickMenuSlot(MenuItems.HOUSE_LANGUAGE)
+        MenuItems.HOUSE_LANGUAGE.click()
         MenuUtils.onOpen("House Language")
 
         // Deselect first
@@ -153,17 +151,24 @@ object HouseSettingsImporter : HouseSettings {
     }
 
 
-    private object MenuItems {
-        val TIME_SELECTOR = MenuUtils.MenuSlot(Items.CLOCK, "Time Selector")
-        val MAX_PLAYERS = MenuUtils.MenuSlot(Items.PLAYER_HEAD, "Max Players *")
-        val HOUSE_TAGS = MenuUtils.MenuSlot(Items.NAME_TAG, "House Tags")
-        val HOUSE_LANGUAGE = MenuUtils.MenuSlot(Items.BOOK, "House Language")
-        val PARKOUR_ANNOUNCE = MenuUtils.MenuSlot(Items.LIGHT_WEIGHTED_PRESSURE_PLATE, "Parkour Announce *")
-        val JOIN_LEAVE_MESSAGES = MenuUtils.MenuSlot(Items.PAPER, "Join/Leave Messages *")
-        val DOOR_FENCE_AUTO_RESET = MenuUtils.MenuSlot(Items.PAPER, "Door/Fence Auto-Reset *")
-        val PLAYER_DATA = MenuUtils.MenuSlot(Items.FEATHER, "Player Data")
-        val PVP_DAMAGE_SETTINGS = MenuUtils.MenuSlot(Items.STONE_SWORD, "PvP + Damage Settings")
-        val FISHING_SETTINGS = MenuUtils.MenuSlot(Items.FISHING_ROD, "Fishing Settings")
-        val MAIN_MENU = MenuUtils.MenuSlot(Items.NETHER_STAR, "Main Menu")
+    private enum class MenuItems(
+        val label: String,
+        val type: Item? = null
+    ) {
+        TIME_SELECTOR("Time Selector", Items.CLOCK),
+        MAX_PLAYERS("Max Players *", Items.PLAYER_HEAD),
+        HOUSE_TAGS("House Tags", Items.NAME_TAG),
+        HOUSE_LANGUAGE("House Language", Items.BOOK),
+        PARKOUR_ANNOUNCE("Parkour Announce *", Items.LIGHT_WEIGHTED_PRESSURE_PLATE),
+        JOIN_LEAVE_MESSAGES("Join/Leave Messages *", Items.PAPER),
+        DOOR_FENCE_AUTO_RESET("Door/Fence Auto-Reset *", Items.PAPER),
+        PLAYER_DATA("Player Data", Items.FEATHER),
+        PVP_DAMAGE_SETTINGS("PvP + Damage Settings", Items.STONE_SWORD),
+        FISHING_SETTINGS("Fishing Settings", Items.FISHING_ROD),
+        MAIN_MENU("Main Menu", Items.NETHER_STAR);
+
+        fun click() = if (type != null) MenuUtils.clickItems(label, type) else MenuUtils.clickItems(label)
+        fun find(): Slot = if (type != null) MenuUtils.findSlots(label, type).first() else MenuUtils.findSlots(label).first()
     }
+
 }

@@ -153,7 +153,8 @@ object PropertySettings {
                 if (currentHolder != keyed) {
                     val clicks = holderIndex - currentIndex
                     repeat(abs(clicks)) {
-                        MenuUtils.clickMenuTargets(Target(MenuSlot(null, null, slotIndex), if (clicks > 0) 0 else 1))
+                        MenuUtils.clickMenuTargets(Target(MenuSlot(null, null, slotIndex), if (clicks > 0) 0 else 1)) // why this
+//                        MenuUtils.packetClick(slotIndex, if (clicks > 0) 0 else 1) // not this
                         delay(50) //Small delay to allow the menu to update
                     }
                 }

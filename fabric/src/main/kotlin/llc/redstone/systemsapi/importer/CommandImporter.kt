@@ -8,9 +8,10 @@ import llc.redstone.systemsapi.util.CommandUtils.getTabCompletions
 import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.getProperty
 import llc.redstone.systemsapi.util.MenuUtils
-import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
+import net.minecraft.item.Item
 import net.minecraft.item.Items
+import net.minecraft.screen.slot.Slot
 
 internal class CommandImporter(override var name: String) : Command {
     private fun isCommandEditMenuOpen(): Boolean {
@@ -42,7 +43,7 @@ internal class CommandImporter(override var name: String) : Command {
     override suspend fun setName(newName: String) {
         openCommandEditMenu()
 
-        MenuUtils.clickMenuSlot(MenuItems.RENAME_COMMAND)
+        MenuItems.RENAME_COMMAND.click()
         InputUtils.textInput(newName, 100L)
 
         name = newName
@@ -51,8 +52,8 @@ internal class CommandImporter(override var name: String) : Command {
     override suspend fun getCommandMode(): Command.CommandMode {
         openCommandEditMenu()
 
-        val mode = MenuUtils.findSlot(MenuItems.TOGGLE_COMMAND_MODE)
-            ?.stack
+        val mode = MenuItems.TOGGLE_COMMAND_MODE.find()
+            .stack
             ?.getProperty("Current")
             ?.let { if (it == "Self") Command.CommandMode.SELF else Command.CommandMode.TARGETED }
             ?: throw IllegalStateException("Failed to get the command mode")
@@ -62,21 +63,21 @@ internal class CommandImporter(override var name: String) : Command {
     override suspend fun setCommandMode(newCommandMode: Command.CommandMode) {
         openCommandEditMenu()
 
-        val mode = MenuUtils.findSlot(MenuItems.TOGGLE_COMMAND_MODE)
-            ?.stack
+        val mode = MenuItems.TOGGLE_COMMAND_MODE.find()
+            .stack
             ?.getProperty("Current")
             ?.let { if (it == "Self") Command.CommandMode.SELF else Command.CommandMode.TARGETED }
             ?: throw IllegalStateException("Failed to set the command mode to ${newCommandMode.name}")
         if (mode == newCommandMode) return
 
-        MenuUtils.clickMenuSlot(MenuItems.TOGGLE_COMMAND_MODE)
+        MenuItems.TOGGLE_COMMAND_MODE.click()
     }
 
     override suspend fun getRequiredGroupPriority(): Int {
         openCommandEditMenu()
 
-        val priority = MenuUtils.findSlot(MenuItems.REQUIRED_GROUP_PRIORITY)
-            ?.stack
+        val priority = MenuItems.REQUIRED_GROUP_PRIORITY.find()
+            .stack
             ?.getProperty("Current")
             ?.toIntOrNull()
             ?: throw IllegalStateException("Failed to get the required group priority")
@@ -87,22 +88,22 @@ internal class CommandImporter(override var name: String) : Command {
     override suspend fun setRequiredGroupPriority(newPriority: Int) {
         openCommandEditMenu()
 
-        val priority = MenuUtils.findSlot(MenuItems.REQUIRED_GROUP_PRIORITY)
-            ?.stack
+        val priority = MenuItems.REQUIRED_GROUP_PRIORITY.find()
+            .stack
             ?.getProperty("Current")
             ?.toIntOrNull()
             ?: throw IllegalStateException("Failed to set the required group priority to $newPriority.")
         if (priority == newPriority) return
 
-        MenuUtils.clickMenuSlot(MenuItems.REQUIRED_GROUP_PRIORITY)
+        MenuItems.REQUIRED_GROUP_PRIORITY.click()
         InputUtils.textInput(newPriority.toString(), 100L)
     }
 
     override suspend fun getListed(): Boolean {
         openCommandEditMenu()
 
-        val listed = MenuUtils.findSlot(MenuItems.LISTED)
-            ?.stack
+        val listed = MenuItems.LISTED.find()
+            .stack
             ?.item
             ?.let { item -> item == Items.LIME_DYE }
             ?: throw IllegalStateException("Failed to get the listed value")
@@ -113,14 +114,14 @@ internal class CommandImporter(override var name: String) : Command {
     override suspend fun setListed(newListed: Boolean) {
         openCommandEditMenu()
 
-        val listed = MenuUtils.findSlot(MenuItems.LISTED)
-            ?.stack
+        val listed = MenuItems.LISTED.find()
+            .stack
             ?.item
             ?.let { item -> item == Items.LIME_DYE }
             ?: throw IllegalStateException("Failed to set the listed value to $newListed.")
         if (listed == newListed) return
 
-        MenuUtils.clickMenuSlot(MenuItems.LISTED)
+        MenuItems.LISTED.click()
     }
 
     override suspend fun getActionContainer(): ActionContainer {
@@ -136,10 +137,16 @@ internal class CommandImporter(override var name: String) : Command {
 
     override suspend fun delete() = CommandUtils.runCommand("command delete $name")
 
-    private object MenuItems {
-        val RENAME_COMMAND = MenuSlot(Items.ANVIL, "Rename Command")
-        val TOGGLE_COMMAND_MODE = MenuSlot(null, "Toggle Command Mode")
-        val REQUIRED_GROUP_PRIORITY = MenuSlot(Items.FILLED_MAP, "Required Group Priority")
-        val LISTED = MenuSlot(null, "Listed")
+    private enum class MenuItems(
+        val label: String,
+        val type: Item? = null
+    ) {
+        RENAME_COMMAND("Rename Command", Items.ANVIL),
+        TOGGLE_COMMAND_MODE("Toggle Command Mode"),
+        REQUIRED_GROUP_PRIORITY("Required Group Priority", Items.FILLED_MAP),
+        LISTED("Listed");
+
+        fun click() = if (type != null) MenuUtils.clickItems(label, type) else MenuUtils.clickItems(label)
+        fun find(): Slot = if (type != null) MenuUtils.findSlots(label, type).first() else MenuUtils.findSlots(label).first()
     }
 }

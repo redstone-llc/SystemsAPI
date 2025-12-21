@@ -10,8 +10,10 @@ import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.component.DataComponentTypes
+import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
+import net.minecraft.screen.slot.Slot
 
 internal class MenuImporter(override var title: String) : Menu {
     private fun isMenuEditMenuOpen(): Boolean {
@@ -29,14 +31,14 @@ internal class MenuImporter(override var title: String) : Menu {
     override suspend fun setTitle(newTitle: String) {
         if (newTitle.length !in 1..32) throw IllegalArgumentException("Title length must be in range 1..32")
         openMenuEditMenu()
-        MenuUtils.clickMenuSlot(MenuItems.CHANGE_TITLE)
+        MenuItems.CHANGE_TITLE.click()
         InputUtils.textInput(newTitle, 100L)
         title = newTitle
     }
 
     override suspend fun getMenuSize(): Int {
         openMenuEditMenu()
-        MenuUtils.clickMenuSlot(MenuItems.CHANGE_MENU_SIZE)
+        MenuItems.CHANGE_MENU_SIZE.click()
         MenuUtils.onOpen("Change Menu Size")
         val stack = (MC.currentScreen as GenericContainerScreen).screenHandler.inventory.first { stack -> stack.hasGlint() || stack.hasEnchantments() }
         return Regex("""\d+""").find(stack.name.string)?.value?.toIntOrNull() ?: throw IllegalStateException("[Menu $title] Couldn't find menu size.")
@@ -45,7 +47,7 @@ internal class MenuImporter(override var title: String) : Menu {
     override suspend fun changeMenuSize(newSize: Int) {
         if (newSize !in 1..6) throw IllegalArgumentException("New size must be in 1..6")
         openMenuEditMenu()
-        MenuUtils.clickMenuSlot(MenuItems.CHANGE_MENU_SIZE)
+        MenuItems.CHANGE_MENU_SIZE.click()
         MenuUtils.onOpen("Change Menu Size")
         MenuUtils.clickMenuSlot(
             if (newSize == 1) MenuSlot(Items.BEACON, "1 Row")
@@ -55,7 +57,7 @@ internal class MenuImporter(override var title: String) : Menu {
 
     override suspend fun getAllMenuElements(): Array<Menu.MenuElement> {
         openMenuEditMenu()
-        MenuUtils.clickMenuSlot(MenuItems.EDIT_MENU_ELEMENTS)
+        MenuItems.EDIT_MENU_ELEMENTS.click()
         MenuUtils.onOpen("Edit Elements: $title")
         val gui = MenuUtils.currentMenu()
         val numSlots = 9 * gui.screenHandler.rows
@@ -64,7 +66,7 @@ internal class MenuImporter(override var title: String) : Menu {
 
     override suspend fun getMenuElement(index: Int): Menu.MenuElement {
         openMenuEditMenu()
-        MenuUtils.clickMenuSlot(MenuItems.EDIT_MENU_ELEMENTS)
+        MenuItems.EDIT_MENU_ELEMENTS.click()
         MenuUtils.onOpen("Edit Elements: $title")
         val gui = MenuUtils.currentMenu()
         val numSlots = 9 * gui.screenHandler.rows
@@ -75,11 +77,18 @@ internal class MenuImporter(override var title: String) : Menu {
     suspend fun exists(): Boolean = CommandUtils.getTabCompletions("menus edit").contains(title)
     fun create() = CommandUtils.runCommand("menus create $title")
     override suspend fun delete() = CommandUtils.runCommand("menus delete $title")
+    
 
-    object MenuItems {
-        val CHANGE_TITLE = MenuSlot(Items.ANVIL, "Change Title")
-        val CHANGE_MENU_SIZE = MenuSlot(Items.BEACON, "Change Menu Size")
-        val EDIT_MENU_ELEMENTS = MenuSlot(Items.ENDER_CHEST, "Edit Menu Elements")
+    private enum class MenuItems(
+        val label: String,
+        val type: Item? = null
+    ) {
+        CHANGE_TITLE("Change Title", Items.ANVIL),
+        CHANGE_MENU_SIZE("Change Menu Size", Items.BEACON),
+        EDIT_MENU_ELEMENTS("Edit Menu Elements", Items.ENDER_CHEST);
+
+        fun click() = if (type != null) MenuUtils.clickItems(label, type) else MenuUtils.clickItems(label)
+        fun find(): Slot = if (type != null) MenuUtils.findSlots(label, type).first() else MenuUtils.findSlots(label).first()
     }
 
     internal class MenuElementImporter(val slot: Int, val title: String) : Menu.MenuElement {
@@ -87,10 +96,9 @@ internal class MenuImporter(override var title: String) : Menu {
             MenuUtils.packetClick(slot, 1)
             MenuUtils.onOpen("Select an Item")
 
-            val stack = MenuUtils.findSlot(MenuSlot(slot = 13))?.stack
-                ?: throw IllegalStateException("Could not find item in slot 13")
+            val stack = MenuItems.CURRENT_ITEM.find().stack
             return InputUtils.getItemFromMenu(null, stack) {
-                MenuUtils.packetClick(13, 0)
+                MenuItems.CURRENT_ITEM.click()
             }
         }
 
@@ -114,10 +122,20 @@ internal class MenuImporter(override var title: String) : Menu {
 
             MenuUtils.onOpen("Edit Elements: $title")
 
-            MenuUtils.packetClick(slot, 0)
+            MenuUtils.packetClick(slot)
             MenuUtils.onOpen("Edit Actions")
 
             return ActionContainer("Edit Actions")
+        }
+
+        private enum class MenuItems(
+            val label: String,
+            val type: Item? = null
+        ) {
+            CURRENT_ITEM("Current Item");
+
+            fun click() = if (type != null) MenuUtils.clickItems(label, type) else MenuUtils.clickItems(label)
+            fun find(): Slot = if (type != null) MenuUtils.findSlots(label, type).first() else MenuUtils.findSlots(label).first()
         }
     }
 }
