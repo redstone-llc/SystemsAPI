@@ -129,7 +129,7 @@ internal class RegionImporter(override var name: String) : Region {
         ENTRY_ACTIONS("Entry Actions", Items.PAPER),
         EXIT_ACTIONS("Exit Actions", Items.PAPER);
 
-        fun click() = if (type != null) MenuUtils.clickItems(label, type) else MenuUtils.clickItems(label)
+        suspend fun click() = if (type != null) MenuUtils.clickItems(label, type) else MenuUtils.clickItems(label)
         fun find(): Slot = if (type != null) MenuUtils.findSlots(label, type).first() else MenuUtils.findSlots(label).first()
     }
 

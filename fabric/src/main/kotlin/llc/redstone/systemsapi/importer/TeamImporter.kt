@@ -152,7 +152,7 @@ class TeamImporter(override var name: String) : Team {
         CHANGE_COLOR("Change Color", Items.REDSTONE),
         FRIENDLY_FIRE("Friendly Fire", Items.IRON_SWORD);
 
-        fun click() = if (type != null) MenuUtils.clickItems(label, type) else MenuUtils.clickItems(label)
+        suspend fun click() = if (type != null) MenuUtils.clickItems(label, type) else MenuUtils.clickItems(label)
         fun find(): Slot = if (type != null) MenuUtils.findSlots(label, type).first() else MenuUtils.findSlots(label).first()
     }
 

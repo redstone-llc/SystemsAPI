@@ -87,7 +87,7 @@ internal class MenuImporter(override var title: String) : Menu {
         CHANGE_MENU_SIZE("Change Menu Size", Items.BEACON),
         EDIT_MENU_ELEMENTS("Edit Menu Elements", Items.ENDER_CHEST);
 
-        fun click() = if (type != null) MenuUtils.clickItems(label, type) else MenuUtils.clickItems(label)
+        suspend fun click() = if (type != null) MenuUtils.clickItems(label, type) else MenuUtils.clickItems(label)
         fun find(): Slot = if (type != null) MenuUtils.findSlots(label, type).first() else MenuUtils.findSlots(label).first()
     }
 
@@ -134,7 +134,7 @@ internal class MenuImporter(override var title: String) : Menu {
         ) {
             CURRENT_ITEM("Current Item");
 
-            fun click() = if (type != null) MenuUtils.clickItems(label, type) else MenuUtils.clickItems(label)
+            suspend fun click() = if (type != null) MenuUtils.clickItems(label, type) else MenuUtils.clickItems(label)
             fun find(): Slot = if (type != null) MenuUtils.findSlots(label, type).first() else MenuUtils.findSlots(label).first()
         }
     }

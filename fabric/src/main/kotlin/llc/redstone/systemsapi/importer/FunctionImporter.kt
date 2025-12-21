@@ -139,7 +139,7 @@ internal class FunctionImporter(override var name: String) : Function {
         AUTOMATIC_EXECUTION("Automatic Execution", Items.COMPARATOR),
         BACK("Go Back", Items.ARROW);
 
-        fun click() = if (type != null) MenuUtils.clickItems(label, type) else MenuUtils.clickItems(label)
+        suspend fun click() = if (type != null) MenuUtils.clickItems(label, type) else MenuUtils.clickItems(label)
         fun find(): Slot = if (type != null) MenuUtils.findSlots(label, type).first() else MenuUtils.findSlots(label).first()
     }
 }

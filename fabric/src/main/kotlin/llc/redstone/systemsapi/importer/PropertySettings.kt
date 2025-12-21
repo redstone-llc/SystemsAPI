@@ -147,7 +147,7 @@ object PropertySettings {
                 val holderIndex = entries.indexOf(keyed) + 1
                 val stack = slot.stack
 
-                val current = stack.getLoreLineMatches(true) { str -> str.contains("➠") } ?: return
+                val current = stack.getLoreLineMatches(true) { str -> str.contains("➠") }
                 val currentHolder = entries.find { current.contains(it.key) }
                 val currentIndex = if (currentHolder != null) entries.indexOf(currentHolder) + 1 else 0
                 if (currentHolder != keyed) {

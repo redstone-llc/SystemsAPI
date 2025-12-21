@@ -146,7 +146,7 @@ internal class CommandImporter(override var name: String) : Command {
         REQUIRED_GROUP_PRIORITY("Required Group Priority", Items.FILLED_MAP),
         LISTED("Listed");
 
-        fun click() = if (type != null) MenuUtils.clickItems(label, type) else MenuUtils.clickItems(label)
+        suspend fun click() = if (type != null) MenuUtils.clickItems(label, type) else MenuUtils.clickItems(label)
         fun find(): Slot = if (type != null) MenuUtils.findSlots(label, type).first() else MenuUtils.findSlots(label).first()
     }
 }

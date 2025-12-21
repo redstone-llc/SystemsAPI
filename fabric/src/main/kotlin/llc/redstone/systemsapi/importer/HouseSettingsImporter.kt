@@ -167,7 +167,7 @@ object HouseSettingsImporter : HouseSettings {
         FISHING_SETTINGS("Fishing Settings", Items.FISHING_ROD),
         MAIN_MENU("Main Menu", Items.NETHER_STAR);
 
-        fun click() = if (type != null) MenuUtils.clickItems(label, type) else MenuUtils.clickItems(label)
+        suspend fun click() = if (type != null) MenuUtils.clickItems(label, type) else MenuUtils.clickItems(label)
         fun find(): Slot = if (type != null) MenuUtils.findSlots(label, type).first() else MenuUtils.findSlots(label).first()
     }
 
