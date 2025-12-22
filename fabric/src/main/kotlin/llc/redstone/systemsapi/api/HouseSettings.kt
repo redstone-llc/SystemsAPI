@@ -1,6 +1,14 @@
 package llc.redstone.systemsapi.api
 
+import kotlin.time.Duration
+
 interface HouseSettings {
+    suspend fun getDaylightCycle(): Boolean
+    suspend fun setDaylightCycle(newDaylightCycle: Boolean)
+
+    suspend fun getMaxPlayers(): MaxPlayers
+    suspend fun setMaxPlayers(newMaxPlayers: MaxPlayers)
+
     suspend fun getHouseName(): String
     suspend fun setHouseName(newName: String)
 
@@ -11,13 +19,28 @@ interface HouseSettings {
     suspend fun setHouseLanguages(newLanguages: Set<HouseLanguage>)
 
     suspend fun getParkourAnnounce(): ParkourAnnounce
-    suspend fun setParkourAnnounce(newPark: ParkourAnnounce)
+    suspend fun setParkourAnnounce(newParkourAnnounce: ParkourAnnounce)
 
-    suspend fun getMaxPlayers(): MaxPlayers
-    suspend fun setMaxPlayers(newMaxPlayers: MaxPlayers)
+    suspend fun getPlayerStateDuration(): Duration
+    suspend fun setPlayerStateDuration(newDuration: Duration)
 
-    suspend fun getDaylightCycle(): Boolean
-    suspend fun setDaylightCycle(newDaylightCycle: Boolean)
+    suspend fun getPlayerStateTypes(): MutableMap<PlayerStateType, Boolean>
+    suspend fun setPlayerStateTypes(newStates: MutableMap<PlayerStateType, Boolean>)
+
+    suspend fun clearPlayerStates()
+
+    suspend fun getDefaultVariableDuration(): Duration
+    suspend fun setDefaultVariableDuration(newDuration: Duration)
+
+    suspend fun getVariableDurationOverride(variable: String): Duration?
+    suspend fun setVariableDurationOverride(variable: String, newDuration: Duration)
+    suspend fun removeVariableDurationOverride(variable: String)
+
+    suspend fun getPvpSettings(): MutableMap<PvpSettings, Boolean>
+    suspend fun setPvpSettings(newPvpSettings: MutableMap<PvpSettings, Boolean>)
+
+    suspend fun getFishingSettings(): MutableMap<FishingSettings, Boolean>
+    suspend fun setFishingSettings(newFishingSettings: MutableMap<FishingSettings, Boolean>)
 
 
     enum class HouseTag(val displayName: String) {
@@ -60,5 +83,32 @@ interface HouseSettings {
         ONE_TWENTY_FIVE("125"),
         ONE_FIFTY("150"),
         DYNAMIC("Dynamic")
+    }
+    enum class PlayerStateType(val displayName: String) {
+        LOCATION("Location"),
+        PARKOUR("Parkour"),
+        HEALTH("Health"),
+        INVENTORIES("Inventories"),
+        POTIONS_METADATA("Potions and Metadata"),
+        TEAM("Team")
+    }
+    enum class PvpSettings(val displayName: String) {
+        PVP("PvP/Damage"),
+        DOUBLE_JUMP("Double Jump"),
+        FIRE_DAMAGE("Fire Damage"),
+        FALL_DAMAGE("Fall Damage"),
+        POISON_WITHER_DAMAGE("Poison/Wither Damage"),
+        SUFFOCATION("Suffocation"),
+        HUNGER("Hunger"),
+        NATURAL_REGENERATION("Natural Regeneration"),
+        DEATH_MESSAGES("Kill/Death Messages"),
+        INSTANT_RESPAWN("Instant Respawn"),
+        KEEP_INVENTORY("Keep Inventory")
+    }
+    enum class FishingSettings(val displayName: String) {
+        ALLOW_USING_FISHING_RODS("Allow Using Fishing Rods"),
+        LAVA_FISHING("Lava Fishing"),
+        SHOW_CATCH_TIMER("Show Catch Timer"),
+        PLAY_CAUGHT_SOUND("Play Caught Sound")
     }
 }
