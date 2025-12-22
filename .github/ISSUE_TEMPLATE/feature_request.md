@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an idea for this SystemsAPI
+about: Suggest an idea for SystemsAPI
 title: "[FEATURE] "
 labels: ''
 assignees: ''
