@@ -91,16 +91,21 @@ object InputUtils {
         }
     }
 
-    fun getDyeToggle(slot: Slot): Boolean {
+    fun getDyeToggle(slot: Slot): Boolean? {
         val stack = MenuUtils.currentMenu().screenHandler.getSlot(slot.id).stack
-        return stack.item == Items.LIME_DYE
+        return when (stack.item) {
+            Items.LIME_DYE -> true
+            Items.LIGHT_GRAY_DYE, Items.GRAY_DYE -> false
+            Items.STONE_BUTTON -> null
+            else -> throw IllegalStateException("Dye Toggle found to be of unexpected type ${stack.item.name.string}")
+        }
     }
 
-    suspend fun setDyeToggle(slot: Slot, newValue: Boolean) {
+    suspend fun setDyeToggle(slot: Slot, newValue: Boolean?) {
         repeat(10) {
             val current = getDyeToggle(slot)
             if (current == newValue) return
-            MenuUtils.packetClick(slot.id)
+            if (newValue != null) MenuUtils.packetClick(slot.id) else MenuUtils.packetClick(slot.id, button = 1)
             delay(200)
         }
         throw IllegalStateException("Could not find the correct selection for Dye Toggle")

@@ -5,6 +5,9 @@ import com.github.shynixn.mccoroutine.fabric.mcCoroutineConfiguration
 import com.mojang.brigadier.context.CommandContext
 import llc.redstone.systemsapi.SystemsAPI
 import llc.redstone.systemsapi.api.HouseSettings
+import llc.redstone.systemsapi.api.Region
+import llc.redstone.systemsapi.data.Action
+import llc.redstone.systemsapi.data.StatOp
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
@@ -101,6 +104,47 @@ class TestMod : ClientModInitializer {
                                     it.sendFeedback("Test Variable Duration", settings.getVariableDurationOverride("test").toString())
                                     it.sendFeedback("PvP Settings", settings.getPvpSettings())
                                     it.sendFeedback("Fishing Settings", settings.getFishingSettings())
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                    MC.player?.sendMessage(
+                                        MutableText.of(
+                                            of("[Test Mod] An error occurred: ${e.message}")
+                                        ).withColor(Color.RED.rgb), false
+                                    )
+                                }
+                            }
+                            1
+                        }
+                    )
+                    .then(
+                        literal("regions").executes {
+                            launch {
+                                try {
+                                    val region = SystemsAPI.getHousingImporter().getRegion("test") ?: throw Exception()
+                                    region.setPvpSettings(
+                                        mutableMapOf(
+                                            Pair(Region.PvpSettings.PVP, true),
+                                            Pair(Region.PvpSettings.KEEP_INVENTORY, true),
+                                            Pair(Region.PvpSettings.FIRE_DAMAGE, null),
+                                            Pair(Region.PvpSettings.FALL_DAMAGE, false)
+                                        )
+                                    )
+                                    region.getEntryActionContainer().addActions(
+                                        listOf(
+                                            Action.FullHeal(),
+                                            Action.ChangeHealth(10.0, StatOp.Set)
+                                        )
+                                    )
+                                    region.getExitActionContainer().addActions(
+                                        listOf(
+                                            Action.FullHeal(),
+                                            Action.ChangeHealth(10.0, StatOp.Set)
+                                        )
+                                    )
+
+                                    it.sendFeedback("PvP Settings", region.getPvpSettings())
+                                    it.sendFeedback("Entry Actions", region.getEntryActionContainer().getActions())
+                                    it.sendFeedback("Exit Actions", region.getExitActionContainer().getActions())
                                 } catch (e: Exception) {
                                     e.printStackTrace()
                                     MC.player?.sendMessage(

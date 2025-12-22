@@ -309,7 +309,7 @@ object HouseSettingsImporter : HouseSettings {
 
         for (stateType in keys) {
             val slot = MenuUtils.findSlots(stateType.displayName).first()
-            map.putIfAbsent(stateType, getDyeToggle(slot))
+            map.putIfAbsent(stateType, getDyeToggle(slot)!!)
         }
 
         MenuUtils.clickItems(MenuItems.back)
@@ -469,7 +469,7 @@ object HouseSettingsImporter : HouseSettings {
             val slot = MenuUtils.findSlots {
                 it.name.string.startsWith(pvpSetting.displayName)
             }.first()
-            map.putIfAbsent(pvpSetting, getDyeToggle(slot))
+            map.putIfAbsent(pvpSetting, getDyeToggle(slot)!!)
         }
 
         openSettingsMenu()
@@ -512,7 +512,7 @@ object HouseSettingsImporter : HouseSettings {
 
         for (fishingSetting in keys) {
             val slot = MenuUtils.findSlots(fishingSetting.displayName).first()
-            map.putIfAbsent(fishingSetting, getDyeToggle(slot))
+            map.putIfAbsent(fishingSetting, getDyeToggle(slot)!!)
         }
 
         openSettingsMenu()

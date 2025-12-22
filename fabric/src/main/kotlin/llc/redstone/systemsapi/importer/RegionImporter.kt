@@ -25,7 +25,7 @@ internal class RegionImporter(override var name: String) : Region {
         if (isRegionEditMenuOpen()) return
 
         CommandUtils.runCommand("region edit $name")
-        MenuUtils.onOpen("Edit: $name")
+        MenuUtils.onOpen("Edit $name Region")
         delay(50)
     }
 
@@ -63,32 +63,34 @@ internal class RegionImporter(override var name: String) : Region {
         MenuUtils.clickItems(MenuItems.move)
     }
 
-    override suspend fun getPvpSettings(): MutableMap<Region.PvpSettings, Boolean> {
+    override suspend fun getPvpSettings(): MutableMap<Region.PvpSettings, Boolean?> {
         openRegionEditMenu()
         MenuUtils.clickItems(MenuItems.pvpSettings)
+        MenuUtils.onOpen("PVP + Damage Settings - $name")
 
-        val map = mutableMapOf<Region.PvpSettings, Boolean>()
+        val map = mutableMapOf<Region.PvpSettings, Boolean?>()
         val keys: Array<Region.PvpSettings> = Region.PvpSettings.entries.toTypedArray()
 
         for (pvpSetting in keys) {
-            val slot = MenuUtils.findSlots(pvpSetting.label).first()
+            val slot = MenuUtils.findSlots(pvpSetting.displayName).first()
             map.putIfAbsent(pvpSetting, getDyeToggle(slot))
         }
 
         return map
     }
 
-    override suspend fun setPvpSettings(newPvpSettings: MutableMap<Region.PvpSettings, Boolean>) {
+    override suspend fun setPvpSettings(newPvpSettings: MutableMap<Region.PvpSettings, Boolean?>) {
         openRegionEditMenu()
         MenuUtils.clickItems(MenuItems.pvpSettings)
+        MenuUtils.onOpen("PVP + Damage Settings - $name")
 
         val keys: Array<Region.PvpSettings> = Region.PvpSettings.entries.toTypedArray()
         for (pvpSetting in keys) {
-            val slot = MenuUtils.findSlots(pvpSetting.label).first()
+            val slot = MenuUtils.findSlots(pvpSetting.displayName).first()
             val current = getDyeToggle(slot)
             // Unset settings which aren't provided
-            if (!newPvpSettings.contains(pvpSetting)) {
-                setDyeToggle(slot, false)
+            if (!newPvpSettings.contains(pvpSetting) || newPvpSettings[pvpSetting] == null) {
+                setDyeToggle(slot, null)
                 continue
             }
             // Set values which are provided
@@ -129,7 +131,7 @@ internal class RegionImporter(override var name: String) : Region {
             item = ItemExact(Items.STICK)
         )
         val pvpSettings = ItemSelector(
-            name = NameExact("Pvp Settings"),
+            name = NameExact("PvP Settings"),
             item = ItemExact(Items.IRON_SWORD)
         )
         val entryActions = ItemSelector(
