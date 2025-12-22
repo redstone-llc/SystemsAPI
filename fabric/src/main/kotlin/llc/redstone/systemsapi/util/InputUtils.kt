@@ -11,6 +11,7 @@ import net.minecraft.client.gui.screen.ChatScreen
 import net.minecraft.client.gui.screen.ingame.AnvilScreen
 import net.minecraft.client.resource.language.I18n
 import net.minecraft.item.ItemStack
+import net.minecraft.item.Items
 import net.minecraft.network.packet.c2s.play.RenameItemC2SPacket
 import net.minecraft.screen.slot.Slot
 
@@ -34,20 +35,75 @@ object InputUtils {
     }
 
     // For cycling inputs where the current value is displayed in the title, like "Join/Leave Messages: On"
-    fun getTitledCycle(slot: Slot, key:String): String {
+    fun getTitledCycle(slot: Slot, key: String): String {
         val stack = MenuUtils.currentMenu().screenHandler.getSlot(slot.id).stack
         return stack.name.string.substringAfter("$key: ")
     }
     suspend fun setTitledCycle(slot: Slot, key: String, value: String) {
-        repeat(10) {
+        repeat(20) {
             val stack = MenuUtils.currentMenu().screenHandler.getSlot(slot.id).stack
             val current = stack.name.string.substringAfter("$key: ")
-            if (current != value) {
-                MenuUtils.packetClick(slot.id)
-                delay(100)
-            } else return
+            if (current == value) return
+            MenuUtils.packetClick(slot.id)
+            delay(200)
         }
         throw IllegalStateException("Could not find the correct selection for Titled Cycle")
+    }
+
+    // for cycling inputs where the current value is displayed in lore
+    fun getLoredCycle(slot: Slot, possibleValues: List<String>): String {
+        val stack = MenuUtils.currentMenu().screenHandler.getSlot(slot.id).stack
+        return stack.loreLines(false).firstNotNullOfOrNull { line ->
+            possibleValues.firstOrNull { pv -> line.contains(pv) }
+        } ?: throw IllegalStateException("Could not find the current selection for Lored Cycle")
+    }
+    suspend fun setLoredCycle(slot: Slot, possibleValues: List<String>, value: String, maxTries: Int = 10) {
+        repeat(maxTries) {
+            val stack = MenuUtils.currentMenu().screenHandler.getSlot(slot.id).stack
+            val current = stack.loreLines(false).firstNotNullOfOrNull { line ->
+                possibleValues.firstOrNull { pv -> line.contains(pv) }
+            } ?: throw IllegalStateException("Could not find the current selection for Lored Cycle")
+            if (current == value) return
+            MenuUtils.packetClick(slot.id)
+            delay(150)
+            if (maxTries == 1) return
+        }
+        throw IllegalStateException("Could not find the correct selection for Lored Cycle")
+    }
+
+    fun getLoredKeyedCycle(slot: Slot, key: String): String {
+        val stack = MenuUtils.currentMenu().screenHandler.getSlot(slot.id).stack
+        return stack.loreLines(false).firstNotNullOfOrNull { line ->
+            val result = line.substringAfter("$key: ")
+            if (result != line) result else null
+        } ?: throw IllegalStateException("Could not find the current selection for Lored Keyed Cycle")
+    }
+    suspend fun setLoredKeyedCycle(slot: Slot, key: String, newValue: String) {
+        repeat(10) {
+            val stack = MenuUtils.currentMenu().screenHandler.getSlot(slot.id).stack
+            val current = stack.loreLines(false).firstNotNullOfOrNull { line ->
+                val result = line.substringAfter("$key: ")
+                if (result != line) result else null
+            } ?: throw IllegalStateException("Could not find the current selection for Lored Keyed Cycle")
+            if (current == newValue) return
+            MenuUtils.packetClick(slot.id)
+            delay(150)
+        }
+    }
+
+    fun getDyeToggle(slot: Slot): Boolean {
+        val stack = MenuUtils.currentMenu().screenHandler.getSlot(slot.id).stack
+        return stack.item == Items.LIME_DYE
+    }
+
+    suspend fun setDyeToggle(slot: Slot, newValue: Boolean) {
+        repeat(10) {
+            val current = getDyeToggle(slot)
+            if (current == newValue) return
+            MenuUtils.packetClick(slot.id)
+            delay(200)
+        }
+        throw IllegalStateException("Could not find the correct selection for Dye Toggle")
     }
 
     // For anvil and chat inputs

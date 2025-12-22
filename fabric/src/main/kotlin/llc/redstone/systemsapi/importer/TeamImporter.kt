@@ -7,23 +7,24 @@ import llc.redstone.systemsapi.api.Team
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.getProperty
+import llc.redstone.systemsapi.util.ItemUtils.ItemMatch.ItemExact
+import llc.redstone.systemsapi.util.ItemUtils.ItemSelector
+import llc.redstone.systemsapi.util.ItemUtils.NameMatch.NameExact
 import llc.redstone.systemsapi.util.MenuUtils
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
-import net.minecraft.item.Item
 import net.minecraft.item.Items
-import net.minecraft.screen.slot.Slot
 
 class TeamImporter(override var name: String) : Team {
     private fun isTeamMenuOpen(): Boolean {
         val container = MC.currentScreen as? GenericContainerScreen ?: return false
-        return container.title.string.contains("Manage Team: $name")
+        return container.title.string.contains("Manage Team: ${this@TeamImporter.name}")
     }
 
     private suspend fun openTeamMenu() {
         if (isTeamMenuOpen()) return
 
-        CommandUtils.runCommand("team edit $name")
-        MenuUtils.onOpen("Manage Team: $name")
+        CommandUtils.runCommand("team edit ${this@TeamImporter.name}")
+        MenuUtils.onOpen("Manage Team: ${this@TeamImporter.name}")
         delay(50)
     }
 
@@ -31,16 +32,16 @@ class TeamImporter(override var name: String) : Team {
         if (newName.length !in 1..16) throw IllegalArgumentException("Team name length must be in range 1..16")
         openTeamMenu()
 
-        MenuItems.RENAME_TEAM.click()
+        MenuUtils.clickItems(MenuItems.name)
         InputUtils.textInput(newName, 100L)
 
-        name = newName
+        this@TeamImporter.name = newName
     }
 
     override suspend fun getTag(): String {
         openTeamMenu()
 
-        val tag = MenuItems.CHANGE_TAG.find()
+        val tag = MenuUtils.findSlots(MenuItems.tag).first()
             .stack
             ?.getProperty("Current Tag")
             ?.removeSurrounding("[", "]")
@@ -52,7 +53,7 @@ class TeamImporter(override var name: String) : Team {
     override suspend fun setTag(newTag: String) {
         openTeamMenu()
 
-        val tag = MenuItems.CHANGE_TAG.find()
+        val tag = MenuUtils.findSlots(MenuItems.tag).first()
             .stack
             ?.getProperty("Current Tag")
             ?.removeSurrounding("[", "]")
@@ -60,7 +61,7 @@ class TeamImporter(override var name: String) : Team {
 
         if (tag == newTag) return
 
-        MenuItems.CHANGE_TAG.click()
+        MenuUtils.clickItems(MenuItems.tag)
         InputUtils.textInput(newTag, 100L)
     }
 
@@ -68,7 +69,7 @@ class TeamImporter(override var name: String) : Team {
         openTeamMenu()
 
         val color = Team.TeamColor.entries.find {
-            it.displayName == MenuItems.CHANGE_COLOR.find()
+            it.displayName == MenuUtils.findSlots(MenuItems.color).first()
                 .stack
                 ?.getProperty("Current Color")
         } ?: throw IllegalStateException("Failed to get team color")
@@ -81,14 +82,14 @@ class TeamImporter(override var name: String) : Team {
         openTeamMenu()
 
         val color = Team.TeamColor.entries.find {
-            it.displayName == MenuItems.CHANGE_COLOR.find()
+            it.displayName == MenuUtils.findSlots(MenuItems.color).first()
                 .stack
                 ?.getProperty("Current Color")
         } ?: throw IllegalStateException("Failed to get team color")
 
         if (color == newColor) return
 
-        MenuItems.CHANGE_COLOR.click()
+        MenuUtils.clickItems(MenuItems.color)
         MenuUtils.onOpen("Select Team Color")
         MenuUtils.clickItems(newColor.displayName)
     }
@@ -96,7 +97,7 @@ class TeamImporter(override var name: String) : Team {
     override suspend fun getFriendlyFire(): Boolean {
         openTeamMenu()
 
-        val friendlyFire = MenuItems.FRIENDLY_FIRE.find()
+        val friendlyFire = MenuUtils.findSlots(MenuItems.friendlyFire).first()
             .stack
             ?.getProperty("Current Value")
             ?.equals("Enabled") ?: throw IllegalStateException("Failed to get team friendly fire")
@@ -108,7 +109,7 @@ class TeamImporter(override var name: String) : Team {
         openTeamMenu()
 
         for (attempt in 1..10) {
-            val friendlyFire = MenuItems.FRIENDLY_FIRE.find()
+            val friendlyFire = MenuUtils.findSlots(MenuItems.friendlyFire).first()
                 .stack
                 ?.getProperty("Current Value")
                 ?.equals("Enabled") ?: throw IllegalStateException("Failed to get team friendly fire")
@@ -117,7 +118,7 @@ class TeamImporter(override var name: String) : Team {
 
             LOGGER.info("attempt $attempt")
 
-            MenuItems.FRIENDLY_FIRE.click()
+            MenuUtils.clickItems(MenuItems.friendlyFire)
             delay(50)
         }
         throw IllegalStateException("Failed to set team friendly fire")
@@ -130,30 +131,37 @@ class TeamImporter(override var name: String) : Team {
 
         val gui = MenuUtils.currentMenu()
         val slot = gui.screenHandler.slots
-            .find { it.stack.name.string == name }
+            .find { it.stack.name.string == this@TeamImporter.name }
             ?: return false
         return slot.id <= 44
     }
 
     suspend fun create() {
         if (this.exists()) throw IllegalStateException("Team already exists")
-        CommandUtils.runCommand("team create $name")
-        MenuUtils.onOpen("Manage Team: $name")
+        CommandUtils.runCommand("team create ${this@TeamImporter.name}")
+        MenuUtils.onOpen("Manage Team: ${this@TeamImporter.name}")
     }
 
-    override suspend fun delete() = CommandUtils.runCommand("team delete $name")
+    override suspend fun delete() = CommandUtils.runCommand("team delete ${this@TeamImporter.name}")
 
-    private enum class MenuItems(
-        val label: String,
-        val type: Item? = null
-    ) {
-        RENAME_TEAM("Rename Team", Items.PAPER),
-        CHANGE_TAG("Change Tag", Items.OAK_SIGN),
-        CHANGE_COLOR("Change Color", Items.REDSTONE),
-        FRIENDLY_FIRE("Friendly Fire", Items.IRON_SWORD);
 
-        suspend fun click() = if (type != null) MenuUtils.clickItems(label, type) else MenuUtils.clickItems(label)
-        fun find(): Slot = if (type != null) MenuUtils.findSlots(label, type).first() else MenuUtils.findSlots(label).first()
+    private object MenuItems {
+        val name = ItemSelector(
+            name = NameExact("Rename Team"),
+            item = ItemExact(Items.PAPER)
+        )
+        val tag = ItemSelector(
+            name = NameExact("Change Tag"),
+            item = ItemExact(Items.ARROW)
+        )
+        val color = ItemSelector(
+            name = NameExact("Change Color"),
+            item = ItemExact(Items.OAK_SIGN)
+        )
+        val friendlyFire = ItemSelector(
+            name = NameExact("Friendly Fire"),
+            item = ItemExact(Items.IRON_SWORD)
+        )
     }
 
 }

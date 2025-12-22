@@ -219,6 +219,10 @@ object MenuUtils {
         }
     }
 
+    fun findSlots(selector: ItemUtils.ItemSelector): List<Slot> {
+        return findSlots(selector.toPredicate())
+    }
+
     // Helper classes for clicking items
 
     // TODO: Check to make sure `paginated` works
@@ -258,6 +262,15 @@ object MenuUtils {
                 it.name.string == name &&
                 it.item == item
             },
+            packet,
+            button,
+            paginated
+        )
+    }
+
+    suspend fun clickItems(selector: ItemUtils.ItemSelector, packet: Boolean = true, button: Int = 0, paginated: Boolean = false) {
+        clickItems(
+            selector.toPredicate(),
             packet,
             button,
             paginated

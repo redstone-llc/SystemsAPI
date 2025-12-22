@@ -6,10 +6,11 @@ import llc.redstone.systemsapi.api.Scoreboard
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.InputUtils.setKeyedCycle
+import llc.redstone.systemsapi.util.ItemUtils.ItemMatch.ItemExact
+import llc.redstone.systemsapi.util.ItemUtils.ItemSelector
+import llc.redstone.systemsapi.util.ItemUtils.NameMatch.NameExact
 import llc.redstone.systemsapi.util.MenuUtils
-import net.minecraft.item.Item
 import net.minecraft.item.Items
-import net.minecraft.screen.slot.Slot
 
 object ScoreboardImporter : Scoreboard {
 
@@ -50,7 +51,7 @@ object ScoreboardImporter : Scoreboard {
 
         // create new ones
         newLines.forEach { line ->
-            MenuItems.ADD_ITEM.click()
+            MenuUtils.clickItems(MenuItems.add)
             MenuUtils.onOpen("Add Scoreboard Item")
             MenuUtils.clickItems(line.displayName)
             MenuUtils.onOpen("Scoreboard Editor")
@@ -69,7 +70,7 @@ object ScoreboardImporter : Scoreboard {
                     MenuUtils.clickItems("Text")
                     InputUtils.textInput(line.text)
                     MenuUtils.onOpen("Item Settings")
-                    MenuItems.GO_BACK.click()
+                    MenuUtils.clickItems(MenuItems.back)
                     MenuUtils.onOpen("Scoreboard Editor")
                 }
                 is Scoreboard.LineType.VariableValue -> {
@@ -82,19 +83,19 @@ object ScoreboardImporter : Scoreboard {
                     MenuUtils.onOpen("Item Settings")
 
                     // Cycle through to the correct scope
-                    val slot = MenuItems.HOLDER.find()
+                    val slot = MenuUtils.findSlots(MenuItems.holderSelector).first()
                     setKeyedCycle(slot, line.scope.displayName)
 
                     if (line.scope is Scoreboard.VariableType.Team) {
-                        MenuItems.TEAM.click()
+                        MenuUtils.clickItems(MenuItems.teamSelector)
                         MenuUtils.onOpen("Select Option")
                         MenuUtils.clickItems(line.scope.team)
                         MenuUtils.onOpen("Item Settings")
                     }
-                    MenuItems.VARIABLE.click()
+                    MenuUtils.clickItems(MenuItems.variableSelector)
                     InputUtils.textInput(line.key)
                     MenuUtils.onOpen("Item Settings")
-                    MenuItems.GO_BACK.click()
+                    MenuUtils.clickItems(MenuItems.back)
                     MenuUtils.onOpen("Scoreboard Editor")
                 }
                 else -> {}
@@ -103,18 +104,26 @@ object ScoreboardImporter : Scoreboard {
         }
     }
 
-    private enum class MenuItems(
-        val label: String,
-        val type: Item? = null
-    ) {
-        ADD_ITEM("Add Scoreboard Items", Items.PAPER),
-        GO_BACK("Go Back", Items.ARROW),
-        TEAM("Team", Items.OAK_SIGN),
-        HOLDER("Holder"),
-        VARIABLE("Variable", Items.PAPER);
-
-        suspend fun click() = if (type != null) MenuUtils.clickItems(label, type) else MenuUtils.clickItems(label)
-        fun find(): Slot = if (type != null) MenuUtils.findSlots(label, type).first() else MenuUtils.findSlots(label).first()
+    private object MenuItems {
+        val add = ItemSelector(
+            name = NameExact("Add Scoreboard Items"),
+            item = ItemExact(Items.PAPER)
+        )
+        val back = ItemSelector(
+            name = NameExact("Go Back"),
+            item = ItemExact(Items.ARROW)
+        )
+        val teamSelector = ItemSelector(
+            name = NameExact("Team"),
+            item = ItemExact(Items.OAK_SIGN)
+        )
+        val holderSelector = ItemSelector(
+            name = NameExact("Holder")
+        )
+        val variableSelector = ItemSelector(
+            name = NameExact("Variable"),
+            item = ItemExact(Items.PAPER)
+        )
     }
 
 }

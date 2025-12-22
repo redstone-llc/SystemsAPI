@@ -7,52 +7,54 @@ import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.CommandUtils.getTabCompletions
 import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.getProperty
+import llc.redstone.systemsapi.util.ItemUtils.ItemMatch.ItemExact
+import llc.redstone.systemsapi.util.ItemUtils.ItemMatch.ItemWithin
+import llc.redstone.systemsapi.util.ItemUtils.ItemSelector
+import llc.redstone.systemsapi.util.ItemUtils.NameMatch.NameExact
 import llc.redstone.systemsapi.util.MenuUtils
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
-import net.minecraft.item.Item
 import net.minecraft.item.Items
-import net.minecraft.screen.slot.Slot
 
 internal class CommandImporter(override var name: String) : Command {
     private fun isCommandEditMenuOpen(): Boolean {
         val container = MC.currentScreen as? GenericContainerScreen ?: return false
-        return container.title.string.contains("Edit /$name") // absence of colon is intentional; hypixel weird
+        return container.title.string.contains("Edit /${this@CommandImporter.name}") // absence of colon is intentional; hypixel weird
     }
 
     private fun isActionsMenuOpen(): Boolean {
         val container = MC.currentScreen as? GenericContainerScreen ?: return false
-        return container.title.string.contains("Actions: /$name")
+        return container.title.string.contains("Actions: /${this@CommandImporter.name}")
     }
 
     private suspend fun openCommandEditMenu() {
         if (isCommandEditMenuOpen()) return
 
-        CommandUtils.runCommand("command edit $name")
-        MenuUtils.onOpen("Edit /$name")
+        CommandUtils.runCommand("command edit ${this@CommandImporter.name}")
+        MenuUtils.onOpen("Edit /${this@CommandImporter.name}")
         delay(50)
     }
 
     private suspend fun openActionsEditMenu() {
         if (isActionsMenuOpen()) return
 
-        CommandUtils.runCommand("command actions $name")
-        MenuUtils.onOpen("Actions: /$name")
+        CommandUtils.runCommand("command actions ${this@CommandImporter.name}")
+        MenuUtils.onOpen("Actions: /${this@CommandImporter.name}")
         delay(50)
     }
 
     override suspend fun setName(newName: String) {
         openCommandEditMenu()
 
-        MenuItems.RENAME_COMMAND.click()
+        MenuUtils.clickItems(MenuItems.name)
         InputUtils.textInput(newName, 100L)
 
-        name = newName
+        this@CommandImporter.name = newName
     }
 
     override suspend fun getCommandMode(): Command.CommandMode {
         openCommandEditMenu()
 
-        val mode = MenuItems.TOGGLE_COMMAND_MODE.find()
+        val mode = MenuUtils.findSlots(MenuItems.mode).first()
             .stack
             ?.getProperty("Current")
             ?.let { if (it == "Self") Command.CommandMode.SELF else Command.CommandMode.TARGETED }
@@ -63,20 +65,20 @@ internal class CommandImporter(override var name: String) : Command {
     override suspend fun setCommandMode(newCommandMode: Command.CommandMode) {
         openCommandEditMenu()
 
-        val mode = MenuItems.TOGGLE_COMMAND_MODE.find()
+        val mode = MenuUtils.findSlots(MenuItems.mode).first()
             .stack
             ?.getProperty("Current")
             ?.let { if (it == "Self") Command.CommandMode.SELF else Command.CommandMode.TARGETED }
             ?: throw IllegalStateException("Failed to set the command mode to ${newCommandMode.name}")
         if (mode == newCommandMode) return
 
-        MenuItems.TOGGLE_COMMAND_MODE.click()
+        MenuUtils.clickItems(MenuItems.mode)
     }
 
     override suspend fun getRequiredGroupPriority(): Int {
         openCommandEditMenu()
 
-        val priority = MenuItems.REQUIRED_GROUP_PRIORITY.find()
+        val priority = MenuUtils.findSlots(MenuItems.requiredGroupPriority).first()
             .stack
             ?.getProperty("Current")
             ?.toIntOrNull()
@@ -88,21 +90,21 @@ internal class CommandImporter(override var name: String) : Command {
     override suspend fun setRequiredGroupPriority(newPriority: Int) {
         openCommandEditMenu()
 
-        val priority = MenuItems.REQUIRED_GROUP_PRIORITY.find()
+        val priority = MenuUtils.findSlots(MenuItems.requiredGroupPriority).first()
             .stack
             ?.getProperty("Current")
             ?.toIntOrNull()
             ?: throw IllegalStateException("Failed to set the required group priority to $newPriority.")
         if (priority == newPriority) return
 
-        MenuItems.REQUIRED_GROUP_PRIORITY.click()
+        MenuUtils.clickItems(MenuItems.requiredGroupPriority)
         InputUtils.textInput(newPriority.toString(), 100L)
     }
 
     override suspend fun getListed(): Boolean {
         openCommandEditMenu()
 
-        val listed = MenuItems.LISTED.find()
+        val listed = MenuUtils.findSlots(MenuItems.listed).first()
             .stack
             ?.item
             ?.let { item -> item == Items.LIME_DYE }
@@ -114,39 +116,46 @@ internal class CommandImporter(override var name: String) : Command {
     override suspend fun setListed(newListed: Boolean) {
         openCommandEditMenu()
 
-        val listed = MenuItems.LISTED.find()
+        val listed = MenuUtils.findSlots(MenuItems.listed).first()
             .stack
             ?.item
             ?.let { item -> item == Items.LIME_DYE }
             ?: throw IllegalStateException("Failed to set the listed value to $newListed.")
         if (listed == newListed) return
 
-        MenuItems.LISTED.click()
+        MenuUtils.clickItems(MenuItems.mode)
     }
 
     override suspend fun getActionContainer(): ActionContainer {
         openActionsEditMenu()
-        return ActionContainer("Actions: /$name")
+        return ActionContainer("Actions: /${this@CommandImporter.name}")
     }
 
-    suspend fun exists(): Boolean = getTabCompletions("command edit").contains(name)
+    suspend fun exists(): Boolean = getTabCompletions("command edit").contains(this@CommandImporter.name)
     suspend fun create() {
         if (this.exists()) throw IllegalStateException("Command already exists")
-        CommandUtils.runCommand("command create $name")
+        CommandUtils.runCommand("command create ${this@CommandImporter.name}")
     }
 
-    override suspend fun delete() = CommandUtils.runCommand("command delete $name")
+    override suspend fun delete() = CommandUtils.runCommand("command delete ${this@CommandImporter.name}")
 
-    private enum class MenuItems(
-        val label: String,
-        val type: Item? = null
-    ) {
-        RENAME_COMMAND("Rename Command", Items.ANVIL),
-        TOGGLE_COMMAND_MODE("Toggle Command Mode"),
-        REQUIRED_GROUP_PRIORITY("Required Group Priority", Items.FILLED_MAP),
-        LISTED("Listed");
 
-        suspend fun click() = if (type != null) MenuUtils.clickItems(label, type) else MenuUtils.clickItems(label)
-        fun find(): Slot = if (type != null) MenuUtils.findSlots(label, type).first() else MenuUtils.findSlots(label).first()
+    private object MenuItems {
+        val name = ItemSelector(
+            name = NameExact("Rename Command"),
+            item = ItemExact(Items.ANVIL)
+        )
+        val mode = ItemSelector(
+            name = NameExact("Toggle Command Mode"),
+            item = ItemWithin(listOf(Items.LIGHT_GRAY_DYE, Items.LIME_DYE))
+        )
+        val requiredGroupPriority = ItemSelector(
+            name = NameExact("Required Group Priority"),
+            item = ItemExact(Items.FILLED_MAP)
+        )
+        val listed = ItemSelector(
+            name = NameExact("Listed"),
+            item = ItemWithin(listOf(Items.LIGHT_GRAY_DYE, Items.LIME_DYE))
+        )
     }
 }

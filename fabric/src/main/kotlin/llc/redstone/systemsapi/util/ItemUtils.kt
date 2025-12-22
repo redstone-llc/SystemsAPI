@@ -3,15 +3,49 @@ package llc.redstone.systemsapi.util
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.nbt.NbtElement
 import net.minecraft.nbt.NbtOps
-import kotlin.collections.component1
-import kotlin.collections.component2
 import kotlin.jvm.optionals.getOrNull
 
-object ItemConverterUtils {
+object ItemUtils {
+
+    data class ItemSelector(
+        val name: NameMatch? = null,
+        val item: ItemMatch? = null,
+        val extra: ((ItemStack) -> Boolean)? = null,
+    ) {
+        fun toPredicate(): (ItemStack) -> Boolean = { stack ->
+            val nameOk = name?.matches(stack.name.string) ?: true
+            val itemOk = item?.matches(stack.item) ?: true
+            val extraOk = extra?.invoke(stack) ?: true
+
+            nameOk && itemOk && extraOk
+        }
+    }
+
+    sealed interface NameMatch {
+        data class NameExact(val value: String) : NameMatch
+        data class NameContains(val value: String) : NameMatch
+
+        fun matches(actual: String): Boolean = when (this) {
+            is NameExact -> actual == this.value
+            is NameContains -> actual.contains(this.value)
+        }
+    }
+
+    sealed interface ItemMatch {
+        data class ItemExact(val item: Item) : ItemMatch
+        data class ItemWithin(val items: List<Item>) : ItemMatch
+
+        fun matches(actual: Item): Boolean = when (this) {
+            is ItemExact -> this.item == actual
+            is ItemWithin -> this.items.contains(actual)
+        }
+    }
+
     fun toNBT(itemStack: ItemStack): NbtCompound {
         return ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, itemStack).result()
             .getOrNull()?.asCompound()?.getOrNull()

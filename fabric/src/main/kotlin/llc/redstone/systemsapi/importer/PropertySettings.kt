@@ -5,11 +5,11 @@ import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.data.*
 import llc.redstone.systemsapi.importer.ActionContainer.MenuItems
 import llc.redstone.systemsapi.util.InputUtils
-import llc.redstone.systemsapi.util.ItemConverterUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.getLoreLine
 import llc.redstone.systemsapi.util.ItemStackUtils.getLoreLineMatches
 import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
 import llc.redstone.systemsapi.util.ItemStackUtils.loreLines
+import llc.redstone.systemsapi.util.ItemUtils
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
 import llc.redstone.systemsapi.util.MenuUtils.Target
@@ -59,7 +59,7 @@ object PropertySettings {
                 MenuUtils.onOpen("Select an Item")
 
                 val nbt = (value as ItemStack).nbt ?: error("[Item action] ItemStack has no NBT data")
-                val item = ItemConverterUtils.createFromNBT(nbt)
+                val item = ItemUtils.createFromNBT(nbt)
                 val player = MC.player ?: error("[Item action] Could not get the player")
                 val oldStack = player.inventory.getStack(26)
                 item.giveItem(26)
