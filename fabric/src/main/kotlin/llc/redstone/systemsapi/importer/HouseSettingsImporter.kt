@@ -26,7 +26,7 @@ object HouseSettingsImporter : HouseSettings {
     private suspend fun openSettingsMenu() {
         when (getCurrentMenu()) {
             Menu.SETTINGS -> return
-            Menu.TIME_SELECTOR, Menu.HOUSE_TAGS, Menu.HOUSE_LANGUAGES -> {
+            Menu.TIME_SELECTOR, Menu.HOUSE_TAGS, Menu.HOUSE_LANGUAGE -> {
                 MenuUtils.clickItems(MenuItems.mainMenu)
             }
             Menu.PLAYER_DATA, Menu.PVP_SETTINGS, Menu.FISHING_SETTINGS -> {
@@ -178,7 +178,7 @@ object HouseSettingsImporter : HouseSettings {
         openSettingsMenu()
 
         MenuUtils.clickItems(MenuItems.houseLanguage)
-        MenuUtils.onOpen(Menu.HOUSE_LANGUAGES.title)
+        MenuUtils.onOpen(Menu.HOUSE_LANGUAGE.title)
 
         val languages = MenuUtils.currentMenu().screenHandler.inventory.asSequence()
             .filter { it.item == Items.LIME_DYE }
@@ -198,7 +198,7 @@ object HouseSettingsImporter : HouseSettings {
         openSettingsMenu()
 
         MenuUtils.clickItems(MenuItems.houseLanguage)
-        MenuUtils.onOpen(Menu.HOUSE_LANGUAGES.title)
+        MenuUtils.onOpen(Menu.HOUSE_LANGUAGE.title)
 
         val names = newLanguages.map { it.displayName }
         // Deselect first
@@ -630,7 +630,7 @@ object HouseSettingsImporter : HouseSettings {
         SETTINGS("House Settings"),
         TIME_SELECTOR("Time Selector"),
         HOUSE_TAGS("House Tags"),
-        HOUSE_LANGUAGES("House Languages"),
+        HOUSE_LANGUAGE("House Language"),
         PLAYER_DATA("Player Data"),
         PLAYER_STATES("Player States"),
         STATE_TYPES("State Types"),
