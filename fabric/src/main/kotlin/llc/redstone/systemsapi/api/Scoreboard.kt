@@ -3,6 +3,9 @@ package llc.redstone.systemsapi.api
 import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.getProperty
 import llc.redstone.systemsapi.util.MenuUtils
+import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
+import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
+import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameExact
 import net.minecraft.item.Items
 
 interface Scoreboard {
@@ -30,7 +33,7 @@ interface Scoreboard {
         data class VariableValue(val scope: Scoreboard.VariableType, val key: String) : LineType("Variable Value", 1)
 
         companion object {
-            private val typesByDisplayName: Map<String, LineType> by lazy {
+            val typesByDisplayName: Map<String, LineType> by lazy {
                 LineType::class.sealedSubclasses
                     .mapNotNull { it.objectInstance }
                     .associateBy { it.displayName }
@@ -42,9 +45,11 @@ interface Scoreboard {
                     "Custom Line" -> {
                         MenuUtils.packetClick(slot)
                         MenuUtils.onOpen("Item Settings")
-                        val text = InputUtils.getPreviousInput { MenuUtils.clickMenuSlot(MenuUtils.MenuSlot(Items.PAPER, "Text")) }
+                        val text = InputUtils.getPreviousInput {
+                            MenuUtils.clickItems("Text", Items.PAPER)
+                        }
                         MenuUtils.onOpen("Item Settings")
-                        MenuUtils.clickMenuSlot(MenuItems.GO_BACK)
+                        MenuUtils.clickItems(MenuItems.back)
                         MenuUtils.onOpen("Scoreboard Editor")
                         CustomLine(text)
                     }
@@ -64,9 +69,14 @@ interface Scoreboard {
                 }
             }
 
+
             private object MenuItems {
-                val GO_BACK = MenuUtils.MenuSlot(Items.ARROW, "Go Back")
+                val back = ItemSelector(
+                    name = NameExact("Go Back"),
+                    item = ItemExact(Items.ARROW)
+                )
             }
+
         }
     }
 }

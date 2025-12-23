@@ -3,11 +3,21 @@ package llc.redstone.systemsapi.importer
 import kotlinx.coroutines.delay
 import llc.redstone.systemsapi.SystemsAPI.LOGGER
 import llc.redstone.systemsapi.api.Scoreboard
+import llc.redstone.systemsapi.api.Scoreboard.LineType
+import llc.redstone.systemsapi.api.Scoreboard.LineType.Companion.typesByDisplayName
+import llc.redstone.systemsapi.api.Scoreboard.LineType.CustomLine
+import llc.redstone.systemsapi.api.Scoreboard.LineType.VariableValue
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.InputUtils.setKeyedCycle
+import llc.redstone.systemsapi.util.ItemStackUtils.getProperty
+import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
+import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
+import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameExact
 import llc.redstone.systemsapi.util.MenuUtils
+import net.minecraft.item.Item
 import net.minecraft.item.Items
+import net.minecraft.screen.slot.Slot
 
 object ScoreboardImporter : Scoreboard {
 
@@ -20,16 +30,16 @@ object ScoreboardImporter : Scoreboard {
     fun isScoreboardMenuOpen(): Boolean =
         runCatching { MenuUtils.currentMenu().title.string == "Scoreboard Editor" }.getOrDefault(false)
 
-    override suspend fun getLines(): List<Scoreboard.LineType> {
+    override suspend fun getLines(): List<LineType> {
         openScoreboardMenu()
 
         val gui = MenuUtils.currentMenu()
         return gui.screenHandler.slots
             .filter { it.id <= 44 && it.hasStack() }
-            .mapNotNull { Scoreboard.LineType.fromItemStack(it.stack, it.id) }
+            .mapNotNull { fromItemStack(it.stack, it.id) }
     }
 
-    override suspend fun setLines(newLines: List<Scoreboard.LineType>) {
+    override suspend fun setLines(newLines: List<LineType>) {
         if (newLines.sumOf { it.lines } !in 1..10) throw IllegalArgumentException("New lines exceed scoreboard line limit of 1..10")
         openScoreboardMenu()
 
@@ -48,15 +58,15 @@ object ScoreboardImporter : Scoreboard {
 
         // create new ones
         newLines.forEach { line ->
-            MenuUtils.clickMenuSlot(MenuItems.ADD_ITEM)
+            MenuUtils.clickItems(MenuItems.add)
             MenuUtils.onOpen("Add Scoreboard Item")
-            MenuUtils.clickMenuSlot(MenuUtils.MenuSlot(null, line.displayName))
+            MenuUtils.clickItems(line.displayName)
             MenuUtils.onOpen("Scoreboard Editor")
 
             val gui = MenuUtils.currentMenu()
 
             when (line) {
-                is Scoreboard.LineType.CustomLine -> {
+                is LineType.CustomLine -> {
                     val itemIndex = (44 downTo 0).firstOrNull { index ->
                         val slot = gui.screenHandler.getSlot(index)
                         slot.hasStack()
@@ -64,13 +74,13 @@ object ScoreboardImporter : Scoreboard {
 
                     MenuUtils.packetClick(itemIndex)
                     MenuUtils.onOpen("Item Settings")
-                    MenuUtils.clickMenuSlot(MenuUtils.MenuSlot(null, "Text"))
+                    MenuUtils.clickItems("Text")
                     InputUtils.textInput(line.text)
                     MenuUtils.onOpen("Item Settings")
-                    MenuUtils.clickMenuSlot(MenuItems.GO_BACK)
+                    MenuUtils.clickItems(MenuItems.back)
                     MenuUtils.onOpen("Scoreboard Editor")
                 }
-                is Scoreboard.LineType.VariableValue -> {
+                is LineType.VariableValue -> {
                     val itemIndex = (44 downTo 0).firstOrNull { index ->
                         val slot = gui.screenHandler.getSlot(index)
                         slot.hasStack()
@@ -80,19 +90,19 @@ object ScoreboardImporter : Scoreboard {
                     MenuUtils.onOpen("Item Settings")
 
                     // Cycle through to the correct scope
-                    val slot = MenuUtils.findSlot(MenuUtils.MenuSlot(null, "Holder")) ?: throw IllegalStateException("Could not find Holder slot")
+                    val slot = MenuUtils.findSlots(MenuItems.holderSelector).first()
                     setKeyedCycle(slot, line.scope.displayName)
 
                     if (line.scope is Scoreboard.VariableType.Team) {
-                        MenuUtils.clickMenuSlot(MenuUtils.MenuSlot(Items.OAK_SIGN, "Team"))
+                        MenuUtils.clickItems(MenuItems.teamSelector)
                         MenuUtils.onOpen("Select Option")
-                        MenuUtils.clickMenuSlot(MenuUtils.MenuSlot(null, line.scope.team))
+                        MenuUtils.clickItems(line.scope.team)
                         MenuUtils.onOpen("Item Settings")
                     }
-                    MenuUtils.clickMenuSlot(MenuUtils.MenuSlot(Items.PAPER, "Variable"))
+                    MenuUtils.clickItems(MenuItems.variableSelector)
                     InputUtils.textInput(line.key)
                     MenuUtils.onOpen("Item Settings")
-                    MenuUtils.clickMenuSlot(MenuItems.GO_BACK)
+                    MenuUtils.clickItems(MenuItems.back)
                     MenuUtils.onOpen("Scoreboard Editor")
                 }
                 else -> {}
@@ -101,9 +111,57 @@ object ScoreboardImporter : Scoreboard {
         }
     }
 
+    suspend fun fromItemStack(stack: net.minecraft.item.ItemStack, slot: Int): LineType? {
+        val name = runCatching { stack.name.string }.getOrNull() ?: return null
+
+        return when (name) {
+            "Custom Line" -> {
+                MenuUtils.packetClick(slot)
+                MenuUtils.onOpen("Item Settings")
+                val text = InputUtils.getPreviousInput {
+                    MenuUtils.clickItems("Text", Items.PAPER)
+                }
+                MenuUtils.onOpen("Item Settings")
+                MenuUtils.clickItems(MenuItems.back)
+                MenuUtils.onOpen("Scoreboard Editor")
+                CustomLine(text)
+            }
+            "Variable Value" -> {
+                val scope = when (stack.getProperty("Holder")) {
+                    "Player" -> Scoreboard.VariableType.Player
+                    "Global" -> Scoreboard.VariableType.Global
+                    "Team" -> {
+                        Scoreboard.VariableType.Team(stack.getProperty("Team") ?: throw IllegalStateException("Could not find variable team"))
+                    }
+                    else -> throw IllegalStateException("Could not find variable holder")
+                }
+                val key = stack.getProperty("Variable") ?: throw IllegalStateException("Could not find variable key")
+                VariableValue(scope, key)
+            }
+            else -> typesByDisplayName[name]
+        }
+    }
+
     private object MenuItems {
-        val ADD_ITEM = MenuUtils.MenuSlot(Items.PAPER, "Add Scoreboard Item")
-        val GO_BACK = MenuUtils.MenuSlot(Items.ARROW, "Go Back")
+        val add = ItemSelector(
+            name = NameExact("Add Scoreboard Items"),
+            item = ItemExact(Items.PAPER)
+        )
+        val back = ItemSelector(
+            name = NameExact("Go Back"),
+            item = ItemExact(Items.ARROW)
+        )
+        val teamSelector = ItemSelector(
+            name = NameExact("Team"),
+            item = ItemExact(Items.OAK_SIGN)
+        )
+        val holderSelector = ItemSelector(
+            name = NameExact("Holder")
+        )
+        val variableSelector = ItemSelector(
+            name = NameExact("Variable"),
+            item = ItemExact(Items.PAPER)
+        )
     }
 
 }

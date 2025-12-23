@@ -7,22 +7,24 @@ import llc.redstone.systemsapi.api.Team
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.getProperty
+import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
+import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
+import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameExact
 import llc.redstone.systemsapi.util.MenuUtils
-import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.item.Items
 
 class TeamImporter(override var name: String) : Team {
     private fun isTeamMenuOpen(): Boolean {
         val container = MC.currentScreen as? GenericContainerScreen ?: return false
-        return container.title.string.contains("Manage Team: $name")
+        return container.title.string.contains("Manage Team: ${this@TeamImporter.name}")
     }
 
     private suspend fun openTeamMenu() {
         if (isTeamMenuOpen()) return
 
-        CommandUtils.runCommand("team edit $name")
-        MenuUtils.onOpen("Manage Team: $name")
+        CommandUtils.runCommand("team edit ${this@TeamImporter.name}")
+        MenuUtils.onOpen("Manage Team: ${this@TeamImporter.name}")
         delay(50)
     }
 
@@ -30,17 +32,17 @@ class TeamImporter(override var name: String) : Team {
         if (newName.length !in 1..16) throw IllegalArgumentException("Team name length must be in range 1..16")
         openTeamMenu()
 
-        MenuUtils.clickMenuSlot(MenuItems.RENAME_TEAM)
+        MenuUtils.clickItems(MenuItems.name)
         InputUtils.textInput(newName, 100L)
 
-        name = newName
+        this@TeamImporter.name = newName
     }
 
     override suspend fun getTag(): String {
         openTeamMenu()
 
-        val tag = MenuUtils.findSlot(MenuItems.CHANGE_TAG)
-            ?.stack
+        val tag = MenuUtils.findSlots(MenuItems.tag).first()
+            .stack
             ?.getProperty("Current Tag")
             ?.removeSurrounding("[", "]")
             ?: throw IllegalStateException("Failed to get team tag")
@@ -51,15 +53,15 @@ class TeamImporter(override var name: String) : Team {
     override suspend fun setTag(newTag: String) {
         openTeamMenu()
 
-        val tag = MenuUtils.findSlot(MenuItems.CHANGE_TAG)
-            ?.stack
+        val tag = MenuUtils.findSlots(MenuItems.tag).first()
+            .stack
             ?.getProperty("Current Tag")
             ?.removeSurrounding("[", "]")
             ?: throw IllegalStateException("Failed to get team tag")
 
         if (tag == newTag) return
 
-        MenuUtils.clickMenuSlot(MenuItems.CHANGE_TAG)
+        MenuUtils.clickItems(MenuItems.tag)
         InputUtils.textInput(newTag, 100L)
     }
 
@@ -67,8 +69,8 @@ class TeamImporter(override var name: String) : Team {
         openTeamMenu()
 
         val color = Team.TeamColor.entries.find {
-            it.displayName == MenuUtils.findSlot(MenuItems.CHANGE_COLOR)
-                ?.stack
+            it.displayName == MenuUtils.findSlots(MenuItems.color).first()
+                .stack
                 ?.getProperty("Current Color")
         } ?: throw IllegalStateException("Failed to get team color")
 
@@ -80,23 +82,23 @@ class TeamImporter(override var name: String) : Team {
         openTeamMenu()
 
         val color = Team.TeamColor.entries.find {
-            it.displayName == MenuUtils.findSlot(MenuItems.CHANGE_COLOR)
-                ?.stack
+            it.displayName == MenuUtils.findSlots(MenuItems.color).first()
+                .stack
                 ?.getProperty("Current Color")
         } ?: throw IllegalStateException("Failed to get team color")
 
         if (color == newColor) return
 
-        MenuUtils.clickMenuSlot(MenuItems.CHANGE_COLOR)
+        MenuUtils.clickItems(MenuItems.color)
         MenuUtils.onOpen("Select Team Color")
-        MenuUtils.clickMenuSlot(MenuSlot(null, newColor.displayName))
+        MenuUtils.clickItems(newColor.displayName)
     }
 
     override suspend fun getFriendlyFire(): Boolean {
         openTeamMenu()
 
-        val friendlyFire = MenuUtils.findSlot(MenuItems.FRIENDLY_FIRE)
-            ?.stack
+        val friendlyFire = MenuUtils.findSlots(MenuItems.friendlyFire).first()
+            .stack
             ?.getProperty("Current Value")
             ?.equals("Enabled") ?: throw IllegalStateException("Failed to get team friendly fire")
 
@@ -107,8 +109,8 @@ class TeamImporter(override var name: String) : Team {
         openTeamMenu()
 
         for (attempt in 1..10) {
-            val friendlyFire = MenuUtils.findSlot(MenuItems.FRIENDLY_FIRE)
-                ?.stack
+            val friendlyFire = MenuUtils.findSlots(MenuItems.friendlyFire).first()
+                .stack
                 ?.getProperty("Current Value")
                 ?.equals("Enabled") ?: throw IllegalStateException("Failed to get team friendly fire")
 
@@ -116,7 +118,7 @@ class TeamImporter(override var name: String) : Team {
 
             LOGGER.info("attempt $attempt")
 
-            MenuUtils.clickMenuSlot(MenuItems.FRIENDLY_FIRE)
+            MenuUtils.clickItems(MenuItems.friendlyFire)
             delay(50)
         }
         throw IllegalStateException("Failed to set team friendly fire")
@@ -129,24 +131,37 @@ class TeamImporter(override var name: String) : Team {
 
         val gui = MenuUtils.currentMenu()
         val slot = gui.screenHandler.slots
-            .find { it.stack.name.string == name }
+            .find { it.stack.name.string == this@TeamImporter.name }
             ?: return false
         return slot.id <= 44
     }
 
     suspend fun create() {
         if (this.exists()) throw IllegalStateException("Team already exists")
-        CommandUtils.runCommand("team create $name")
-        MenuUtils.onOpen("Manage Team: $name")
+        CommandUtils.runCommand("team create ${this@TeamImporter.name}")
+        MenuUtils.onOpen("Manage Team: ${this@TeamImporter.name}")
     }
 
-    override suspend fun delete() = CommandUtils.runCommand("team delete $name")
+    override suspend fun delete() = CommandUtils.runCommand("team delete ${this@TeamImporter.name}")
+
 
     private object MenuItems {
-        val RENAME_TEAM = MenuSlot(Items.PAPER, "Rename Team")
-        val CHANGE_TAG = MenuSlot(Items.OAK_SIGN, "Change Tag")
-        val CHANGE_COLOR = MenuSlot(Items.REDSTONE, "Change Color")
-        val FRIENDLY_FIRE = MenuSlot(Items.IRON_SWORD, "Friendly Fire")
+        val name = ItemSelector(
+            name = NameExact("Rename Team"),
+            item = ItemExact(Items.PAPER)
+        )
+        val tag = ItemSelector(
+            name = NameExact("Change Tag"),
+            item = ItemExact(Items.ARROW)
+        )
+        val color = ItemSelector(
+            name = NameExact("Change Color"),
+            item = ItemExact(Items.OAK_SIGN)
+        )
+        val friendlyFire = ItemSelector(
+            name = NameExact("Friendly Fire"),
+            item = ItemExact(Items.IRON_SWORD)
+        )
     }
 
 }

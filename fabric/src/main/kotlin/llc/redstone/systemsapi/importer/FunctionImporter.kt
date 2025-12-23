@@ -1,31 +1,32 @@
 package llc.redstone.systemsapi.importer
 
 import kotlinx.coroutines.delay
-import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.api.Function
 import llc.redstone.systemsapi.data.ItemStack
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.CommandUtils.getTabCompletions
 import llc.redstone.systemsapi.util.InputUtils
-import llc.redstone.systemsapi.util.ItemConverterUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.getProperty
 import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
+import llc.redstone.systemsapi.util.ItemUtils
+import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
+import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
+import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameExact
 import llc.redstone.systemsapi.util.MenuUtils
-import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
-import llc.redstone.systemsapi.util.MenuUtils.Target
-import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.item.Item
 import net.minecraft.item.Items
 
 internal class FunctionImporter(override var name: String) : Function {
-    private fun isFunctionEditMenuOpen(): Boolean {
-        val container = MC.currentScreen as? GenericContainerScreen ?: return false
-        return container.title.string.contains("Edit: $name")
+    private fun isFunctionEditMenuOpen(): Boolean = try {
+        MenuUtils.currentMenu().title.string.contains("Edit: ${this@FunctionImporter.name}")
+    } catch (_: Exception) {
+        false
     }
 
-    private fun isActionsMenuOpen(): Boolean {
-        val container = MC.currentScreen as? GenericContainerScreen ?: return false
-        return container.title.string.contains("Actions: $name")
+    private fun isActionsMenuOpen(): Boolean = try {
+        MenuUtils.currentMenu().title.string.contains("Actions: ${this@FunctionImporter.name}")
+    } catch (_: Exception) {
+        false
     }
 
     private suspend fun openFunctionEditMenu(): Boolean {
@@ -33,9 +34,8 @@ internal class FunctionImporter(override var name: String) : Function {
             CommandUtils.runCommand("functions")
             MenuUtils.onOpen("Functions")
 
-            if (!MenuUtils.clickMenuTargetPaginated(Target(MenuSlot(null, name), 1))) return false
-
-            MenuUtils.onOpen("Edit: $name")
+            MenuUtils.clickItems(this@FunctionImporter.name, paginated = true)
+            MenuUtils.onOpen("Edit: ${this@FunctionImporter.name}")
             delay(50)
         }
         return true
@@ -43,8 +43,8 @@ internal class FunctionImporter(override var name: String) : Function {
 
     private suspend fun openActionsEditMenu(): Boolean {
         if (!isActionsMenuOpen()) {
-            CommandUtils.runCommand("function edit $name")
-            MenuUtils.onOpen("Actions: $name")
+            CommandUtils.runCommand("function edit ${this@FunctionImporter.name}")
+            MenuUtils.onOpen("Actions: ${this@FunctionImporter.name}")
             delay(50)
         }
         return true
@@ -54,39 +54,40 @@ internal class FunctionImporter(override var name: String) : Function {
         if (newName.length !in 1..50) throw IllegalArgumentException("Title length must be in range 1..50")
         openFunctionEditMenu()
 
-        MenuUtils.clickMenuSlot(MenuItems.RENAME_FUNCTION)
+        MenuUtils.clickItems(MenuItems.name)
+        MenuUtils.clickItems(MenuItems.name)
         InputUtils.textInput(newName, 100L)
 
-        name = newName
+        this@FunctionImporter.name = newName
     }
 
     override suspend fun getDescription(): String {
         openFunctionEditMenu()
 
-        return InputUtils.getPreviousInput { MenuUtils.clickMenuSlot(MenuItems.SET_DESCRIPTION) }
+        return InputUtils.getPreviousInput { MenuUtils.clickItems(MenuItems.description) }
     }
 
     override suspend fun setDescription(newDescription: String) {
         if (newDescription.length !in 1..120) throw IllegalArgumentException("Description length must be in range 1..120")
         openFunctionEditMenu()
 
-        MenuUtils.clickMenuSlot(MenuItems.SET_DESCRIPTION)
+        MenuUtils.clickItems(MenuItems.description)
         InputUtils.textInput(newDescription, 100L)
     }
 
     override suspend fun getIcon(): Item {
         openFunctionEditMenu()
-        val slot = MenuUtils.findSlot(MenuItems.EDIT_ICON) ?: throw IllegalStateException("Failed to find EDIT_ICON")
+        val slot = MenuUtils.findSlots(MenuItems.icon).first()
         return slot.stack.item
     }
 
     override suspend fun setIcon(newIcon: ItemStack) {
         openFunctionEditMenu()
 
-        MenuUtils.clickMenuSlot(MenuItems.EDIT_ICON)
+        MenuUtils.clickItems(MenuItems.icon)
         MenuUtils.onOpen("Select an Item")
 
-        val itemStack = ItemConverterUtils.createFromNBT(newIcon.nbt ?: return)
+        val itemStack = ItemUtils.createFromNBT(newIcon.nbt ?: return)
         itemStack.giveItem(26)
         MenuUtils.clickPlayerSlot(26)
         delay(50)
@@ -95,8 +96,8 @@ internal class FunctionImporter(override var name: String) : Function {
     override suspend fun getAutomaticExecution(): Int {
         openFunctionEditMenu()
 
-        val ticks = MenuUtils.findSlot(MenuItems.AUTOMATIC_EXECUTION)
-            ?.stack
+        val ticks = MenuUtils.findSlots(MenuItems.automaticExecution).first()
+            .stack
             ?.getProperty("Current")
             ?.let { if (it == "Disabled") 0 else it.toIntOrNull() }
             ?: throw IllegalStateException("Failed to find automatic execution ticks")
@@ -108,31 +109,42 @@ internal class FunctionImporter(override var name: String) : Function {
         if (newAutomaticExecution !in 0..18000) throw IllegalArgumentException("Automatic execution ticks must be in range 1..18000")
         openFunctionEditMenu()
 
-        val ticks = MenuUtils.findSlot(MenuItems.AUTOMATIC_EXECUTION)
-            ?.stack
+        val ticks = MenuUtils.findSlots(MenuItems.automaticExecution).first()
+            .stack
             ?.getProperty("Current")
             ?.let { if (it == "Disabled") 0 else it.toIntOrNull() }
             ?: throw IllegalStateException("Failed to set automatic execution")
         if (ticks == newAutomaticExecution) return
 
-        MenuUtils.clickMenuSlot(MenuItems.AUTOMATIC_EXECUTION)
+        MenuUtils.clickItems(MenuItems.automaticExecution)
         InputUtils.textInput(newAutomaticExecution.toString(), 100L)
     }
 
     override suspend fun getActionContainer(): ActionContainer {
         openActionsEditMenu()
-        return ActionContainer("Actions: $name")
+        return ActionContainer("Actions: ${this@FunctionImporter.name}")
     }
 
-    suspend fun exists(): Boolean = getTabCompletions("function edit").contains(name)
-    fun create() = CommandUtils.runCommand("function create $name")
-    override suspend fun delete() = CommandUtils.runCommand("function delete $name")
+    suspend fun exists(): Boolean = getTabCompletions("function edit").contains(this@FunctionImporter.name)
+    fun create() = CommandUtils.runCommand("function create ${this@FunctionImporter.name}")
+    override suspend fun delete() = CommandUtils.runCommand("function delete ${this@FunctionImporter.name}")
+
 
     private object MenuItems {
-        val RENAME_FUNCTION = MenuSlot(Items.ANVIL, "Rename Function")
-        val SET_DESCRIPTION = MenuSlot(Items.BOOK, "Edit Description")
-        val EDIT_ICON = MenuSlot(null, "Edit Icon")
-        val AUTOMATIC_EXECUTION = MenuSlot(Items.COMPARATOR, "Automatic Execution")
-        val BACK = MenuSlot(Items.ARROW, "Go Back")
+        val name = ItemSelector(
+            name = NameExact("Rename Function"),
+            item = ItemExact(Items.ANVIL)
+        )
+        val description = ItemSelector(
+            name = NameExact("Edit Description"),
+            item = ItemExact(Items.BOOK)
+        )
+        val icon = ItemSelector(
+            name = NameExact("Edit Icon")
+        )
+        val automaticExecution = ItemSelector(
+            name = NameExact("Automatic Execution"),
+            item = ItemExact(Items.COMPARATOR)
+        )
     }
 }

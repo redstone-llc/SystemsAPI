@@ -1,16 +1,15 @@
 package llc.redstone.systemsapi.importer
 
-import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.data.Condition
 import llc.redstone.systemsapi.data.DisplayName
 import llc.redstone.systemsapi.data.VariableHolder
-import llc.redstone.systemsapi.util.ItemStackUtils.getLoreLineMatches
+import llc.redstone.systemsapi.util.ItemStackUtils.getLoreLineMatchesOrNull
 import llc.redstone.systemsapi.util.ItemStackUtils.loreLines
+import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
+import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
+import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameExact
 import llc.redstone.systemsapi.util.MenuUtils
-import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
-import llc.redstone.systemsapi.util.MenuUtils.Target
 import llc.redstone.systemsapi.util.TextUtils
-import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.item.Items
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
@@ -40,7 +39,7 @@ object ConditionContainer {
             MenuUtils.onOpen("Edit Conditions")
 
             //Add a condition
-            MenuUtils.clickMenuSlot(MenuItems.ADD_CONDITION)
+            MenuUtils.clickItems(MenuItems.ADD_CONDITION)
             MenuUtils.onOpen("Add Condition")
 
             //Get the condition parameters/properties
@@ -54,7 +53,7 @@ object ConditionContainer {
 
             //Get the Display Name of the condition and add it
             val displayName = (condition::class.annotations.find { it is DisplayName } as DisplayName).value
-            MenuUtils.clickMenuTargetPaginated(Target(MenuSlot(null, displayName)))
+            MenuUtils.clickItems(displayName, paginated = true)
 
             //Inverted
             properties.add(0, conditionProperties.find { it.name == "inverted" } ?: continue)
@@ -71,18 +70,17 @@ object ConditionContainer {
 
                 //Make sure we are in the right gui before continuing
                 MenuUtils.onOpen("Settings")
-                val gui = MC.currentScreen as? GenericContainerScreen ?: return
 
                 //Place in the gui to click
                 val slotIndex = slots[index]!!
-                val slot = gui.screenHandler.getSlot(slotIndex)
+                val slot = MenuUtils.getSlot(slotIndex)
 
                 PropertySettings.import(property, slot, value)
             }
             //Make sure we are in the condition settings menu before we go back to actions to add another one
             if (properties.isNotEmpty()) {
                 MenuUtils.onOpen("Settings")
-                MenuUtils.clickMenuSlot(MenuItems.BACK)
+                MenuUtils.clickItems(MenuItems.BACK)
             }
             MenuUtils.onOpen("Edit Conditions")
         }
@@ -92,12 +90,11 @@ object ConditionContainer {
         val conditions = mutableListOf<Condition>()
 
         MenuUtils.onOpen("Edit Conditions")
-        val gui = MenuUtils.currentMenu()
 
-        if (MenuUtils.findSlot(MenuItems.NO_CONDITIONS, true) != null) return conditions
+        if (MenuUtils.findSlots(MenuItems.NO_CONDITIONS).firstOrNull() != null) return conditions
 
         for (slotIndex in slots.values) {
-            val slot = gui.screenHandler.getSlot(slotIndex)
+            val slot = MenuUtils.getSlot(slotIndex)
             if (!slot.hasStack()) break //No more actions
 
             val item = slot.stack
@@ -173,7 +170,7 @@ object ConditionContainer {
 
             if (conditionInstance == null) continue
 
-            if (slot.stack.getLoreLineMatches(false) {it == "Inverted"} != null) {
+            if (slot.stack.getLoreLineMatchesOrNull(false) {it == "Inverted"} != null) {
                 conditionInstance.inverted = true
             }
 
@@ -184,9 +181,17 @@ object ConditionContainer {
     }
 
     object MenuItems {
-        val ADD_CONDITION = MenuSlot(Items.PAPER, "Add Condition")
-        val BACK = MenuSlot(Items.ARROW, "Go Back")
-        val TOGGLE_ADVANCED_OPERATIONS = MenuSlot(Items.COMMAND_BLOCK, "Toggle Advanced Operations")
-        val NO_CONDITIONS = MenuSlot(Items.BEDROCK, "No Conditions!")
+        val ADD_CONDITION = ItemSelector(
+            name = NameExact("Add Condition"),
+            item = ItemExact(Items.PAPER)
+        )
+        val BACK = ItemSelector(
+            name = NameExact("Go Back"),
+            item = ItemExact(Items.ARROW)
+        )
+        val NO_CONDITIONS = ItemSelector(
+            name = NameExact("No Conditions!"),
+            item = ItemExact(Items.BEDROCK)
+        )
     }
 }

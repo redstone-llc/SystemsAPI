@@ -11,6 +11,7 @@ import net.minecraft.client.gui.screen.ChatScreen
 import net.minecraft.client.gui.screen.ingame.AnvilScreen
 import net.minecraft.client.resource.language.I18n
 import net.minecraft.item.ItemStack
+import net.minecraft.item.Items
 import net.minecraft.network.packet.c2s.play.RenameItemC2SPacket
 import net.minecraft.screen.slot.Slot
 
@@ -34,32 +35,116 @@ object InputUtils {
     }
 
     // For cycling inputs where the current value is displayed in the title, like "Join/Leave Messages: On"
-    fun getTitledCycle(slot: Slot, key:String): String {
+    fun getKeyedTitleCycle(slot: Slot, key: String): String {
         val stack = MenuUtils.currentMenu().screenHandler.getSlot(slot.id).stack
         return stack.name.string.substringAfter("$key: ")
     }
-    suspend fun setTitledCycle(slot: Slot, key: String, value: String) {
-        repeat(10) {
+    suspend fun setKeyedTitleCycle(slot: Slot, key: String, value: String) {
+        repeat(50) {
             val stack = MenuUtils.currentMenu().screenHandler.getSlot(slot.id).stack
             val current = stack.name.string.substringAfter("$key: ")
-            if (current != value) {
-                MenuUtils.packetClick(slot.id)
-                delay(100)
-            } else return
+            if (current == value) return
+            MenuUtils.packetClick(slot.id)
+            delay(200)
+            if (MenuUtils.currentMenu().title.string == "Are you sure?") {
+                MenuUtils.clickItems("Confirm")
+                delay(200)
+            }
         }
         throw IllegalStateException("Could not find the correct selection for Titled Cycle")
     }
 
+    // for cycling inputs where the current value is displayed in lore
+    fun getLoreCycle(slot: Slot, possibleValues: List<String>): String {
+        val stack = MenuUtils.currentMenu().screenHandler.getSlot(slot.id).stack
+        return stack.loreLines(false).firstNotNullOfOrNull { line ->
+            possibleValues.firstOrNull { pv -> line.contains(pv) }
+        } ?: throw IllegalStateException("Could not find the current selection for Lore Cycle")
+    }
+    suspend fun setLoreCycle(slot: Slot, possibleValues: List<String>, value: String, maxTries: Int = 10) {
+        repeat(maxTries) {
+            val stack = MenuUtils.currentMenu().screenHandler.getSlot(slot.id).stack
+            val current = stack.loreLines(false).firstNotNullOfOrNull { line ->
+                possibleValues.firstOrNull { pv -> line.contains(pv) }
+            } ?: throw IllegalStateException("Could not find the current selection for Lore Cycle")
+            if (current == value) return
+            MenuUtils.packetClick(slot.id)
+            delay(150)
+            if (maxTries == 1) return
+        }
+        throw IllegalStateException("Could not find the correct selection for Lored Cycle")
+    }
+
+    fun getKeyedLoreCycle(slot: Slot, key: String): String {
+        val stack = MenuUtils.currentMenu().screenHandler.getSlot(slot.id).stack
+        val lines = stack.loreLines(false)
+        val index = lines.indexOfFirst { it == "$key:" }
+        if (index == -1 || index + 1 >= lines.size) throw IllegalStateException("Could not find the correct selection for Lored Keyed Cycle")
+        return lines[index + 1]
+    }
+    suspend fun setKeyedLoreCycle(slot: Slot, key: String, newValue: String, button: Int = 0) {
+        repeat(10) {
+            val stack = MenuUtils.currentMenu().screenHandler.getSlot(slot.id).stack
+            val lines = stack.loreLines(false)
+            val index = lines.indexOfFirst { it == "$key:" }
+            if (index == -1 || index + 1 >= lines.size) return@repeat
+            val content = lines[index + 1]
+
+            if (content == newValue) return
+            MenuUtils.packetClick(slot.id, button = button)
+            delay(150)
+        }
+    }
+
+    fun getInlineKeyedLoreCycle(slot: Slot, key: String): String {
+        val stack = MenuUtils.currentMenu().screenHandler.getSlot(slot.id).stack
+        return stack.loreLines(false).firstNotNullOfOrNull { line ->
+            val result = line.substringAfter("$key: ")
+            if (result != line) result else null
+        } ?: throw IllegalStateException("Could not find the current selection for Lored Keyed Cycle")
+    }
+    suspend fun setInlineKeyedLoreCycle(slot: Slot, key: String, newValue: String, button: Int = 0) {
+        repeat(10) {
+            val stack = MenuUtils.currentMenu().screenHandler.getSlot(slot.id).stack
+            val current = stack.loreLines(false).firstNotNullOfOrNull { line ->
+                val result = line.substringAfter("$key: ")
+                if (result != line) result else null
+            } ?: throw IllegalStateException("Could not find the current selection for Lored Keyed Cycle")
+            if (current == newValue) return
+            MenuUtils.packetClick(slot.id, button = button)
+            delay(150)
+        }
+    }
+
+    fun getDyeToggle(slot: Slot): Boolean? {
+        val stack = MenuUtils.currentMenu().screenHandler.getSlot(slot.id).stack
+        return when (stack.item) {
+            Items.LIME_DYE -> true
+            Items.LIGHT_GRAY_DYE, Items.GRAY_DYE, Items.RED_DYE -> false
+            Items.STONE_BUTTON -> null
+            else -> throw IllegalStateException("Dye Toggle found to be of unexpected type ${stack.item.name.string}")
+        }
+    }
+
+    suspend fun setDyeToggle(slot: Slot, newValue: Boolean?) {
+        repeat(10) {
+            val current = getDyeToggle(slot)
+            if (current == newValue) return
+            if (newValue != null) MenuUtils.packetClick(slot.id) else MenuUtils.packetClick(slot.id, button = 1)
+            delay(200)
+        }
+        throw IllegalStateException("Could not find the correct selection for Dye Toggle")
+    }
+
     // For anvil and chat inputs
     suspend fun textInput(message: String) {
-        MenuUtils.lastInput = message
         when (val screen = MenuUtils.onOpen(null, AnvilScreen::class, ChatScreen::class, null)) {
             is AnvilScreen -> {
                 delay(100)
                 if (screen.screenHandler.setNewItemName(message)) {
                     MC.networkHandler?.sendPacket(RenameItemC2SPacket(message))
                 }
-                MenuUtils.interactionClick(2, 0)
+                MenuUtils.interactionClick(2)
             }
 
             is ChatScreen -> { //If they have Housing Toolbox and the setting is enabled
@@ -77,36 +162,11 @@ object InputUtils {
             }
         }
     }
+
     suspend fun textInput(message: String, delayMs: Long) {
         delay(delayMs)
         textInput(message)
         delay(200)
-    }
-    internal suspend fun textReinput() {
-        val message = MenuUtils.lastInput ?: return
-        when (val screen = MC.currentScreen) {
-            is AnvilScreen -> {
-                delay(100)
-                if (screen.screenHandler.setNewItemName(message)) {
-                    MC.networkHandler?.sendPacket(RenameItemC2SPacket(message))
-                }
-                MenuUtils.interactionClick(2, 0)
-            }
-
-            is ChatScreen -> { //If they have Housing Toolbox and the setting is enabled
-                TextUtils.sendMessage(message)
-            }
-
-            null -> {
-                MC.setScreen(
-                    ChatScreen(
-                        /*? >=1.21.9 {*/ "", false /*?} else {*//* "" *//*?}*/
-                    )
-                )
-                MenuUtils.onOpen(null, ChatScreen::class)
-                TextUtils.sendMessage(message)
-            }
-        }
     }
 
     var pendingStack: CompletableDeferred<ItemStack>? = null

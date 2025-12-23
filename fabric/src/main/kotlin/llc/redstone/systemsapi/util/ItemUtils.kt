@@ -3,15 +3,14 @@ package llc.redstone.systemsapi.util
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.nbt.NbtElement
 import net.minecraft.nbt.NbtOps
-import kotlin.collections.component1
-import kotlin.collections.component2
 import kotlin.jvm.optionals.getOrNull
 
-object ItemConverterUtils {
+object ItemUtils {
     fun toNBT(itemStack: ItemStack): NbtCompound {
         return ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, itemStack).result()
             .getOrNull()?.asCompound()?.getOrNull()

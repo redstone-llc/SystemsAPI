@@ -90,6 +90,21 @@ internal object HouseImporter : House {
             .mapNotNull { getMenu(it) }
     }
 
+    override suspend fun getGroup(name: String): Group? {
+        val groupImporter = GroupImporter(name)
+        return if (groupImporter.exists()) groupImporter else null
+    }
+
+    override suspend fun createGroup(name: String): Group {
+        val groupImporter = GroupImporter(name)
+        groupImporter.create()
+        return groupImporter
+    }
+
+    override suspend fun getAllGroups(): List<Group> {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun getRegion(name: String): Region? {
         val regionImporter = RegionImporter(name)
         return if (regionImporter.exists()) regionImporter else null

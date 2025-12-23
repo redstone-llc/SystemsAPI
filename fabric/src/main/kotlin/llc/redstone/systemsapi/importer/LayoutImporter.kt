@@ -6,31 +6,33 @@ import llc.redstone.systemsapi.api.Layout
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
+import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
+import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
+import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameContains
+import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameExact
 import llc.redstone.systemsapi.util.MenuUtils
-import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
-import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
 
 class LayoutImporter(override var name: String) : Layout {
     private suspend fun openLayoutMenu() {
-        val screen = MC.currentScreen as? GenericContainerScreen
-
-        when (screen?.title?.string) {
-            "Change Armor" -> MenuUtils.clickMenuSlot(MenuItems.GO_BACK)
-            else -> CommandUtils.runCommand("layout edit $name")
+        when (runCatching { MenuUtils.currentMenu().title.string == "Change Armor" }.getOrDefault(false)) {
+            true -> MenuUtils.clickItems(MenuItems.back)
+            false -> CommandUtils.runCommand("layout edit $name")
         }
-
         MenuUtils.onOpen("Layout Editor")
     }
 
-    private suspend fun saveLayout() = MenuUtils.clickMenuSlot(MenuItems.SAVE_LAYOUT)
+    // TODO: Wait to receive save confirmation through chat
+    private suspend fun saveLayout() = MenuUtils.clickItems(MenuItems.save)
 
     private suspend fun openArmorSelection(slotLabel: String) {
-        MenuUtils.clickMenuSlot(MenuItems.CHANGE_ARMOR)
+        openLayoutMenu()
+
+        MenuUtils.clickItems(MenuItems.armor)
         MenuUtils.onOpen("Change Armor")
 
-        MenuUtils.clickMenuSlot(MenuSlot(null, slotLabel))
+        MenuUtils.clickItems(slotLabel)
         MenuUtils.onOpen("Select an Item")
     }
 
@@ -39,11 +41,9 @@ class LayoutImporter(override var name: String) : Layout {
         openArmorSelection(label)
 
         // TODO: look and see if the item name can also be found
-        val stack = MenuUtils.findSlot(MenuSlot(slot = 13))?.stack
-            ?: throw IllegalStateException("Could not find armor piece in layout '$name' for slot '$label'")
-        if (stack.name.string != "Current Item") return null
+        val stack = MenuUtils.findSlots(MenuItems.currentItem).first().stack
         return InputUtils.getItemFromMenu(null, stack) {
-            MenuUtils.packetClick(13, 0)
+            MenuUtils.clickItems(MenuItems.currentItem)
         }
     }
 
@@ -57,7 +57,7 @@ class LayoutImporter(override var name: String) : Layout {
         MenuUtils.clickPlayerSlot(26)
         MenuUtils.onOpen("Change Armor")
         oldStack.giveItem(26)
-        MenuUtils.clickMenuSlot(MenuItems.GO_BACK)
+        MenuUtils.clickItems(MenuItems.back)
         MenuUtils.onOpen("Layout Editor")
     }
 
@@ -134,11 +134,30 @@ class LayoutImporter(override var name: String) : Layout {
     fun create() = CommandUtils.runCommand("layout create $name")
     override suspend fun delete() = CommandUtils.runCommand("layout delete $name")
 
+
     private object MenuItems {
-        val CHANGE_ARMOR = MenuSlot(Items.CHAINMAIL_CHESTPLATE, "Change Armor")
-        val SAVE_LAYOUT = MenuSlot(Items.CHEST, "Save Layout")
-        val APPLY_LAYOUT = MenuSlot(Items.ENDER_CHEST, "Apply Layout")
-        val IMPORT_LAYOUT = MenuSlot(Items.BREWING_STAND, "Import Layout")
-        val GO_BACK = MenuSlot(Items.ARROW, "Go Back")
+        val armor = ItemSelector(
+            name = NameExact("Change Armor"),
+            item = ItemExact(Items.CHAINMAIL_CHESTPLATE)
+        )
+        val save = ItemSelector(
+            name = NameExact("Save Layout"),
+            item = ItemExact(Items.CHEST)
+        )
+        val apply = ItemSelector(
+            name = NameContains("Apply Layout"),
+            item = ItemExact(Items.ENDER_CHEST)
+        )
+        val import = ItemSelector(
+            name = NameExact("Import Layout"),
+            item = ItemExact(Items.BREWING_STAND)
+        )
+        val back = ItemSelector(
+            name = NameExact("Go Back"),
+            item = ItemExact(Items.ARROW)
+        )
+        val currentItem = ItemSelector(
+            name = NameContains("Current Item")
+        )
     }
 }

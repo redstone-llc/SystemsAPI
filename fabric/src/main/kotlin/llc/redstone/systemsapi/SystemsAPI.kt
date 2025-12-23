@@ -12,7 +12,7 @@ object SystemsAPI : ClientModInitializer {
     internal val LOGGER: Logger = LoggerFactory.getLogger("SystemsAPI")
     internal val VERSION = /*$ mod_version*/ "0.0.1";
     internal val MINECRAFT = /*$ minecraft*/ "1.21.9";
-    val MC: MinecraftClient
+    internal val MC: MinecraftClient
         get() = MinecraftClient.getInstance()
 
     override fun onInitializeClient() {

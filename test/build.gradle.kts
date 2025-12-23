@@ -31,10 +31,8 @@ dependencies {
 
     modImplementation("net.fabricmc:fabric-language-kotlin:${property("deps.fabric_language_kotlin")}")
 
-    include("com.github.shynixn.mccoroutine:mccoroutine-fabric-api:2.22.0")
-    api("com.github.shynixn.mccoroutine:mccoroutine-fabric-api:2.22.0")
-    include("com.github.shynixn.mccoroutine:mccoroutine-fabric-core:2.22.0")
-    api("com.github.shynixn.mccoroutine:mccoroutine-fabric-core:2.22.0")
+    modImplementation("com.github.shynixn.mccoroutine:mccoroutine-fabric-api:2.22.0")
+    modImplementation("com.github.shynixn.mccoroutine:mccoroutine-fabric-core:2.22.0")
 
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
 
