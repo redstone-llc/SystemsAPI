@@ -13,6 +13,7 @@ import llc.redstone.systemsapi.util.ItemUtils.ItemSelector
 import llc.redstone.systemsapi.util.ItemUtils.NameMatch.NameExact
 import llc.redstone.systemsapi.util.MenuUtils
 import net.minecraft.item.Items
+import net.minecraft.screen.slot.Slot
 
 class GroupImporter(override var name: String) : Group {
     private fun getCurrentMenu(): String? {
@@ -20,8 +21,7 @@ class GroupImporter(override var name: String) : Group {
         return title
     }
 
-
-    private suspend fun openGroupsMenu() {
+    private suspend fun openGroupListMenu() {
         if (getCurrentMenu() == "Edit Group") return
         if (getCurrentMenu() == null) {
             CommandUtils.runCommand("menu")
@@ -34,7 +34,7 @@ class GroupImporter(override var name: String) : Group {
     }
 
     private suspend fun openGroupMenu() {
-        openGroupsMenu()
+        openGroupListMenu()
         if (getCurrentMenu() == "Permissions and Groups") {
             MenuUtils.clickItems(name)
         }
@@ -148,97 +148,37 @@ class GroupImporter(override var name: String) : Group {
         MenuUtils.onOpen("Edit Group")
     }
 
-    override suspend fun getPermissions(): MutableMap<Group.GroupPermission, Group.PermissionValue> {
+    override suspend fun getPermissions(): Group.PermissionSet {
         openGroupMenu()
         MenuUtils.clickItems(MenuItems.permissions)
         MenuUtils.onOpen("Permissions $name")
 
-        val map: MutableMap<Group.GroupPermission, Group.PermissionValue> = mutableMapOf()
-        for (permission in Group.GroupPermission.entries) {
+        val result = Group.PermissionSet()
+
+        for (permission in Group.Permissions.all) {
             val current = getKeyedTitleCycle(
                 MenuUtils.findSlots("${permission.displayName}: ", partial = true, paginated = true).first(),
                 permission.displayName
             )
 
-            val currentTyped: Group.PermissionValue = when (permission.valueType) {
-                Group.PermissionValue.BooleanValue::class -> {
-                    Group.PermissionValue.BooleanValue(current == "Enabled")
-                }
-                Group.PermissionValue.ChatValue::class -> {
-                    val chatVal = Group.PermissionValue.ChatValues.entries.firstOrNull { it.displayName == current }
-                        ?: throw IllegalStateException("Unknown chat permission value '$current' for ${permission.name}")
-                    Group.PermissionValue.ChatValue(chatVal)
-                }
-                Group.PermissionValue.GameModeValue::class -> {
-                    val gmVal = Group.PermissionValue.GameModeValues.entries.firstOrNull { it.displayName == current }
-                        ?: throw IllegalStateException("Unknown gamemode permission value '$current' for ${permission.name}")
-                    Group.PermissionValue.GameModeValue(gmVal)
-                }
-                else -> throw IllegalStateException("Unsupported permission value type: ${permission.valueType}")
-            }
-
-            map.putIfAbsent(permission, currentTyped)
+            // needs a capture helper because of generics issues
+            captureAndParse(result, permission, current)
         }
-        return map
+        return result
     }
 
-    override suspend fun setPermissions(newPermissions: MutableMap<Group.GroupPermission, Group.PermissionValue>) {
+    override suspend fun setPermissions(newPermissions: Group.PermissionSet) {
         openGroupMenu()
         MenuUtils.clickItems(MenuItems.permissions)
         MenuUtils.onOpen("Permissions $name")
 
-        for (permission in Group.GroupPermission.entries) {
+        for (permission in Group.Permissions.all) {
             if (!newPermissions.contains(permission)) continue
 
-            val current = getKeyedTitleCycle(
-                MenuUtils.findSlots("${permission.displayName}: ", partial = true, paginated = true).first(),
-                permission.displayName
-            )
+            val slot = MenuUtils.findSlots("${permission.displayName}: ", partial = true, paginated = true).first()
+            val current = getKeyedTitleCycle(slot, permission.displayName)
 
-            val currentTyped: Group.PermissionValue = when (permission.valueType) {
-                Group.PermissionValue.BooleanValue::class -> {
-                    Group.PermissionValue.BooleanValue(current == "Enabled")
-                }
-                Group.PermissionValue.ChatValue::class -> {
-                    val chatVal = Group.PermissionValue.ChatValues.entries.firstOrNull { it.displayName == current }
-                                  ?: throw IllegalStateException("Unknown chat permission value '$current' for ${permission.name}")
-                    Group.PermissionValue.ChatValue(chatVal)
-                }
-                Group.PermissionValue.GameModeValue::class -> {
-                    val gmVal = Group.PermissionValue.GameModeValues.entries.firstOrNull { it.displayName == current }
-                                ?: throw IllegalStateException("Unknown gamemode permission value '$current' for ${permission.name}")
-                    Group.PermissionValue.GameModeValue(gmVal)
-                }
-                else -> throw IllegalStateException("Unsupported permission value type: ${permission.valueType}")
-            }
-
-            if (currentTyped != newPermissions[permission]) {
-                val slot = MenuUtils.findSlots("${permission.displayName}: ", partial = true, paginated = true).first()
-                when (val newVal = newPermissions[permission]) {
-                    is Group.PermissionValue.BooleanValue -> {
-                        setKeyedTitleCycle(
-                            slot,
-                            permission.displayName,
-                            if (newVal.value) "On" else "Off"
-                        )
-                    }
-                    is Group.PermissionValue.ChatValue -> {
-                        setKeyedTitleCycle(
-                            slot,
-                            permission.displayName,
-                            newVal.value.displayName
-                        )
-                    }
-                    is Group.PermissionValue.GameModeValue -> {
-                        setKeyedTitleCycle(
-                            slot,
-                            permission.displayName,
-                            newVal.value.displayName
-                        )
-                    }
-                    else -> throw IllegalStateException("Unsupported permission value type: ${newVal?.javaClass}")
-                }
-            }
+            captureAndSet(newPermissions, permission, slot, current)
         }
     }
 
@@ -251,12 +191,12 @@ class GroupImporter(override var name: String) : Group {
     }
 
     suspend fun exists(): Boolean {
-        openGroupsMenu()
+        openGroupListMenu()
         val slots = MenuUtils.findSlots(this.name)
         return slots.isNotEmpty()
     }
     suspend fun create() {
-        openGroupsMenu()
+        openGroupListMenu()
         MenuUtils.clickItems(MenuItems.create)
         MenuUtils.onOpen("Edit Group")
     }
@@ -266,6 +206,26 @@ class GroupImporter(override var name: String) : Group {
         MenuUtils.onOpen("Are you sure?")
         MenuUtils.clickItems("Confirm")
         MenuUtils.onOpen("Permissions and Groups")
+    }
+
+    private fun <T> captureAndParse(set: Group.PermissionSet, key: Group.PermissionKey<T>, current: String) {
+        try {
+            val value = key.parseFromMenu(current)
+            set[key] = value
+        } catch (e: Exception) {
+            println("Failed to parse ${key.displayName}: $current")
+        }
+    }
+
+    private suspend fun <T> captureAndSet(set: Group.PermissionSet, key: Group.PermissionKey<T>, slot: Slot, current: String) {
+        val newValue = key.toMenuText(set[key] ?: return)
+        if (current == newValue) return
+
+        setKeyedTitleCycle(
+            slot,
+            key.displayName,
+            newValue
+        )
     }
 
     private object MenuItems {
@@ -307,10 +267,6 @@ class GroupImporter(override var name: String) : Group {
         )
         val back = ItemSelector(
             name = NameExact("Go Back"),
-            item = ItemExact(Items.ARROW)
-        )
-        val nextPage = ItemSelector(
-            name = NameExact("Next Page"),
             item = ItemExact(Items.ARROW)
         )
     }
