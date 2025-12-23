@@ -3,6 +3,9 @@ package llc.redstone.systemsapi.util
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import kotlinx.coroutines.delay
 import llc.redstone.systemsapi.SystemsAPI.MC
+import llc.redstone.systemsapi.util.ItemUtils.ItemMatch.ItemExact
+import llc.redstone.systemsapi.util.ItemUtils.ItemSelector
+import llc.redstone.systemsapi.util.ItemUtils.NameMatch.NameWithin
 import llc.redstone.systemsapi.util.TextUtils.convertTextToString
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
@@ -196,48 +199,50 @@ object MenuUtils {
 
     fun currentMenu(): GenericContainerScreen =
         MC.currentScreen as? GenericContainerScreen
-        ?: throw ClassCastException("Expected GenericContainerScreen but found ${MC.currentScreen?.javaClass?.name}")
+        ?: throw ClassCastException("Expected GenericContainerScreen but found ${MC.currentScreen?.javaClass?.name} instead")
 
     // NEW FUNCTIONS
 
     // Helper functions for finding slots
 
-    fun findSlots(predicate: (ItemStack) -> Boolean): List<Slot> {
-        return currentMenu().screenHandler.slots.filter { predicate(it.stack) }
-    }
+    suspend fun findSlots(predicate: (ItemStack) -> Boolean, paginated: Boolean = false): List<Slot> {
+        fun currentSlots() = currentMenu().screenHandler.slots.filter { predicate(it.stack) }
 
-    fun findSlots(name: String): List<Slot> {
-        return findSlots {
-            it.name.string == name
+        var slots = currentSlots()
+        if (slots.isEmpty() && paginated) {
+            repeat(50) {
+                val nextPageSlot = findSlots(MenuItems.nextPage).firstOrNull() ?: return emptyList()
+                packetClick(nextPageSlot.id)
+                delay(200)
+                slots = currentSlots()
+                if (slots.isNotEmpty()) return slots
+            }
         }
+        return slots
     }
 
-    fun findSlots(name: String, item: Item): List<Slot> {
-        return findSlots {
+    suspend fun findSlots(name: String, paginated: Boolean = false, partial: Boolean = false): List<Slot> {
+        return findSlots({
+            if (!partial) it.name.string == name else it.name.string.contains(name)
+        }, paginated)
+    }
+
+    suspend fun findSlots(name: String, item: Item, paginated: Boolean = false): List<Slot> {
+        return findSlots({
             it.name.string == name &&
             it.item == item
-        }
+        }, paginated)
     }
 
-    fun findSlots(selector: ItemUtils.ItemSelector): List<Slot> {
-        return findSlots(selector.toPredicate())
+    suspend fun findSlots(selector: ItemSelector, paginated: Boolean = false): List<Slot> {
+        return findSlots(selector.toPredicate(), paginated)
     }
 
     // Helper classes for clicking items
 
     // TODO: Check to make sure `paginated` works
     suspend fun clickItems(predicate: (ItemStack) -> Boolean, packet: Boolean = true, button: Int = 0, paginated: Boolean = false) {
-        var slots = findSlots(predicate)
-        if (paginated && slots.isEmpty()) {
-            repeat(50) {
-                val nextPageSlot = findSlots("Left-click for next page!", Items.ARROW).firstOrNull() ?: return
-                packetClick(nextPageSlot.id)
-                delay(200)
-                slots = findSlots(predicate)
-                if (slots.isNotEmpty()) return@repeat
-            }
-        }
-        slots.forEach { slot ->
+        findSlots(predicate, paginated).forEach { slot ->
             when (packet) {
                 true -> packetClick(slot.id, button)
                 false -> interactionClick(slot.id, button)
@@ -268,12 +273,19 @@ object MenuUtils {
         )
     }
 
-    suspend fun clickItems(selector: ItemUtils.ItemSelector, packet: Boolean = true, button: Int = 0, paginated: Boolean = false) {
+    suspend fun clickItems(selector: ItemSelector, packet: Boolean = true, button: Int = 0, paginated: Boolean = false) {
         clickItems(
             selector.toPredicate(),
             packet,
             button,
             paginated
+        )
+    }
+
+    private object MenuItems {
+        val nextPage = ItemSelector(
+            name = NameWithin(listOf("Next Page", "Left-click for next page!")),
+            item = ItemExact(Items.ARROW)
         )
     }
 }

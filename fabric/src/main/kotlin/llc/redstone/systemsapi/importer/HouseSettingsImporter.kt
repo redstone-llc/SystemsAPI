@@ -5,12 +5,12 @@ import llc.redstone.systemsapi.api.HouseSettings
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.InputUtils.getDyeToggle
-import llc.redstone.systemsapi.util.InputUtils.getLoredCycle
-import llc.redstone.systemsapi.util.InputUtils.getLoredKeyedCycle
-import llc.redstone.systemsapi.util.InputUtils.getTitledCycle
+import llc.redstone.systemsapi.util.InputUtils.getInlineKeyedLoreCycle
+import llc.redstone.systemsapi.util.InputUtils.getKeyedTitleCycle
+import llc.redstone.systemsapi.util.InputUtils.getLoreCycle
 import llc.redstone.systemsapi.util.InputUtils.setDyeToggle
-import llc.redstone.systemsapi.util.InputUtils.setLoredCycle
-import llc.redstone.systemsapi.util.InputUtils.setTitledCycle
+import llc.redstone.systemsapi.util.InputUtils.setKeyedTitleCycle
+import llc.redstone.systemsapi.util.InputUtils.setLoreCycle
 import llc.redstone.systemsapi.util.ItemStackUtils.getProperty
 import llc.redstone.systemsapi.util.ItemUtils.ItemMatch.ItemExact
 import llc.redstone.systemsapi.util.ItemUtils.ItemSelector
@@ -61,7 +61,7 @@ object HouseSettingsImporter : HouseSettings {
         MenuUtils.clickItems(MenuItems.timeSelector)
         MenuUtils.onOpen(Menu.TIME_SELECTOR.title)
 
-        val current = getLoredCycle(
+        val current = getLoreCycle(
             MenuUtils.findSlots(MenuItems.daylightCycle).first(),
             listOf("Click to disable!", "Click to enable!")
         ).let { it == "Click to disable!" }
@@ -77,13 +77,13 @@ object HouseSettingsImporter : HouseSettings {
         MenuUtils.clickItems(MenuItems.timeSelector)
         MenuUtils.onOpen(Menu.TIME_SELECTOR.title)
 
-        val current = getLoredCycle(
+        val current = getLoreCycle(
             MenuUtils.findSlots(MenuItems.daylightCycle).first(),
             listOf("Click to disable!", "Click to enable!")
         ).let { it == "Click to disable!" }
         if (current == newDaylightCycle) return
 
-        setLoredCycle(
+        setLoreCycle(
             MenuUtils.findSlots(MenuItems.daylightCycle).first(),
             listOf("Click to disable!", "Click to enable!"),
             if (newDaylightCycle) "Click to disable!" else "Click to enable!",
@@ -95,7 +95,7 @@ object HouseSettingsImporter : HouseSettings {
         openSettingsMenu()
 
         return HouseSettings.MaxPlayers.entries.firstOrNull {
-            it.displayName == getTitledCycle(
+            it.displayName == getKeyedTitleCycle(
                 MenuUtils.findSlots(MenuItems.maxPlayers).first(),
                 (MenuItems.maxPlayers.name as NameContains).value
             )
@@ -108,7 +108,7 @@ object HouseSettingsImporter : HouseSettings {
         val current = getMaxPlayers()
         if (newMaxPlayers == current) return
 
-        setTitledCycle(
+        setKeyedTitleCycle(
             MenuUtils.findSlots(MenuItems.maxPlayers).first(),
             (MenuItems.maxPlayers.name as NameContains).value,
             newMaxPlayers.displayName
@@ -228,7 +228,7 @@ object HouseSettingsImporter : HouseSettings {
         val slot = MenuUtils.findSlots(MenuItems.parkourAnnounce).first()
 
         return HouseSettings.ParkourAnnounce.entries.firstOrNull {
-            it.displayName == getTitledCycle(
+            it.displayName == getKeyedTitleCycle(
                 slot,
                 (MenuItems.parkourAnnounce.name as NameContains).value
             )
@@ -241,14 +241,14 @@ object HouseSettingsImporter : HouseSettings {
         val slot = MenuUtils.findSlots(MenuItems.parkourAnnounce).first()
 
         val current = HouseSettings.ParkourAnnounce.entries.firstOrNull {
-            it.displayName == getTitledCycle(
+            it.displayName == getKeyedTitleCycle(
                 slot,
                 (MenuItems.parkourAnnounce.name as NameContains).value
             )
         } ?: throw IllegalStateException("Could not find Parkour Announce")
         if (newParkourAnnounce == current) return
 
-        setTitledCycle(
+        setKeyedTitleCycle(
             slot,
             (MenuItems.parkourAnnounce.name as NameContains).value,
             newParkourAnnounce.displayName
@@ -260,7 +260,7 @@ object HouseSettingsImporter : HouseSettings {
         MenuUtils.clickItems(MenuItems.playerStates)
         MenuUtils.onOpen(Menu.PLAYER_STATES.title)
 
-        val current = getLoredKeyedCycle(
+        val current = getInlineKeyedLoreCycle(
             MenuUtils.findSlots(MenuItems.playerStateDuration).first(),
             "Current Duration"
         ).let { if (it == "Disabled") Duration.ZERO else Duration.parse(it) }
@@ -280,7 +280,7 @@ object HouseSettingsImporter : HouseSettings {
         MenuUtils.clickItems(MenuItems.playerStates)
         MenuUtils.onOpen(Menu.PLAYER_STATES.title)
 
-        val current = getLoredKeyedCycle(
+        val current = getInlineKeyedLoreCycle(
             MenuUtils.findSlots(MenuItems.playerStateDuration).first(),
             "Current Duration"
         ).let { if (it == "Disabled") Duration.ZERO else Duration.parse(it) }
@@ -369,7 +369,7 @@ object HouseSettingsImporter : HouseSettings {
         MenuUtils.clickItems(MenuItems.playerVariableDurations)
         MenuUtils.onOpen(Menu.PLAYER_VARIABLE_DURATIONS.title)
 
-        val current = getLoredKeyedCycle(
+        val current = getInlineKeyedLoreCycle(
             MenuUtils.findSlots(MenuItems.defaultVariableDuration).first(),
             "Current Duration"
         ).let { if (it == "Disabled") Duration.ZERO else Duration.parse(it) }
@@ -388,7 +388,7 @@ object HouseSettingsImporter : HouseSettings {
         MenuUtils.clickItems(MenuItems.playerVariableDurations)
         MenuUtils.onOpen(Menu.PLAYER_VARIABLE_DURATIONS.title)
 
-        val current = getLoredKeyedCycle(
+        val current = getInlineKeyedLoreCycle(
             MenuUtils.findSlots(MenuItems.defaultVariableDuration).first(),
             "Current Duration"
         ).let { if (it == "Disabled") Duration.ZERO else Duration.parse(it) }
@@ -466,9 +466,7 @@ object HouseSettingsImporter : HouseSettings {
         val keys: Array<HouseSettings.PvpSettings> = HouseSettings.PvpSettings.entries.toTypedArray()
 
         for (pvpSetting in keys) {
-            val slot = MenuUtils.findSlots {
-                it.name.string.startsWith(pvpSetting.displayName)
-            }.first()
+            val slot = MenuUtils.findSlots("${pvpSetting.displayName}: ", partial = true).first()
             map.putIfAbsent(pvpSetting, getDyeToggle(slot)!!)
         }
 
@@ -484,9 +482,7 @@ object HouseSettingsImporter : HouseSettings {
 
         val keys: Array<HouseSettings.PvpSettings> = HouseSettings.PvpSettings.entries.toTypedArray()
         for (pvpSetting in keys) {
-            val slot = MenuUtils.findSlots {
-                it.name.string.startsWith(pvpSetting.displayName)
-            }.first()
+            val slot = MenuUtils.findSlots("${pvpSetting.displayName}: ", partial = true).first()
             val current = getDyeToggle(slot)
             // Unset settings which aren't provided
             if (!newPvpSettings.contains(pvpSetting)) {

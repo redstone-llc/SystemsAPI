@@ -29,6 +29,10 @@ interface House {
 //    suspend fun getNpc(name: String): Npc?
 //    suspend fun getAllNpcs(): List<Npc>
 
+    suspend fun getGroup(name: String): Group?
+    suspend fun createGroup(name: String): Group
+    suspend fun getAllGroups(): List<Group>
+
     suspend fun getRegion(name: String): Region?
     suspend fun createRegion(name: String): Region
     suspend fun getAllRegions(): List<Region>

@@ -35,34 +35,38 @@ object InputUtils {
     }
 
     // For cycling inputs where the current value is displayed in the title, like "Join/Leave Messages: On"
-    fun getTitledCycle(slot: Slot, key: String): String {
+    fun getKeyedTitleCycle(slot: Slot, key: String): String {
         val stack = MenuUtils.currentMenu().screenHandler.getSlot(slot.id).stack
         return stack.name.string.substringAfter("$key: ")
     }
-    suspend fun setTitledCycle(slot: Slot, key: String, value: String) {
+    suspend fun setKeyedTitleCycle(slot: Slot, key: String, value: String) {
         repeat(20) {
             val stack = MenuUtils.currentMenu().screenHandler.getSlot(slot.id).stack
             val current = stack.name.string.substringAfter("$key: ")
             if (current == value) return
             MenuUtils.packetClick(slot.id)
             delay(200)
+            if (MenuUtils.currentMenu().title.string == "Are you sure?") {
+                MenuUtils.clickItems("Confirm")
+                delay(200)
+            }
         }
         throw IllegalStateException("Could not find the correct selection for Titled Cycle")
     }
 
     // for cycling inputs where the current value is displayed in lore
-    fun getLoredCycle(slot: Slot, possibleValues: List<String>): String {
+    fun getLoreCycle(slot: Slot, possibleValues: List<String>): String {
         val stack = MenuUtils.currentMenu().screenHandler.getSlot(slot.id).stack
         return stack.loreLines(false).firstNotNullOfOrNull { line ->
             possibleValues.firstOrNull { pv -> line.contains(pv) }
-        } ?: throw IllegalStateException("Could not find the current selection for Lored Cycle")
+        } ?: throw IllegalStateException("Could not find the current selection for Lore Cycle")
     }
-    suspend fun setLoredCycle(slot: Slot, possibleValues: List<String>, value: String, maxTries: Int = 10) {
+    suspend fun setLoreCycle(slot: Slot, possibleValues: List<String>, value: String, maxTries: Int = 10) {
         repeat(maxTries) {
             val stack = MenuUtils.currentMenu().screenHandler.getSlot(slot.id).stack
             val current = stack.loreLines(false).firstNotNullOfOrNull { line ->
                 possibleValues.firstOrNull { pv -> line.contains(pv) }
-            } ?: throw IllegalStateException("Could not find the current selection for Lored Cycle")
+            } ?: throw IllegalStateException("Could not find the current selection for Lore Cycle")
             if (current == value) return
             MenuUtils.packetClick(slot.id)
             delay(150)
@@ -71,14 +75,35 @@ object InputUtils {
         throw IllegalStateException("Could not find the correct selection for Lored Cycle")
     }
 
-    fun getLoredKeyedCycle(slot: Slot, key: String): String {
+    fun getKeyedLoreCycle(slot: Slot, key: String): String {
+        val stack = MenuUtils.currentMenu().screenHandler.getSlot(slot.id).stack
+        val lines = stack.loreLines(false)
+        val index = lines.indexOfFirst { it == "$key:" }
+        if (index == -1 || index + 1 >= lines.size) throw IllegalStateException("Could not find the correct selection for Lored Keyed Cycle")
+        return lines[index + 1]
+    }
+    suspend fun setKeyedLoreCycle(slot: Slot, key: String, newValue: String, button: Int = 0) {
+        repeat(10) {
+            val stack = MenuUtils.currentMenu().screenHandler.getSlot(slot.id).stack
+            val lines = stack.loreLines(false)
+            val index = lines.indexOfFirst { it == "$key:" }
+            if (index == -1 || index + 1 >= lines.size) return@repeat
+            val content = lines[index + 1]
+
+            if (content == newValue) return
+            MenuUtils.packetClick(slot.id, button = button)
+            delay(150)
+        }
+    }
+
+    fun getInlineKeyedLoreCycle(slot: Slot, key: String): String {
         val stack = MenuUtils.currentMenu().screenHandler.getSlot(slot.id).stack
         return stack.loreLines(false).firstNotNullOfOrNull { line ->
             val result = line.substringAfter("$key: ")
             if (result != line) result else null
         } ?: throw IllegalStateException("Could not find the current selection for Lored Keyed Cycle")
     }
-    suspend fun setLoredKeyedCycle(slot: Slot, key: String, newValue: String) {
+    suspend fun setInlineKeyedLoreCycle(slot: Slot, key: String, newValue: String, button: Int = 0) {
         repeat(10) {
             val stack = MenuUtils.currentMenu().screenHandler.getSlot(slot.id).stack
             val current = stack.loreLines(false).firstNotNullOfOrNull { line ->
@@ -86,7 +111,7 @@ object InputUtils {
                 if (result != line) result else null
             } ?: throw IllegalStateException("Could not find the current selection for Lored Keyed Cycle")
             if (current == newValue) return
-            MenuUtils.packetClick(slot.id)
+            MenuUtils.packetClick(slot.id, button = button)
             delay(150)
         }
     }

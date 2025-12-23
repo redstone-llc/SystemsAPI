@@ -4,6 +4,8 @@ import com.github.shynixn.mccoroutine.fabric.launch
 import com.github.shynixn.mccoroutine.fabric.mcCoroutineConfiguration
 import com.mojang.brigadier.context.CommandContext
 import llc.redstone.systemsapi.SystemsAPI
+import llc.redstone.systemsapi.api.Group
+import llc.redstone.systemsapi.api.Group.PermissionValue.ChatValues
 import llc.redstone.systemsapi.api.HouseSettings
 import llc.redstone.systemsapi.api.Region
 import llc.redstone.systemsapi.data.Action
@@ -120,7 +122,7 @@ class TestMod : ClientModInitializer {
                         literal("regions").executes {
                             launch {
                                 try {
-                                    val region = SystemsAPI.getHousingImporter().getRegion("test") ?: throw Exception()
+                                    val region = SystemsAPI.getHousingImporter().getRegion("test")!!
                                     region.setPvpSettings(
                                         mutableMapOf(
                                             Pair(Region.PvpSettings.PVP, true),
@@ -145,6 +147,43 @@ class TestMod : ClientModInitializer {
                                     it.sendFeedback("PvP Settings", region.getPvpSettings())
                                     it.sendFeedback("Entry Actions", region.getEntryActionContainer().getActions())
                                     it.sendFeedback("Exit Actions", region.getExitActionContainer().getActions())
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                    MC.player?.sendMessage(
+                                        MutableText.of(
+                                            of("[Test Mod] An error occurred: ${e.message}")
+                                        ).withColor(Color.RED.rgb), false
+                                    )
+                                }
+                            }
+                            1
+                        }
+                    )
+                    .then(
+                        literal("groups").executes {
+                            launch {
+                                try {
+                                    val group = SystemsAPI.getHousingImporter().getGroup("test")!!
+
+                                    group.setName("glorb")
+                                    group.setTag("glorb")
+                                    group.setTagVisibleInChat(false)
+                                    group.setColor(Group.GroupColor.LIGHT_PURPLE)
+                                    group.setPriority(20)
+                                    group.setPermissions(mutableMapOf(
+                                        Pair(Group.GroupPermission.TP, Group.PermissionValue.BooleanValue(true)),
+                                        Pair(Group.GroupPermission.TP_OTHER_PLAYERS, Group.PermissionValue.BooleanValue(true)),
+                                        Pair(Group.GroupPermission.DEFAULT_GAME_MODE, Group.PermissionValue.GameModeValue(Group.PermissionValue.GameModeValues.CREATIVE)),
+                                        Pair(Group.GroupPermission.BUILD, Group.PermissionValue.BooleanValue(true)),
+                                        Pair(Group.GroupPermission.CHAT, Group.PermissionValue.ChatValue(ChatValues.ON))
+                                    ))
+
+                                    it.sendFeedback("Name", group.getName())
+                                    it.sendFeedback("Tag", group.getTag().toString())
+                                    it.sendFeedback("Tag Visible in Chat", group.getTagVisibleInChat())
+                                    it.sendFeedback("Color", group.getColor())
+                                    it.sendFeedback("Priority", group.getPriority())
+                                    it.sendFeedback("Permissions", group.getPermissions())
                                 } catch (e: Exception) {
                                     e.printStackTrace()
                                     MC.player?.sendMessage(
