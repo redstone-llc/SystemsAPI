@@ -1,9 +1,15 @@
 package llc.redstone.systemsapi.util
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeout
 import llc.redstone.systemsapi.SystemsAPI.MC
-import llc.redstone.systemsapi.util.TextUtils.convertTextToString
+import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
+import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
+import llc.redstone.systemsapi.util.PredicateUtils.NameMatch
+import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameContains
+import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameExact
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.client.gui.screen.ingame.HandledScreen
@@ -14,151 +20,150 @@ import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket
 import net.minecraft.screen.slot.Slot
 import net.minecraft.screen.slot.SlotActionType
 import net.minecraft.screen.sync.ItemStackHash
-import net.minecraft.text.Text
 import kotlin.reflect.KClass
 
 object MenuUtils {
-
-    data class Target(val menuSlot: MenuSlot, val button: Int = 0)
-    data class MenuSlot(val item: Item? = null, val label: String? = null, val slot: Int? = null)
-
     //Debug info
     var waitingOn: String? = null
     var lastWaitingOn: String? = null
     var lastSuccessful: String? = null
     var currentScreen: String? = null
-    var attempts: Int = 0
-    var lastClick: String? = null
-    var clickWaitingOn: String? = null
-    var clickAttempts: Int = 0
 
-    //Used for error correction
-    private var lastSlot: MenuSlot? = null
-    var lastInput: String? = null
-    private var lastButton = 0
-    private var attempted: Boolean = false
+    var pendingScreen: CompletableDeferred<Screen?>? = null
+    var pendingClazz: Array<out KClass<out Screen>?> = arrayOf()
+    var pendingNameMatch: NameMatch? = null
 
-    suspend fun findSlot(menuSlot: MenuSlot, nullable: Boolean = false): Slot? {
-        val gui = currentMenu()
-        fun matches(slot: Slot): Boolean {
-            val stack = slot.stack
-            val customName = convertTextToString(stack.name ?: Text.of(""), false)
-            return (menuSlot.item == null || stack.item == menuSlot.item) &&
-                    (stack.item != Items.AIR) &&
-                    (menuSlot.label == null || customName == menuSlot.label)
-
-        }
-
-        clickAttempts = 0
-        clickWaitingOn = "clicking ${menuSlot.item?.name?.string ?: "any item"} ${menuSlot.label ?: "with any name"}"
-        currentScreen = MC.currentScreen?.title?.string ?: "null"
-
-        while (true) {
-            if (clickAttempts++ >= 10) error("Failed to find slot for $waitingOn in $currentScreen after $clickAttempts attempts.")
-
-            val foundSlot = menuSlot.slot?.let { slot ->
-                gui.screenHandler.getSlot(slot).takeIf { matches(it) }
-            } ?: gui.screenHandler.slots.firstOrNull { matches(it) }
-
-            lastClick =
-                convertTextToString(foundSlot?.stack?.name ?: Text.of("null")) + " slot ${foundSlot?.id ?: "null"}"
-            lastSlot = menuSlot
-
-            if (nullable || (foundSlot != null)) return foundSlot
-            delay(50)
-        }
+    suspend fun onOpen(
+        name: String,
+        vararg clazz: KClass<out Screen>? = arrayOf(GenericContainerScreen::class)
+    ): Screen? {
+        return onOpen(NameContains(name), *clazz)
     }
 
     suspend fun onOpen(
-        name: String?,
+        nameMatch: NameMatch?,
         vararg clazz: KClass<out Screen>? = arrayOf(GenericContainerScreen::class)
     ): Screen? {
-        fun reset() {
-            lastWaitingOn = waitingOn
-            attempts = 0
-            waitingOn = null
-            currentScreen = null
-            lastClick = null
-            lastInput = null
-            attempted = false
+        waitingOn = "$nameMatch"
+        val deferred = CompletableDeferred<Screen?>()
+        pendingScreen?.cancel()
+        pendingScreen = deferred
+        pendingClazz = clazz
+        pendingNameMatch = nameMatch
+
+        MC.currentScreen?.let { screen ->
+            if (pendingClazz.any { it?.isInstance(screen) == true }) {
+                val title = screen.title?.string ?: "null"
+                if (pendingNameMatch?.matches(title) != false) {
+                    return screen
+                }
+            }
         }
-        attempts = 0
-        waitingOn = name ?: "null"
-        while (true) {
-            if (attempts++ >= 10) run {
-                if (attempted) {
-                    attempted = false
-                    error("Failed to find screen $waitingOn after $attempts attempts.")
-                } else {
-                    attempted = true
-                    lastSlot?.let { slot -> clickMenuTargets(Target(slot, lastButton)) }
-                    lastInput?.let { InputUtils.textReinput() }
-                    attempts = 0
-                }
+
+        return try {
+            withTimeout(500) {
+                deferred.await()
             }
-            delay(50)
-            val screen = MC.currentScreen ?: run {
-                if (clazz.contains(null)) {
-                    delay(50)
-                    reset()
-                    return null
-                }
-                continue
+        } catch (_: Exception) {
+            println("[MenuUtils] onOpen timeout waiting for $waitingOn")
+            if (checkScreen(MC.currentScreen)) {
+                MC.currentScreen
+            } else {
+                null
             }
-            currentScreen = screen.title.string
-            if (clazz.contains(screen::class) && (name == null || currentScreen?.contains(name) == true)) {
-                delay(50)
-                reset()
-                lastSuccessful = currentScreen + " clazz: " + screen::class.simpleName
-                return screen
-            }
+        } finally {
+            pendingScreen = null
+            pendingNameMatch = null
+            pendingClazz = arrayOf()
+            lastSuccessful = waitingOn
+            lastWaitingOn = waitingOn
+            waitingOn = null
+            awaitUntilMenuItemsLoaded()
         }
     }
 
-    suspend fun clickMenuSlot(vararg slots: MenuSlot): Boolean =
-        clickMenuTargets(*slots.map { Target(it) }.toTypedArray())
+    fun completeOnClose() {
+        val pending = pendingScreen ?: return
+        val screen = MC.currentScreen
+        if (screen != null) return
+        if (waitingOn != null || !pendingClazz.contains(null)) return
+        pendingScreen = null
+        pending.complete(null)
+    }
 
-    suspend fun clickMenuTargets(vararg attempts: Target): Boolean {
-        val match = attempts.firstNotNullOfOrNull {
-            it to findSlot(it.menuSlot)!!
-        } ?: return false
-        packetClick(match.second.id, match.first.button)
+    fun checkScreen(screen: Screen?): Boolean {
+        if (screen == null && waitingOn == null && pendingClazz.contains(null)) return true
+        if (pendingClazz.isNotEmpty()) {
+            val matchesClass = pendingClazz.any { it?.isInstance(screen) == true }
+            if (!matchesClass) return false
+        }
+        if (pendingNameMatch != null) {
+            val title = screen?.title?.string ?: "null"
+            if (!pendingNameMatch!!.matches(title)) return false
+        }
         return true
     }
 
-    suspend fun clickMenuTargetPaginated(vararg attempts: Target): Boolean {
-        val match = attempts.firstNotNullOfOrNull {
-            try {
-                it to findSlot(it.menuSlot)
-            } catch (_: Exception) {
-                null
-            }
-        }
+    fun completeOnOpenScreen(screen: Screen) {
+        val pending = pendingScreen ?: return
+        if (!checkScreen(screen)) return
+        pendingScreen = null
+        pending.complete(screen)
+    }
 
-        if (match == null) {
-            val nextPageSlot = findSlot(GlobalMenuItems.NEXT_PAGE, true)
-            if (nextPageSlot != null) {
-                clickMenuSlot(GlobalMenuItems.NEXT_PAGE)
-                delay(200)
-                if (clickMenuTargetPaginated(*attempts)) {
-                    return true
-                }
+    var isLoading = false
+    var lastItemAddedTimestamp = 0L
+    var itemsLoaded = mutableMapOf<String, ItemStack>()
+
+    var pendingLoaded: CompletableDeferred<Screen>? = null
+    suspend fun awaitUntilMenuItemsLoaded(): Screen {
+        val deferred = CompletableDeferred<Screen>()
+        pendingLoaded?.cancel()
+        pendingLoaded = deferred
+
+        return try {
+            isLoading = true
+            itemsLoaded.clear()
+            lastItemAddedTimestamp = System.currentTimeMillis()
+            withTimeout(200) {
+                deferred.await()
             }
-            return false
-        } else {
-            packetClick(match.second!!.id, match.first.button)
-            return true
+        } finally {
+            if (pendingLoaded === deferred) pendingLoaded = null
         }
+    }
+
+    fun render() {
+        if (!isLoading) return
+        val screen = MC.currentScreen as? HandledScreen<*> ?: return
+        val delay = 0L // your gui delay
+        if (System.currentTimeMillis() - lastItemAddedTimestamp < delay) return
+
+        val slots = screen.screenHandler.slots
+        var startIndex = slots.size - 44
+        if (startIndex < 0) {
+            startIndex = 0
+        }
+        val hotbarSlots = slots.subList(startIndex, startIndex + 9)
+        if (hotbarSlots.all { it.stack.isEmpty }) return
+        isLoading = false
+        val pending = pendingLoaded ?: return
+        pendingLoaded = null
+        pending.complete(screen)
+    }
+
+    fun renderStack(stack: ItemStack) {
+        if (!isLoading) return
+        val displayName = stack.name.string
+        if (itemsLoaded.containsKey(displayName)) return
+        lastItemAddedTimestamp = System.currentTimeMillis()
+        itemsLoaded[displayName] = stack
     }
 
     fun clickPlayerSlot(slot: Int, button: Int = 0) {
         val gui = currentMenu()
         val playerSlot = slot + gui.screenHandler.slots.size - 45
         packetClick(playerSlot, button)
-    }
-
-    object GlobalMenuItems {
-        val NEXT_PAGE = MenuSlot(Items.ARROW, "Left-click for next page!")
     }
 
     // ESSENTIAL
@@ -175,7 +180,6 @@ object MenuUtils {
             Int2ObjectOpenHashMap(),
             ItemStackHash.EMPTY
         )
-        lastButton = button
 
         MC.networkHandler?.sendPacket(pkt) ?: error("Failed to send click packet")
     }
@@ -184,7 +188,6 @@ object MenuUtils {
         val gui =
             MC.currentScreen as? HandledScreen<*> ?: error("[interactionClick] Current screen is not a HandledScreen")
 
-        lastButton = button
         MC.interactionManager?.clickSlot(
             gui.screenHandler.syncId,
             slot,
@@ -219,8 +222,12 @@ object MenuUtils {
         }
     }
 
-    fun findSlots(selector: ItemUtils.ItemSelector): List<Slot> {
+    fun findSlots(selector: ItemSelector): List<Slot> {
         return findSlots(selector.toPredicate())
+    }
+
+    fun getSlot(slotIndex: Int): Slot {
+        return currentMenu().screenHandler.getSlot(slotIndex)
     }
 
     // Helper classes for clicking items
@@ -230,7 +237,7 @@ object MenuUtils {
         var slots = findSlots(predicate)
         if (paginated && slots.isEmpty()) {
             repeat(50) {
-                val nextPageSlot = findSlots("Left-click for next page!", Items.ARROW).firstOrNull() ?: return
+                val nextPageSlot = findSlots(GlobalMenuItems.NEXT_PAGE).firstOrNull() ?: return
                 packetClick(nextPageSlot.id)
                 delay(200)
                 slots = findSlots(predicate)
@@ -268,12 +275,23 @@ object MenuUtils {
         )
     }
 
-    suspend fun clickItems(selector: ItemUtils.ItemSelector, packet: Boolean = true, button: Int = 0, paginated: Boolean = false) {
+    suspend fun clickItems(selector: ItemSelector, packet: Boolean = true, button: Int = 0, paginated: Boolean = false) {
         clickItems(
             selector.toPredicate(),
             packet,
             button,
             paginated
+        )
+    }
+
+    object GlobalMenuItems {
+        val NEXT_PAGE = ItemSelector(
+            name = NameExact("Left-click for next page!"),
+            item = ItemExact(Items.ARROW)
+        )
+        val PREVIOUS_PAGE = ItemSelector(
+            name = NameExact("Right-click for previous page!"),
+            item = ItemExact(Items.ARROW)
         )
     }
 }

@@ -46,6 +46,11 @@ object ItemStackUtils {
             ?: throw IllegalStateException("No lore lines for item $this passed filter")
     }
 
+    fun ItemStack.getLoreLineMatchesOrNull(color: Boolean, filter: (String) -> Boolean = { true }): String? {
+        return this.loreLines(color)
+            .firstOrNull { line -> filter(line) }
+    }
+
     fun ItemStack.loreLines(color: Boolean): List<String> {
         val loreLines = this.get(DataComponentTypes.LORE)?.lines
             ?: return emptyList()

@@ -32,52 +32,11 @@ interface Scoreboard {
         data class VariableValue(val scope: Scoreboard.VariableType, val key: String) : LineType("Variable Value", 1)
 
         companion object {
-            private val typesByDisplayName: Map<String, LineType> by lazy {
+            val typesByDisplayName: Map<String, LineType> by lazy {
                 LineType::class.sealedSubclasses
                     .mapNotNull { it.objectInstance }
                     .associateBy { it.displayName }
             }
-            suspend fun fromItemStack(stack: net.minecraft.item.ItemStack, slot: Int): LineType? {
-                val name = runCatching { stack.name.string }.getOrNull() ?: return null
-
-                return when (name) {
-                    "Custom Line" -> {
-                        MenuUtils.packetClick(slot)
-                        MenuUtils.onOpen("Item Settings")
-                        val text = InputUtils.getPreviousInput {
-                            MenuUtils.clickItems("Text", Items.PAPER)
-                        }
-                        MenuUtils.onOpen("Item Settings")
-                        MenuItems.GO_BACK.click()
-                        MenuUtils.onOpen("Scoreboard Editor")
-                        CustomLine(text)
-                    }
-                    "Variable Value" -> {
-                        val scope = when (stack.getProperty("Holder")) {
-                            "Player" -> Scoreboard.VariableType.Player
-                            "Global" -> Scoreboard.VariableType.Global
-                            "Team" -> {
-                                Scoreboard.VariableType.Team(stack.getProperty("Team") ?: throw IllegalStateException("Could not find variable team"))
-                            }
-                            else -> throw IllegalStateException("Could not find variable holder")
-                        }
-                        val key = stack.getProperty("Variable") ?: throw IllegalStateException("Could not find variable key")
-                        VariableValue(scope, key)
-                    }
-                    else -> typesByDisplayName[name]
-                }
-            }
-
-            private enum class MenuItems(
-                val label: String,
-                val type: Item? = null
-            ) {
-                GO_BACK("Go Back", Items.ARROW);
-
-                suspend fun click() = if (type != null) MenuUtils.clickItems(label, type) else MenuUtils.clickItems(label)
-                fun find(): Slot = if (type != null) MenuUtils.findSlots(label, type).first() else MenuUtils.findSlots(label).first()
-            }
-
         }
     }
 }

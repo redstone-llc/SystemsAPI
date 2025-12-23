@@ -7,10 +7,10 @@ import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.CommandUtils.getTabCompletions
 import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.getProperty
-import llc.redstone.systemsapi.util.ItemUtils.ItemMatch.ItemExact
-import llc.redstone.systemsapi.util.ItemUtils.ItemMatch.ItemWithin
-import llc.redstone.systemsapi.util.ItemUtils.ItemSelector
-import llc.redstone.systemsapi.util.ItemUtils.NameMatch.NameExact
+import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
+import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemWithin
+import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
+import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameExact
 import llc.redstone.systemsapi.util.MenuUtils
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.item.Items
