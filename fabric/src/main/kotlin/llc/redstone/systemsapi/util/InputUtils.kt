@@ -120,7 +120,7 @@ object InputUtils {
         val stack = MenuUtils.currentMenu().screenHandler.getSlot(slot.id).stack
         return when (stack.item) {
             Items.LIME_DYE -> true
-            Items.LIGHT_GRAY_DYE, Items.GRAY_DYE -> false
+            Items.LIGHT_GRAY_DYE, Items.GRAY_DYE, Items.RED_DYE -> false
             Items.STONE_BUTTON -> null
             else -> throw IllegalStateException("Dye Toggle found to be of unexpected type ${stack.item.name.string}")
         }
@@ -138,7 +138,6 @@ object InputUtils {
 
     // For anvil and chat inputs
     suspend fun textInput(message: String) {
-        MenuUtils.lastInput = message
         when (val screen = MenuUtils.onOpen(null, AnvilScreen::class, ChatScreen::class, null)) {
             is AnvilScreen -> {
                 delay(100)
@@ -163,36 +162,11 @@ object InputUtils {
             }
         }
     }
+
     suspend fun textInput(message: String, delayMs: Long) {
         delay(delayMs)
         textInput(message)
         delay(200)
-    }
-    internal suspend fun textReinput() {
-        val message = MenuUtils.lastInput ?: return
-        when (val screen = MC.currentScreen) {
-            is AnvilScreen -> {
-                delay(100)
-                if (screen.screenHandler.setNewItemName(message)) {
-                    MC.networkHandler?.sendPacket(RenameItemC2SPacket(message))
-                }
-                MenuUtils.interactionClick(2, 0)
-            }
-
-            is ChatScreen -> { //If they have Housing Toolbox and the setting is enabled
-                TextUtils.sendMessage(message)
-            }
-
-            null -> {
-                MC.setScreen(
-                    ChatScreen(
-                        /*? >=1.21.9 {*/ "", false /*?} else {*//* "" *//*?}*/
-                    )
-                )
-                MenuUtils.onOpen(null, ChatScreen::class)
-                TextUtils.sendMessage(message)
-            }
-        }
     }
 
     var pendingStack: CompletableDeferred<ItemStack>? = null

@@ -2,9 +2,6 @@ package llc.redstone.systemsapi.api
 
 import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.getProperty
-import llc.redstone.systemsapi.util.ItemUtils.ItemMatch.ItemExact
-import llc.redstone.systemsapi.util.ItemUtils.ItemSelector
-import llc.redstone.systemsapi.util.ItemUtils.NameMatch.NameExact
 import llc.redstone.systemsapi.util.MenuUtils
 import net.minecraft.item.Items
 
@@ -33,7 +30,7 @@ interface Scoreboard {
         data class VariableValue(val scope: Scoreboard.VariableType, val key: String) : LineType("Variable Value", 1)
 
         companion object {
-            private val typesByDisplayName: Map<String, LineType> by lazy {
+            val typesByDisplayName: Map<String, LineType> by lazy {
                 LineType::class.sealedSubclasses
                     .mapNotNull { it.objectInstance }
                     .associateBy { it.displayName }

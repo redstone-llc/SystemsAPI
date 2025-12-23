@@ -5,9 +5,10 @@ import llc.redstone.systemsapi.data.Action
 import llc.redstone.systemsapi.data.ActionDefinition
 import llc.redstone.systemsapi.data.VariableHolder
 import llc.redstone.systemsapi.util.ItemStackUtils.loreLines
+import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
+import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
+import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameExact
 import llc.redstone.systemsapi.util.MenuUtils
-import llc.redstone.systemsapi.util.MenuUtils.MenuSlot
-import llc.redstone.systemsapi.util.MenuUtils.Target
 import llc.redstone.systemsapi.util.TextUtils
 import net.minecraft.item.Items
 import kotlin.reflect.KParameter
@@ -17,7 +18,9 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 
 //The title of the actions gui, either Actions: <name> or Edit Actions
-class ActionContainer(val title: String = MC.currentScreen?.title?.string ?: throw IllegalStateException("No screen is currently open")) {
+class ActionContainer(
+    val title: String = MC.currentScreen?.title?.string ?: throw IllegalStateException("No screen is currently open")
+) {
     companion object {
         private val slots = mutableMapOf(
             0 to 10,
@@ -51,12 +54,11 @@ class ActionContainer(val title: String = MC.currentScreen?.title?.string ?: thr
 
             MenuUtils.onOpen(title)
 
-            val gui = MenuUtils.currentMenu()
 
-            if (MenuUtils.findSlot(MenuItems.NO_ACTIONS, true) != null) return actions
+            if (MenuUtils.findSlots(MenuItems.NO_ACTIONS).firstOrNull() != null) return actions
 
             for (slotIndex in slots.values) {
-                val slot = gui.screenHandler.getSlot(slotIndex)
+                val slot = MenuUtils.getSlot(slotIndex)
                 if (!slot.hasStack()) break //No more actions
 
                 val item = slot.stack
@@ -67,8 +69,7 @@ class ActionContainer(val title: String = MC.currentScreen?.title?.string ?: thr
                 val name = TextUtils.convertTextToString(item.name, false)
                 var actionClass = Action::class.sealedSubclasses.firstOrNull() {
                     it.findAnnotations(ActionDefinition::class).any { ann -> ann.displayName == name }
-                }
-                    ?: continue
+                } ?: continue
 
                 var constructor = actionClass.primaryConstructor!!
                 var parameters = constructor.parameters.toMutableList()
@@ -132,8 +133,8 @@ class ActionContainer(val title: String = MC.currentScreen?.title?.string ?: thr
             }
 
             MenuUtils.onOpen(title)
-            if (MenuUtils.findSlot(MenuUtils.GlobalMenuItems.NEXT_PAGE, true) != null) {
-                MenuUtils.clickMenuSlot(MenuUtils.GlobalMenuItems.NEXT_PAGE)
+            if (MenuUtils.findSlots(MenuUtils.GlobalMenuItems.NEXT_PAGE).firstOrNull() != null) {
+                MenuUtils.clickItems(MenuUtils.GlobalMenuItems.NEXT_PAGE)
                 MenuUtils.onOpen(" $title")
                 actions.addAll(getActions())
             }
@@ -166,7 +167,7 @@ class ActionContainer(val title: String = MC.currentScreen?.title?.string ?: thr
             MenuUtils.onOpen(title)
 
             //Add an action
-            MenuUtils.clickMenuSlot(MenuItems.ADD_ACTION)
+            MenuUtils.clickItems(MenuItems.ADD_ACTION)
             MenuUtils.onOpen("Add Action")
 
             //Get the action parameters/properties
@@ -179,8 +180,9 @@ class ActionContainer(val title: String = MC.currentScreen?.title?.string ?: thr
             }
 
             //Get the Display Name of the action and add it
-            val displayName = (action::class.annotations.find { it is ActionDefinition } as ActionDefinition).displayName
-            MenuUtils.clickMenuTargetPaginated(Target(MenuSlot(null, displayName)))
+            val displayName =
+                (action::class.annotations.find { it is ActionDefinition } as ActionDefinition).displayName
+            MenuUtils.clickItems(displayName, paginated = true)
 
             //For change variable, because the holder isn't found in the parameters
             if (action is Action.ChangeVariable) {
@@ -194,18 +196,17 @@ class ActionContainer(val title: String = MC.currentScreen?.title?.string ?: thr
 
                 //Make sure we are in the right gui before continuing
                 MenuUtils.onOpen("Action Settings")
-                val gui = MenuUtils.currentMenu()
 
                 //Place in the gui to click
                 val slotIndex = slots[index]!!
-                val slot = gui.screenHandler.getSlot(slotIndex)
+                val slot = MenuUtils.getSlot(slotIndex)
 
                 PropertySettings.import(property, slot, value)
             }
             //Make sure we are in the action settings menu before we go back to actions to add another one
             if (properties.isNotEmpty()) {
                 MenuUtils.onOpen("Action Settings")
-                MenuUtils.clickMenuSlot(MenuItems.BACK)
+                MenuUtils.clickItems(MenuItems.BACK)
             }
             MenuUtils.onOpen(title)
         }
@@ -214,10 +215,21 @@ class ActionContainer(val title: String = MC.currentScreen?.title?.string ?: thr
     }
 
     object MenuItems {
-        val ADD_ACTION = MenuSlot(Items.PAPER, "Add Action")
-        val BACK = MenuSlot(Items.ARROW, "Go Back")
-        val MANUAL_INPUT = MenuSlot(Items.OAK_SIGN, "Manual Input")
-        val TOGGLE_ADVANCED_OPERATIONS = MenuSlot(Items.COMMAND_BLOCK, "Toggle Advanced Operations")
-        val NO_ACTIONS = MenuSlot(Items.BEDROCK, "No Actions!")
+        val ADD_ACTION = ItemSelector(
+            name = NameExact("Add Action"),
+            item = ItemExact(Items.PAPER)
+        )
+        val BACK = ItemSelector(
+            name = NameExact("Go Back"),
+            item = ItemExact(Items.ARROW)
+        )
+        val TOGGLE_ADVANCED_OPERATIONS = ItemSelector(
+            name = NameExact("Toggle Advanced Operations"),
+            item = ItemExact(Items.COMMAND_BLOCK)
+        )
+        val NO_ACTIONS = ItemSelector(
+            name = NameExact("No Actions!"),
+            item = ItemExact(Items.BEDROCK)
+        )
     }
 }
