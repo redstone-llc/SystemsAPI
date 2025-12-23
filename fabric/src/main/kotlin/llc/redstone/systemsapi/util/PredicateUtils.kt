@@ -25,10 +25,12 @@ object PredicateUtils {
 
     sealed interface NameMatch {
         data class NameExact(val value: String) : NameMatch
+        data class NameWithin(val values: List<String>): NameMatch
         data class NameContains(val value: String) : NameMatch
 
         fun matches(actual: String): Boolean = when (this) {
             is NameExact -> actual == this.value
+            is NameWithin -> this.values.contains(actual)
             is NameContains -> actual.contains(this.value)
         }
     }

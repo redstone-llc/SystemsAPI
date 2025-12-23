@@ -9,7 +9,7 @@ import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
 import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
 import llc.redstone.systemsapi.util.PredicateUtils.NameMatch
 import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameContains
-import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameExact
+import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameWithin
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.client.gui.screen.ingame.HandledScreen
@@ -166,7 +166,7 @@ object MenuUtils {
         packetClick(playerSlot, button)
     }
 
-    // ESSENTIAL
+    // CORE UTILS
 
     fun packetClick(slot: Int, button: Int = 0) {
         val gui = MC.currentScreen as? HandledScreen<*> ?: error("[packetClick] Current screen is not a HandledScreen")
@@ -201,18 +201,15 @@ object MenuUtils {
         MC.currentScreen as? GenericContainerScreen
         ?: throw ClassCastException("Expected GenericContainerScreen but found ${MC.currentScreen?.javaClass?.name}")
 
-    // NEW FUNCTIONS
+    // FINDING ITEMS IN MENUS
 
-    // Helper functions for finding slots
-
-    fun findSlots(predicate: (ItemStack) -> Boolean): List<Slot> {
-        return currentMenu().screenHandler.slots.filter { predicate(it.stack) }
-    }
+    suspend fun findSlots(predicate: (ItemStack) -> Boolean, paginated: Boolean = false): List<Slot> {
+        fun currentSlots() = currentMenu().screenHandler.slots.filter { predicate(it.stack) }
 
         var slots = currentSlots()
         if (slots.isEmpty() && paginated) {
             repeat(50) {
-                val nextPageSlot = findSlots(MenuItems.nextPage).firstOrNull() ?: return emptyList()
+                val nextPageSlot = findSlots(GlobalMenuItems.NEXT_PAGE).firstOrNull() ?: return emptyList()
                 packetClick(nextPageSlot.id)
                 delay(200)
                 slots = currentSlots()
@@ -243,7 +240,7 @@ object MenuUtils {
         return currentMenu().screenHandler.getSlot(slotIndex)
     }
 
-    // Helper classes for clicking items
+    // CLICKING ITEMS IN MENUS
 
     // TODO: Check to make sure `paginated` works
     suspend fun clickItems(predicate: (ItemStack) -> Boolean, packet: Boolean = true, button: Int = 0, paginated: Boolean = false) {
@@ -287,8 +284,8 @@ object MenuUtils {
         )
     }
 
-    private object MenuItems {
-        val nextPage = ItemSelector(
+    object GlobalMenuItems {
+        val NEXT_PAGE = ItemSelector(
             name = NameWithin(listOf("Next Page", "Left-click for next page!")),
             item = ItemExact(Items.ARROW)
         )

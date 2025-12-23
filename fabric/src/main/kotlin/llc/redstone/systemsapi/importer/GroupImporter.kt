@@ -16,10 +16,7 @@ import net.minecraft.item.Items
 import net.minecraft.screen.slot.Slot
 
 class GroupImporter(override var name: String) : Group {
-    private fun getCurrentMenu(): String? {
-        val title = runCatching { MenuUtils.currentMenu().title.string }.getOrNull()
-        return title
-    }
+    private fun getCurrentMenu(): String? = runCatching { MenuUtils.currentMenu().title.string }.getOrNull()
 
     private suspend fun openGroupListMenu() {
         if (getCurrentMenu() == "Edit Group") return

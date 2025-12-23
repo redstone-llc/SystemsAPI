@@ -40,7 +40,7 @@ object InputUtils {
         return stack.name.string.substringAfter("$key: ")
     }
     suspend fun setKeyedTitleCycle(slot: Slot, key: String, value: String) {
-        repeat(20) {
+        repeat(50) {
             val stack = MenuUtils.currentMenu().screenHandler.getSlot(slot.id).stack
             val current = stack.name.string.substringAfter("$key: ")
             if (current == value) return
@@ -144,7 +144,7 @@ object InputUtils {
                 if (screen.screenHandler.setNewItemName(message)) {
                     MC.networkHandler?.sendPacket(RenameItemC2SPacket(message))
                 }
-                MenuUtils.interactionClick(2, 0)
+                MenuUtils.interactionClick(2)
             }
 
             is ChatScreen -> { //If they have Housing Toolbox and the setting is enabled
