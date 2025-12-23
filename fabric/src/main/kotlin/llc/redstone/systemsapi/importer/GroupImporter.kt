@@ -8,10 +8,10 @@ import llc.redstone.systemsapi.util.InputUtils.getKeyedTitleCycle
 import llc.redstone.systemsapi.util.InputUtils.setInlineKeyedLoreCycle
 import llc.redstone.systemsapi.util.InputUtils.setKeyedTitleCycle
 import llc.redstone.systemsapi.util.ItemStackUtils.getProperty
-import llc.redstone.systemsapi.util.ItemUtils.ItemMatch.ItemExact
-import llc.redstone.systemsapi.util.ItemUtils.ItemSelector
-import llc.redstone.systemsapi.util.ItemUtils.NameMatch.NameExact
 import llc.redstone.systemsapi.util.MenuUtils
+import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
+import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
+import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameExact
 import net.minecraft.item.Items
 import net.minecraft.screen.slot.Slot
 

@@ -3,6 +3,9 @@ package llc.redstone.systemsapi.api
 import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.getProperty
 import llc.redstone.systemsapi.util.MenuUtils
+import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
+import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
+import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameExact
 import net.minecraft.item.Items
 
 interface Scoreboard {
