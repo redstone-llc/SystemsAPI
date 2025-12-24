@@ -1,5 +1,5 @@
 package llc.redstone.systemsapi.api.npc
 
-interface SlimeNpc: SizedNpc {
+import llc.redstone.systemsapi.api.Npc
 
-}
+interface SlimeNpc: Npc, Npc.NpcCapabilities.Sizeable

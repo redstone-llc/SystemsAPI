@@ -1,6 +1,8 @@
 package llc.redstone.systemsapi.api.npc
 
-interface VillagerNpc: AgedNpc {
+import llc.redstone.systemsapi.api.Npc
+
+interface VillagerNpc: Npc, Npc.NpcCapabilities.Ageable {
     suspend fun getProfession(): VillagerProfession
     suspend fun setProfession(newProfession: VillagerProfession)
 

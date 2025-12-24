@@ -1,5 +1,5 @@
 package llc.redstone.systemsapi.api.npc
 
-interface MagmaCubeNpc: SizedNpc {
+import llc.redstone.systemsapi.api.Npc
 
-}
+interface MagmaCubeNpc: Npc, Npc.NpcCapabilities.Sizeable

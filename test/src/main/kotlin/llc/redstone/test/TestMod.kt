@@ -5,9 +5,11 @@ import com.github.shynixn.mccoroutine.fabric.mcCoroutineConfiguration
 import com.mojang.brigadier.context.CommandContext
 import llc.redstone.systemsapi.SystemsAPI
 import llc.redstone.systemsapi.api.Group
-import llc.redstone.systemsapi.api.Group.PermissionValue.ChatValues
+import llc.redstone.systemsapi.api.Group.Permissions
 import llc.redstone.systemsapi.api.HouseSettings
+import llc.redstone.systemsapi.api.Npc
 import llc.redstone.systemsapi.api.Region
+import llc.redstone.systemsapi.api.npc.MagmaCubeNpc
 import llc.redstone.systemsapi.data.Action
 import llc.redstone.systemsapi.data.StatOp
 import net.fabricmc.api.ClientModInitializer
@@ -165,25 +167,56 @@ class TestMod : ClientModInitializer {
                                 try {
                                     val group = SystemsAPI.getHousingImporter().getGroup("test")!!
 
-                                    group.setName("glorb")
+                                    group.setName("test")
                                     group.setTag("glorb")
                                     group.setTagVisibleInChat(false)
                                     group.setColor(Group.GroupColor.LIGHT_PURPLE)
                                     group.setPriority(20)
-                                    group.setPermissions(mutableMapOf(
-                                        Pair(Group.GroupPermission.TP, Group.PermissionValue.BooleanValue(true)),
-                                        Pair(Group.GroupPermission.TP_OTHER_PLAYERS, Group.PermissionValue.BooleanValue(true)),
-                                        Pair(Group.GroupPermission.DEFAULT_GAME_MODE, Group.PermissionValue.GameModeValue(Group.PermissionValue.GameModeValues.CREATIVE)),
-                                        Pair(Group.GroupPermission.BUILD, Group.PermissionValue.BooleanValue(true)),
-                                        Pair(Group.GroupPermission.CHAT, Group.PermissionValue.ChatValue(ChatValues.ON))
-                                    ))
+                                    group.setPermissions(Group.PermissionSet().apply {
+                                        this[Permissions.BUILD] = true
+                                        this[Permissions.CHAT] = Group.ChatSpeed.OFF
+                                        this[Permissions.TP_OTHER_PLAYERS] = false
+                                    })
 
                                     it.sendFeedback("Name", group.getName())
                                     it.sendFeedback("Tag", group.getTag().toString())
                                     it.sendFeedback("Tag Visible in Chat", group.getTagVisibleInChat())
                                     it.sendFeedback("Color", group.getColor())
                                     it.sendFeedback("Priority", group.getPriority())
-                                    it.sendFeedback("Permissions", group.getPermissions())
+                                    it.sendFeedback("Permissions", group.getPermissions()[Permissions.CHAT]?.displayName.toString())
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                    MC.player?.sendMessage(
+                                        MutableText.of(
+                                            of("[Test Mod] An error occurred: ${e.message}")
+                                        ).withColor(Color.RED.rgb), false
+                                    )
+                                }
+                            }
+                            1
+                        }
+                    )
+                    .then(
+                        literal("npcs").executes {
+                            launch {
+                                try {
+                                    val npc = SystemsAPI.getHousingImporter().getNpc("test")!!
+
+//                                    npc.setName("test")
+                                    npc.setNpcType(Npc.NpcType.MAGMA_CUBE)
+                                    npc.setHideNameTag(true)
+                                    npc.setLookAtPlayers(true)
+                                    npc.setLeftClickRedirect(true)
+
+                                    val magmaCube = npc as MagmaCubeNpc
+                                    magmaCube.setSize(1)
+
+                                    it.sendFeedback("Name", npc.getName())
+                                    it.sendFeedback("Type", npc.getNpcType())
+                                    it.sendFeedback("Hide Nametag", npc.getHideNameTag())
+                                    it.sendFeedback("Look at Players", npc.getLookAtPlayers())
+                                    it.sendFeedback("Left Click Redirect", npc.getLeftClickRedirect())
+                                    it.sendFeedback("Size", magmaCube.getSize())
                                 } catch (e: Exception) {
                                     e.printStackTrace()
                                     MC.player?.sendMessage(

@@ -1,6 +1,8 @@
 package llc.redstone.systemsapi.api.npc
 
-interface WolfNpc: AgedNpc {
+import llc.redstone.systemsapi.api.Npc
+
+interface WolfNpc: Npc, Npc.NpcCapabilities.Ageable {
     suspend fun getCollarColor(): CollarColor
     suspend fun setCollarColor(newCollarColor: CollarColor)
 

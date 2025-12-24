@@ -3,6 +3,7 @@ package llc.redstone.systemsapi.util
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
+import llc.redstone.systemsapi.SystemsAPI.LOGGER
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.util.ItemStackUtils.getLoreLineMatches
 import llc.redstone.systemsapi.util.ItemStackUtils.loreLines
@@ -152,6 +153,7 @@ object InputUtils {
             }
 
             null -> {
+                LOGGER.info("test1")
                 MC.setScreen(
                     ChatScreen(
                         /*? >=1.21.9 {*/ "", false /*?} else {*//* "" *//*?}*/
@@ -159,12 +161,14 @@ object InputUtils {
                 )
                 MenuUtils.onOpen(null, ChatScreen::class)
                 TextUtils.sendMessage(message)
+                LOGGER.info("test2")
             }
         }
     }
 
     suspend fun textInput(message: String, delayMs: Long) {
         delay(delayMs)
+        LOGGER.info("test0")
         textInput(message)
         delay(200)
     }

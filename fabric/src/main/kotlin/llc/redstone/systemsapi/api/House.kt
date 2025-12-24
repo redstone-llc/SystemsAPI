@@ -26,8 +26,8 @@ interface House {
     suspend fun createMenu(title: String): Menu
     suspend fun getAllMenus(): List<Menu>
 
-//    suspend fun getNpc(name: String): Npc?
-//    suspend fun getAllNpcs(): List<Npc>
+    suspend fun getNpc(name: String): Npc?
+    suspend fun getAllNpcs(): List<Npc>
 
     suspend fun getGroup(name: String): Group?
     suspend fun createGroup(name: String): Group

@@ -1,5 +1,5 @@
 package llc.redstone.systemsapi.api.npc
 
-interface EndermanNpc: Npc {
+import llc.redstone.systemsapi.api.Npc
 
-}
+interface EndermanNpc: Npc

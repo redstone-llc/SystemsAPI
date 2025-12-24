@@ -1,5 +1,5 @@
 package llc.redstone.systemsapi.api.npc
 
-interface IronGolemNpc: Npc {
+import llc.redstone.systemsapi.api.Npc
 
-}
+interface IronGolemNpc: Npc

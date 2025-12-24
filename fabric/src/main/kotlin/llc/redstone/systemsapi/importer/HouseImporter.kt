@@ -90,6 +90,15 @@ internal object HouseImporter : House {
             .mapNotNull { getMenu(it) }
     }
 
+    override suspend fun getNpc(name: String): Npc? {
+        val npcImporter = NpcImporter(name)
+        return if (npcImporter.exists()) npcImporter else null
+    }
+
+    override suspend fun getAllNpcs(): List<Npc> {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun getGroup(name: String): Group? {
         val groupImporter = GroupImporter(name)
         return if (groupImporter.exists()) groupImporter else null

@@ -1,5 +1,5 @@
 package llc.redstone.systemsapi.api.npc
 
-interface CaveSpiderNpc: Npc {
+import llc.redstone.systemsapi.api.Npc
 
-}
+interface CaveSpiderNpc: Npc

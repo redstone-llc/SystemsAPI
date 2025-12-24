@@ -1,5 +1,5 @@
 package llc.redstone.systemsapi.api.npc
 
-interface ChickenNpc: AgedNpc {
+import llc.redstone.systemsapi.api.Npc
 
-}
+interface ChickenNpc: Npc, Npc.NpcCapabilities.Ageable

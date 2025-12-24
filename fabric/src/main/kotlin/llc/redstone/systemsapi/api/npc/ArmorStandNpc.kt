@@ -1,11 +1,8 @@
 package llc.redstone.systemsapi.api.npc
 
-import net.minecraft.item.ItemStack
+import llc.redstone.systemsapi.api.Npc
 
-interface ArmorStandNpc: Npc {
-    suspend fun getEquipment(): List<ItemStack>
-    suspend fun setEquipment(newEquipment: List<ItemStack>)
-
+interface ArmorStandNpc: Npc, Npc.NpcCapabilities.Equippable {
     suspend fun hasArms(): Boolean
     suspend fun setArms(hasArms: Boolean)
 

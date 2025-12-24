@@ -1,6 +1,8 @@
 package llc.redstone.systemsapi.api.npc
 
-interface RabbitNpc: AgedNpc {
+import llc.redstone.systemsapi.api.Npc
+
+interface RabbitNpc: Npc, Npc.NpcCapabilities.Ageable {
     suspend fun getRabbitType(): RabbitType
     suspend fun setRabbitType(newRabbitType: RabbitType)
 
