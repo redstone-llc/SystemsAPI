@@ -1,5 +1,5 @@
 package llc.redstone.systemsapi.api.npc
 
-interface SquidNpc: AgedNpc {
+import llc.redstone.systemsapi.api.Npc
 
-}
+interface SquidNpc: Npc, Npc.NpcCapabilities.Ageable

@@ -1,5 +1,5 @@
 package llc.redstone.systemsapi.api.npc
 
-interface BlazeNpc: Npc {
+import llc.redstone.systemsapi.api.Npc
 
-}
+interface BlazeNpc: Npc

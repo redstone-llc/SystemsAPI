@@ -1,6 +1,8 @@
 package llc.redstone.systemsapi.api.npc
 
-interface SheepNpc: AgedNpc {
+import llc.redstone.systemsapi.api.Npc
+
+interface SheepNpc: Npc, Npc.NpcCapabilities.Ageable {
     suspend fun getWoolColor(): WoolColor
     suspend fun setWoolColor(newWoolColor: WoolColor)
 

@@ -3,6 +3,7 @@ package llc.redstone.systemsapi.util
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
+import llc.redstone.systemsapi.SystemsAPI.LOGGER
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.util.ItemStackUtils.getLoreLineMatches
 import llc.redstone.systemsapi.util.ItemStackUtils.loreLines
@@ -147,16 +148,29 @@ object InputUtils {
                 MenuUtils.interactionClick(2)
             }
 
-            null, is ChatScreen -> { //If they have Housing Toolbox and the setting is enabled
+            is ChatScreen -> { //If they have Housing Toolbox and the setting is enabled
                 TextUtils.sendMessage(message)
             }
 
-            else -> throw IllegalStateException("Expected AnvilScreen or ChatScreen, got ${screen.javaClass.name}")
+            null -> {
+                LOGGER.info("test1")
+                MC.setScreen(
+                    ChatScreen(
+                        /*? >=1.21.9 {*/ "", false /*?} else {*//* "" *//*?}*/
+                    )
+                )
+                MenuUtils.onOpen(null, ChatScreen::class)
+                TextUtils.sendMessage(message)
+                LOGGER.info("test2")
+            }
         }
     }
 
     suspend fun textInput(message: String, delayMs: Long) {
+        delay(delayMs)
+        LOGGER.info("test0")
         textInput(message)
+        delay(200)
     }
 
     var pendingStack: CompletableDeferred<ItemStack>? = null

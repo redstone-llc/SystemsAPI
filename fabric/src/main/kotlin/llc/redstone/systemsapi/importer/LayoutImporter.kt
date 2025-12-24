@@ -6,11 +6,11 @@ import llc.redstone.systemsapi.api.Layout
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
+import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
 import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
 import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameContains
 import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameExact
-import llc.redstone.systemsapi.util.MenuUtils
 import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
 

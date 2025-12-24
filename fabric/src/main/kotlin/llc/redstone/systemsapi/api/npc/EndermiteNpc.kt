@@ -1,5 +1,5 @@
 package llc.redstone.systemsapi.api.npc
 
-interface EndermiteNpc: Npc {
+import llc.redstone.systemsapi.api.Npc
 
-}
+interface EndermiteNpc: Npc

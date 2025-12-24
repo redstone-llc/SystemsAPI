@@ -1,6 +1,8 @@
 package llc.redstone.systemsapi.api.npc
 
-interface OcelotNpc: AgedNpc {
+import llc.redstone.systemsapi.api.Npc
+
+interface OcelotNpc: Npc, Npc.NpcCapabilities.Ageable {
     suspend fun getOcelotType(): OcelotType
     suspend fun setOcelotType(newOcelotType: OcelotType)
 
