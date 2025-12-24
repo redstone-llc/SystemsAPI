@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
+import llc.redstone.systemsapi.SystemsAPI.LOGGER
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
 import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
@@ -65,7 +66,7 @@ object MenuUtils {
                 deferred.await()
             }
         } catch (_: Exception) {
-            println("[MenuUtils] onOpen timeout waiting for $waitingOn")
+            LOGGER.error("[MenuUtils] onOpen timeout waiting for $waitingOn")
             if (checkScreen(MC.currentScreen)) {
                 MC.currentScreen
             } else {
@@ -169,7 +170,7 @@ object MenuUtils {
     // CORE UTILS
 
     fun packetClick(slot: Int, button: Int = 0) {
-        val gui = MC.currentScreen as? HandledScreen<*> ?: error("[packetClick] Current screen is not a HandledScreen")
+        val gui = currentMenu()
 
         val pkt = ClickSlotC2SPacket(
             gui.screenHandler.syncId,
@@ -185,8 +186,7 @@ object MenuUtils {
     }
 
     fun interactionClick(slot: Int, button: Int = 0) {
-        val gui =
-            MC.currentScreen as? HandledScreen<*> ?: error("[interactionClick] Current screen is not a HandledScreen")
+        val gui = currentMenu()
 
         MC.interactionManager?.clickSlot(
             gui.screenHandler.syncId,
@@ -207,14 +207,11 @@ object MenuUtils {
         fun currentSlots() = currentMenu().screenHandler.slots.filter { predicate(it.stack) }
 
         var slots = currentSlots()
-        if (slots.isEmpty() && paginated) {
-            repeat(50) {
-                val nextPageSlot = findSlots(GlobalMenuItems.NEXT_PAGE).firstOrNull() ?: return emptyList()
-                packetClick(nextPageSlot.id)
-                delay(200)
-                slots = currentSlots()
-                if (slots.isNotEmpty()) return slots
-            }
+        while (slots.isEmpty() && paginated) {
+            val nextPageSlot = findSlots(GlobalMenuItems.NEXT_PAGE).firstOrNull() ?: return emptyList()
+            packetClick(nextPageSlot.id)
+            delay(200)
+            slots = currentSlots()
         }
         return slots
     }
