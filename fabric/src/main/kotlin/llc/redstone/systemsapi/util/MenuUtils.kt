@@ -5,6 +5,8 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 import llc.redstone.systemsapi.SystemsAPI.MC
+import llc.redstone.systemsapi.importer.HouseImporter.isImporting
+import llc.redstone.systemsapi.importer.HouseImporter.setImporting
 import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
 import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
 import llc.redstone.systemsapi.util.PredicateUtils.NameMatch
@@ -90,6 +92,7 @@ object MenuUtils {
                 println("Menu opened during timeout: $nameMatch")
                 MC.currentScreen
             } else {
+                setImporting(false)
                 error("Timed out waiting for menu: $nameMatch")
             }
         } finally {

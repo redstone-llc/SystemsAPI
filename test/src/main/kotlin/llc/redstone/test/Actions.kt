@@ -130,7 +130,7 @@ object Actions {
             ChangeHunger(op = StatOp.Set, amount = 4.0),
             ChangeMaxHealth(op = StatOp.Set, amount = 40.0, healOnChange = true),
             TeleportPlayer(location = testLocation, preventInsideBlocks = false),
-            ExecuteFunction(name = "e", global = true),
+            ExecuteFunction(name = "test2", global = true),
             EnchantHeldItem(enchantment = Enchantment.Protection, level = 10),
             DisplayMenu(menu = "test"),
             PauseExecution(ticks = 5),

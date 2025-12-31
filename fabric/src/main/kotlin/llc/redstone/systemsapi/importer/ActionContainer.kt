@@ -168,7 +168,7 @@ class ActionContainer(
 
                 for (slotIndex in actionSlots) {
                     val slot = MenuUtils.getSlot(slotIndex)
-                    MenuUtils.interactionClick(slot.id, 1) //Shift + right click to remove action
+                    MenuUtils.interactionClick(slot.id, 1)
                     MenuUtils.onOpen(title)
                 }
                 delay(50)
@@ -185,6 +185,8 @@ class ActionContainer(
 
     //List of actions to add to the container
     suspend fun addActions(actions: List<Action>) {
+        if (actions.isEmpty()) return
+
         HouseImporter.setImporting(true)
 
         for (action in actions) {
@@ -221,7 +223,7 @@ class ActionContainer(
                 val value = property.get(action)
 
                 //Make sure we are in the right gui before continuing
-                MenuUtils.onOpen("Action Settings", checkIfOpen = false)
+                MenuUtils.onOpen("Action Settings")
 
                 //Place in the gui to click
                 val slotIndex = slots[index]!!

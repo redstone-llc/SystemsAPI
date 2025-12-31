@@ -20,6 +20,8 @@ repositories {
 
     strictMaven("https://api.modrinth.com/maven", "Modrinth", "maven.modrinth")
     strictMaven("https://maven.terraformersmc.com/", "Terraformers")
+    strictMaven("https://maven.isxander.dev/releases", "Xander Maven")
+
 
     strictMaven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1", "DevAuth")
 }
@@ -33,6 +35,8 @@ dependencies {
 
     modImplementation("com.github.shynixn.mccoroutine:mccoroutine-fabric-api:2.22.0")
     modImplementation("com.github.shynixn.mccoroutine:mccoroutine-fabric-core:2.22.0")
+    modImplementation("dev.isxander:yet-another-config-lib:${property("deps.yacl")}")
+    modImplementation("com.terraformersmc:modmenu:${property("deps.modmenu")}")
 
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
 

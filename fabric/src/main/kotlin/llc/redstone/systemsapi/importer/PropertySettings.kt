@@ -68,6 +68,7 @@ object PropertySettings {
                 val boolValue = value as Boolean
                 if (currentValue != boolValue) {
                     MenuUtils.packetClick(slotIndex)
+                    MenuUtils.onCurrentScreenUpdate()
                 }
             }
 
@@ -164,7 +165,6 @@ object PropertySettings {
     private val genericContainer = ActionContainer("Edit Actions")
 
     suspend fun export(title: String, prop: KProperty1<out PropertyHolder, *>, actionSlot: Slot, propertySlotIndex: Int, value: String, colorValue: String): Any? {
-
         val argValue = when (prop.returnType.classifier) {
             String::class -> colorValue
             Int::class -> value.toInt()

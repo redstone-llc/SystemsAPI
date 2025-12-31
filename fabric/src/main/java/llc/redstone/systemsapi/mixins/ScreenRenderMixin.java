@@ -16,15 +16,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class ScreenRenderMixin {
     @Inject(method = "render", at=@At("HEAD"))
     public void render(DrawContext context, int mouseX, int mouseY, float deltaTicks, CallbackInfo ci) {
-        int y = 80;
-        if (MenuUtils.INSTANCE.getWaitingOn() != null) {
-            context.drawText(MinecraftClient.getInstance().textRenderer, Text.of("--- Debug ---"), 50, y += 20, 0xFFFFFFFF, false);
-            context.drawText(MinecraftClient.getInstance().textRenderer, Text.of("Waiting On: " + MenuUtils.INSTANCE.getWaitingOn()), 50, y += 20, 0xFFFFFFFF, false);
-            context.drawText(MinecraftClient.getInstance().textRenderer, Text.of("Current Title: " + MenuUtils.INSTANCE.getCurrentScreen()), 50, y += 20, 0xFFFFFFFF, false);
-            context.drawText(MinecraftClient.getInstance().textRenderer, Text.of("Last Waiting On: " + MenuUtils.INSTANCE.getLastWaitingOn()), 50, y += 20, 0xFFFFFFFF, false);
-            context.drawText(MinecraftClient.getInstance().textRenderer, Text.of("Last Successful: " + MenuUtils.INSTANCE.getLastSuccessful()), 50, y += 20, 0xFFFFFFFF, false);
-        }
-
         MenuUtils.INSTANCE.render();
     }
 
