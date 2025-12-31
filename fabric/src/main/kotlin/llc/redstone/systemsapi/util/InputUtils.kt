@@ -147,26 +147,16 @@ object InputUtils {
                 MenuUtils.interactionClick(2)
             }
 
-            is ChatScreen -> { //If they have Housing Toolbox and the setting is enabled
+            null, is ChatScreen -> { //If they have Housing Toolbox and the setting is enabled
                 TextUtils.sendMessage(message)
             }
 
-            null -> {
-                MC.setScreen(
-                    ChatScreen(
-                        /*? >=1.21.9 {*/ "", false /*?} else {*//* "" *//*?}*/
-                    )
-                )
-                MenuUtils.onOpen(null, ChatScreen::class)
-                TextUtils.sendMessage(message)
-            }
+            else -> throw IllegalStateException("Expected AnvilScreen or ChatScreen, got ${screen.javaClass.name}")
         }
     }
 
     suspend fun textInput(message: String, delayMs: Long) {
-        delay(delayMs)
         textInput(message)
-        delay(200)
     }
 
     var pendingStack: CompletableDeferred<ItemStack>? = null

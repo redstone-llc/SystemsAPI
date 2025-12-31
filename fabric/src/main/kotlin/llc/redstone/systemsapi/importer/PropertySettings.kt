@@ -18,6 +18,7 @@ import kotlin.jvm.optionals.getOrNull
 import kotlin.math.abs
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.companionObjectInstance
+import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.starProjectedType
 import kotlin.reflect.jvm.javaField
@@ -38,8 +39,7 @@ object PropertySettings {
             }
 
             String::class -> {
-                val pagination = property.annotations.find { it is Pagination }
-                if (pagination != null) {
+                if (property.hasAnnotation<Pagination>()) {
                     if (currentValue == value) return
                     MenuUtils.packetClick(slotIndex)
                     MenuUtils.onOpen("Select Option")

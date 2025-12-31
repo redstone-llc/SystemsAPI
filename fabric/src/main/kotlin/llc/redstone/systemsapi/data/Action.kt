@@ -1052,7 +1052,7 @@ sealed class StatValue {
     }
 }
 
-open class InventorySlot(override val key: String, val slot: Int): Keyed {
+sealed class InventorySlot(override val key: String, val slot: Int): Keyed {
     @CustomKey
     data class ManualInput(val inputSlot: Int) : InventorySlot("Manual Input", inputSlot)
     class HandSlot() : InventorySlot("Hand Slot", -2)

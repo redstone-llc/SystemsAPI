@@ -36,15 +36,27 @@ object MenuUtils {
 
     suspend fun onOpen(
         name: String,
-        vararg clazz: KClass<out Screen>? = arrayOf(GenericContainerScreen::class)
+        vararg clazz: KClass<out Screen>? = arrayOf(GenericContainerScreen::class),
+        checkIfOpen: Boolean = true
     ): Screen? {
-        return onOpen(NameContains(name), *clazz)
+        return onOpen(NameContains(name), *clazz, checkIfOpen = checkIfOpen)
     }
 
     suspend fun onOpen(
         nameMatch: NameMatch?,
-        vararg clazz: KClass<out Screen>? = arrayOf(GenericContainerScreen::class)
+        vararg clazz: KClass<out Screen>? = arrayOf(GenericContainerScreen::class),
+        checkIfOpen: Boolean = false
     ): Screen? {
+        suspend fun reset() {
+            pendingScreen = null
+            pendingNameMatch = null
+            pendingClazz = arrayOf()
+            lastSuccessful = waitingOn
+            lastWaitingOn = waitingOn
+            waitingOn = null
+            if (MC.currentScreen is HandledScreen<*>) awaitUntilMenuItemsLoaded()
+        }
+
         waitingOn = "$nameMatch"
         val deferred = CompletableDeferred<Screen?>()
         pendingScreen?.cancel()
@@ -52,34 +64,32 @@ object MenuUtils {
         pendingClazz = clazz
         pendingNameMatch = nameMatch
 
-        MC.currentScreen?.let { screen ->
-            if (pendingClazz.any { it?.isInstance(screen) == true }) {
-                val title = screen.title?.string ?: "null"
-                if (pendingNameMatch?.matches(title) != false) {
-                    return screen
+        if (checkIfOpen) {
+            MC.currentScreen?.let { screen ->
+                if (pendingClazz.any { it?.isInstance(screen) == true }) {
+                    val title = screen.title?.string ?: "null"
+                    if (pendingNameMatch?.matches(title) != false) {
+                        reset()
+                        return screen
+                    }
                 }
             }
         }
 
+
         return try {
-            withTimeout(500) {
+            withTimeout(1000) {
                 deferred.await()
             }
         } catch (_: Exception) {
-            LOGGER.error("[MenuUtils] onOpen timeout waiting for $waitingOn")
             if (checkScreen(MC.currentScreen)) {
+                println("Menu opened during timeout: $nameMatch")
                 MC.currentScreen
             } else {
-                null
+                error("Timed out waiting for menu: $nameMatch")
             }
         } finally {
-            pendingScreen = null
-            pendingNameMatch = null
-            pendingClazz = arrayOf()
-            lastSuccessful = waitingOn
-            lastWaitingOn = waitingOn
-            waitingOn = null
-            awaitUntilMenuItemsLoaded()
+            reset()
         }
     }
 
@@ -87,13 +97,13 @@ object MenuUtils {
         val pending = pendingScreen ?: return
         val screen = MC.currentScreen
         if (screen != null) return
-        if (waitingOn != null || !pendingClazz.contains(null)) return
+        if (!checkScreen(screen)) return
         pendingScreen = null
-        pending.complete(null)
+        val res = pending.complete(null)
     }
 
     fun checkScreen(screen: Screen?): Boolean {
-        if (screen == null && waitingOn == null && pendingClazz.contains(null)) return true
+        if (screen == null && pendingNameMatch == null && pendingClazz.contains(null)) return true
         if (pendingClazz.isNotEmpty()) {
             val matchesClass = pendingClazz.any { it?.isInstance(screen) == true }
             if (!matchesClass) return false
@@ -131,6 +141,7 @@ object MenuUtils {
             }
         } finally {
             if (pendingLoaded === deferred) pendingLoaded = null
+            delay(50)
         }
     }
 
