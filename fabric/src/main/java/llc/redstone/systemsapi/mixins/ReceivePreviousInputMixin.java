@@ -1,6 +1,7 @@
 package llc.redstone.systemsapi.mixins;
 
 import llc.redstone.systemsapi.util.InputUtils;
+import llc.redstone.systemsapi.util.MenuUtils;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
 import net.minecraft.text.ClickEvent;
@@ -11,6 +12,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 @Mixin(ClientPlayNetworkHandler.class)
 public class ReceivePreviousInputMixin {
 
@@ -20,6 +24,11 @@ public class ReceivePreviousInputMixin {
             cancellable = true
     )
     private void onGameMessage(GameMessageS2CPacket packet, CallbackInfo ci) {
+        if (Arrays.stream(MenuUtils.INSTANCE.getPendingClazz()).anyMatch(Objects::isNull)) {
+            MenuUtils.INSTANCE.completeOnClose();
+            return;
+        }
+
         if (InputUtils.INSTANCE.getPendingString() == null) return;
 
         Text message = packet.content();

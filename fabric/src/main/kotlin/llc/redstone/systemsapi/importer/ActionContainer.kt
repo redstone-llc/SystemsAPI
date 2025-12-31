@@ -1,5 +1,6 @@
 package llc.redstone.systemsapi.importer
 
+import kotlinx.coroutines.delay
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.data.Action
 import llc.redstone.systemsapi.data.ActionDefinition
@@ -150,7 +151,32 @@ class ActionContainer(
     }
 
     suspend fun setActions(newActions: List<Action>) {
-        TODO("Not yet implemented")
+        //Clear existing actions
+        MenuUtils.onOpen(title)
+
+        if (MenuUtils.findSlots(MenuItems.NO_ACTIONS).firstOrNull() == null) {
+            //There are existing actions, remove them
+            while (true) {
+                val actionSlots = mutableListOf<Int>()
+                for (slotIndex in slots.values) {
+                    val slot = MenuUtils.getSlot(slotIndex)
+                    if (!slot.hasStack()) break //No more actions
+                    actionSlots.add(slotIndex)
+                }
+
+                if (actionSlots.isEmpty()) break
+
+                for (slotIndex in actionSlots) {
+                    val slot = MenuUtils.getSlot(slotIndex)
+                    MenuUtils.interactionClick(slot.id, 1) //Shift + right click to remove action
+                    MenuUtils.onOpen(title)
+                }
+                delay(50)
+            }
+        }
+
+        //Add new actions
+        addActions(newActions)
     }
 
     suspend fun updateActions(newActions: List<Action>) {
@@ -195,7 +221,7 @@ class ActionContainer(
                 val value = property.get(action)
 
                 //Make sure we are in the right gui before continuing
-                MenuUtils.onOpen("Action Settings")
+                MenuUtils.onOpen("Action Settings", checkIfOpen = false)
 
                 //Place in the gui to click
                 val slotIndex = slots[index]!!
