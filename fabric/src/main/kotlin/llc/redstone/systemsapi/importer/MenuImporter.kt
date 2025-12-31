@@ -32,7 +32,7 @@ internal class MenuImporter(override var title: String) : Menu {
         if (newTitle.length !in 1..32) throw IllegalArgumentException("Title length must be in range 1..32")
         openMenuEditMenu()
         MenuUtils.clickItems(MenuItems.title)
-        InputUtils.textInput(newTitle, 100L)
+        InputUtils.textInput(newTitle)
         title = newTitle
     }
 

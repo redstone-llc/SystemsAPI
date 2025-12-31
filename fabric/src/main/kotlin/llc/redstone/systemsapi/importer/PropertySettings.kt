@@ -1,6 +1,5 @@
 package llc.redstone.systemsapi.importer
 
-import kotlinx.coroutines.delay
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.data.*
 import llc.redstone.systemsapi.importer.ActionContainer.MenuItems
@@ -15,7 +14,6 @@ import net.minecraft.nbt.NbtOps
 import net.minecraft.screen.slot.Slot
 import java.lang.reflect.ParameterizedType
 import kotlin.jvm.optionals.getOrNull
-import kotlin.math.abs
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.hasAnnotation
@@ -34,7 +32,7 @@ object PropertySettings {
             Int::class, Double::class, StatValue::class -> {
                 if (currentValue != value.toString()) {
                     MenuUtils.packetClick(slotIndex)
-                    InputUtils.textInput(value.toString(), 100L)
+                    InputUtils.textInput(value.toString())
                 }
             }
 
@@ -49,7 +47,7 @@ object PropertySettings {
 
                 if (currentValueColor == value) return
                 MenuUtils.packetClick(slotIndex)
-                InputUtils.textInput(value.toString(), 100L)
+                InputUtils.textInput(value.toString())
             }
 
             ItemStack::class -> {
@@ -106,7 +104,7 @@ object PropertySettings {
                 MenuUtils.clickItems(invSlot.key, paginated = true)
 
                 if (invSlot::class.annotations.find { it is CustomKey } != null) {
-                    InputUtils.textInput(value.toString(), 200L)
+                    InputUtils.textInput(value.toString())
                 }
                 return
             }
@@ -155,7 +153,7 @@ object PropertySettings {
                 }
 
                 if (keyed::class.annotations.find { it is CustomKey } != null) {
-                    InputUtils.textInput(value.toString(), 200L)
+                    InputUtils.textInput(value.toString())
                 }
             }
 

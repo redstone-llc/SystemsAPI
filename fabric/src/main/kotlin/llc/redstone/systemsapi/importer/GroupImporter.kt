@@ -45,7 +45,7 @@ class GroupImporter(override var name: String) : Group {
         require(newName.length in 1..16) { "Group name length must be in range 1..16" }
         openGroupMenu()
         MenuUtils.clickItems(MenuItems.name)
-        InputUtils.textInput(newName, 100)
+        InputUtils.textInput(newName)
         MenuUtils.onOpen("Edit Group")
 
         this.name = newName
@@ -70,7 +70,7 @@ class GroupImporter(override var name: String) : Group {
         if (current == newTag) return
 
         MenuUtils.clickItems(MenuItems.tag)
-        InputUtils.textInput(newTag, 100)
+        InputUtils.textInput(newTag)
         MenuUtils.onOpen("Edit Group")
     }
 
@@ -141,7 +141,7 @@ class GroupImporter(override var name: String) : Group {
         if (current == newPriority) return
 
         MenuUtils.clickItems(MenuItems.priority)
-        InputUtils.textInput(newPriority.toString(), 100)
+        InputUtils.textInput(newPriority.toString())
         MenuUtils.onOpen("Edit Group")
     }
 

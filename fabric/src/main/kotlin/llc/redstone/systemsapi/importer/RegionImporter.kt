@@ -48,7 +48,7 @@ internal class RegionImporter(override var name: String) : Region {
         openRegionEditMenu()
 
         MenuUtils.clickItems(MenuItems.rename)
-        InputUtils.textInput(newName, 100L)
+        InputUtils.textInput(newName)
 
         name = newName
     }

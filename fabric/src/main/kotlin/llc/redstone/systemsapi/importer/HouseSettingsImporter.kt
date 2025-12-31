@@ -288,8 +288,7 @@ object HouseSettingsImporter : HouseSettings {
         if (current != newDuration) {
             MenuUtils.clickItems(MenuItems.playerStateDuration)
             InputUtils.textInput(
-                if (newDuration == Duration.ZERO) "Disable" else "${newDuration.toString(DurationUnit.SECONDS)}s",
-                100
+                if (newDuration == Duration.ZERO) "Disable" else "${newDuration.toString(DurationUnit.SECONDS)}s"
             )
             MenuUtils.onOpen(Menu.PLAYER_STATES.title)
         }
@@ -396,8 +395,7 @@ object HouseSettingsImporter : HouseSettings {
         if (current != newDuration) {
             MenuUtils.clickItems(MenuItems.defaultVariableDuration)
             InputUtils.textInput(
-                if (newDuration == Duration.ZERO) "Disable" else "${newDuration.toString(DurationUnit.SECONDS)}s",
-                100
+                if (newDuration == Duration.ZERO) "Disable" else "${newDuration.toString(DurationUnit.SECONDS)}s"
             )
             MenuUtils.onOpen(Menu.PLAYER_VARIABLE_DURATIONS.title)
         }
@@ -432,14 +430,13 @@ object HouseSettingsImporter : HouseSettings {
 
         if (MenuUtils.findSlots(variable, Items.BOOK).isEmpty()) {
             MenuUtils.clickItems(MenuItems.playerVariableDurationOverride)
-            InputUtils.textInput(variable, 100)
+            InputUtils.textInput(variable)
             MenuUtils.onOpen(Menu.PLAYER_VARIABLE_DURATIONS.title)
         }
 
         MenuUtils.clickItems(variable, Items.BOOK)
         InputUtils.textInput(
-            if (newDuration == Duration.ZERO) "Disable" else "${newDuration.toString(DurationUnit.SECONDS)}s",
-            100
+            if (newDuration == Duration.ZERO) "Disable" else "${newDuration.toString(DurationUnit.SECONDS)}s"
         )
         MenuUtils.onOpen(Menu.PLAYER_VARIABLE_DURATIONS.title)
         openPlayerDataMenu()

@@ -56,7 +56,7 @@ internal class FunctionImporter(override var name: String) : Function {
 
         MenuUtils.clickItems(MenuItems.name)
         MenuUtils.clickItems(MenuItems.name)
-        InputUtils.textInput(newName, 100L)
+        InputUtils.textInput(newName)
 
         this@FunctionImporter.name = newName
     }
@@ -72,7 +72,7 @@ internal class FunctionImporter(override var name: String) : Function {
         openFunctionEditMenu()
 
         MenuUtils.clickItems(MenuItems.description)
-        InputUtils.textInput(newDescription, 100L)
+        InputUtils.textInput(newDescription)
     }
 
     override suspend fun getIcon(): Item {
@@ -117,7 +117,7 @@ internal class FunctionImporter(override var name: String) : Function {
         if (ticks == newAutomaticExecution) return
 
         MenuUtils.clickItems(MenuItems.automaticExecution)
-        InputUtils.textInput(newAutomaticExecution.toString(), 100L)
+        InputUtils.textInput(newAutomaticExecution.toString())
     }
 
     override suspend fun getActionContainer(): ActionContainer {

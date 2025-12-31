@@ -46,7 +46,7 @@ internal class CommandImporter(override var name: String) : Command {
         openCommandEditMenu()
 
         MenuUtils.clickItems(MenuItems.name)
-        InputUtils.textInput(newName, 100L)
+        InputUtils.textInput(newName)
 
         this@CommandImporter.name = newName
     }
@@ -98,7 +98,7 @@ internal class CommandImporter(override var name: String) : Command {
         if (priority == newPriority) return
 
         MenuUtils.clickItems(MenuItems.requiredGroupPriority)
-        InputUtils.textInput(newPriority.toString(), 100L)
+        InputUtils.textInput(newPriority.toString())
     }
 
     override suspend fun getListed(): Boolean {

@@ -33,7 +33,7 @@ class TeamImporter(override var name: String) : Team {
         openTeamMenu()
 
         MenuUtils.clickItems(MenuItems.name)
-        InputUtils.textInput(newName, 100L)
+        InputUtils.textInput(newName)
 
         this@TeamImporter.name = newName
     }
@@ -62,7 +62,7 @@ class TeamImporter(override var name: String) : Team {
         if (tag == newTag) return
 
         MenuUtils.clickItems(MenuItems.tag)
-        InputUtils.textInput(newTag, 100L)
+        InputUtils.textInput(newTag)
     }
 
     override suspend fun getColor(): Team.TeamColor {

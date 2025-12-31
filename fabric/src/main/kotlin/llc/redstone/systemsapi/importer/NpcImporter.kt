@@ -56,7 +56,7 @@ open class NpcImporter(override var name: String) : Npc {
 
         MenuUtils.clickItems(MenuItems.name)
         LOGGER.info("test-1")
-        InputUtils.textInput(newName, 100)
+        InputUtils.textInput(newName)
         MenuUtils.onOpen("Edit NPC - $newName")
 
         this.name = newName
