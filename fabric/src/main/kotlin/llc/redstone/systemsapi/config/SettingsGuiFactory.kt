@@ -19,19 +19,19 @@ private class SettingsGuiFactory {
             val menu by groups.registering {
                 options.register(SystemsAPISettings.menuTimeout) {
                     defaultDescription()
-                    controller = numberField(0, 10000)
+                    controller = numberField(0, 10000L)
                 }
                 options.register(SystemsAPISettings.menuItemLoadedTimeout) {
                     defaultDescription()
-                    controller = numberField(0, 10000)
+                    controller = numberField(0, 10000L)
                 }
                 options.register(SystemsAPISettings.menuItemTimeout) {
                     defaultDescription()
-                    controller = numberField(0, 10000)
+                    controller = numberField(0, 10000L)
                 }
                 options.register(SystemsAPISettings.previousInputTimeout) {
                     defaultDescription()
-                    controller = numberField(0, 10000)
+                    controller = numberField(0, 10000L)
                 }
             }
         }

@@ -1,9 +1,11 @@
 package llc.redstone.systemsapi.util
 
+import dev.isxander.yacl3.config.v3.value
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 import llc.redstone.systemsapi.SystemsAPI.MC
+import llc.redstone.systemsapi.config.SystemsAPISettings
 import llc.redstone.systemsapi.util.ItemStackUtils.getLoreLineMatches
 import llc.redstone.systemsapi.util.ItemStackUtils.loreLines
 import llc.redstone.systemsapi.util.TextUtils.convertTextToString
@@ -173,7 +175,7 @@ object InputUtils {
 
         return try {
             click()
-            withTimeout(1000) { deferred.await() }
+            withTimeout(SystemsAPISettings.menuItemTimeout.value) { deferred.await() }
         } finally {
             if (pendingStack === deferred) pendingStack = null
         }
@@ -212,7 +214,7 @@ object InputUtils {
 
         return try {
             click()
-            withTimeout(1000) { deferred.await() }
+            withTimeout(SystemsAPISettings.previousInputTimeout.value) { deferred.await() }
         } finally {
             if (pendingString === deferred) pendingString = null
         }

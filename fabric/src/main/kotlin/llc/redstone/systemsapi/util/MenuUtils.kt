@@ -1,10 +1,12 @@
 package llc.redstone.systemsapi.util
 
+import dev.isxander.yacl3.config.v3.value
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 import llc.redstone.systemsapi.SystemsAPI.MC
+import llc.redstone.systemsapi.config.SystemsAPISettings
 import llc.redstone.systemsapi.importer.HouseImporter.isImporting
 import llc.redstone.systemsapi.importer.HouseImporter.setImporting
 import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
@@ -84,7 +86,7 @@ object MenuUtils {
 
 
         return try {
-            withTimeout(1000) {
+            withTimeout(SystemsAPISettings.menuTimeout.value) {
                 deferred.await()
             }
         } catch (_: Exception) {
@@ -143,7 +145,7 @@ object MenuUtils {
             isLoading = true
             itemsLoaded.clear()
             lastItemAddedTimestamp = System.currentTimeMillis()
-            withTimeout(200) {
+            withTimeout(SystemsAPISettings.menuItemLoadedTimeout.value) {
                 deferred.await()
             }
         } finally {

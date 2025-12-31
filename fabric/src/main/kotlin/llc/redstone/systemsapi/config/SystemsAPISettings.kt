@@ -11,10 +11,10 @@ import net.fabricmc.loader.api.FabricLoader
 open class SystemsAPISettings(): JsonFileCodecConfig<SystemsAPISettings>(
     FabricLoader.getInstance().configDir.resolve("systemsapi.json")
 ) {
-    val menuTimeout by register<Int>(default = 500, Codec.INT)
-    val menuItemLoadedTimeout by register<Int>(default = 500, Codec.INT)
-    val menuItemTimeout by register<Int>(default = 500, Codec.INT)
-    val previousInputTimeout by register<Int>(default = 500, Codec.INT)
+    val menuTimeout by register<Long>(default = 1000, Codec.LONG)
+    val menuItemLoadedTimeout by register<Long>(default = 200, Codec.LONG)
+    val menuItemTimeout by register<Long>(default = 1000, Codec.LONG)
+    val previousInputTimeout by register<Long>(default = 1000, Codec.LONG)
 
     var firstLaunch = false
     val _firstLaunch by register<Boolean>(default = true, Codec.BOOL)
