@@ -4,7 +4,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
-import llc.redstone.systemsapi.SystemsAPI.LOGGER
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
 import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
@@ -33,6 +32,11 @@ object MenuUtils {
     var pendingScreen: CompletableDeferred<Screen?>? = null
     var pendingClazz: Array<out KClass<out Screen>?> = arrayOf()
     var pendingNameMatch: NameMatch? = null
+
+    suspend fun onCurrentScreenUpdate() {
+        val screen = MC.currentScreen ?: return
+        onOpen(screen.title?.string ?: return, checkIfOpen = false)
+    }
 
     suspend fun onOpen(
         name: String,
@@ -99,7 +103,7 @@ object MenuUtils {
         if (screen != null) return
         if (!checkScreen(screen)) return
         pendingScreen = null
-        val res = pending.complete(null)
+        pending.complete(null)
     }
 
     fun checkScreen(screen: Screen?): Boolean {

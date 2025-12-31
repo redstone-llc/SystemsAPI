@@ -28,7 +28,7 @@ object InputUtils {
             val currentValue = getKeyedCycle(slot)
             if (currentValue != value) {
                 MenuUtils.packetClick(slot.id)
-                delay(100)
+                MenuUtils.onCurrentScreenUpdate()
             } else return
         }
         throw IllegalStateException("Could not find the correct selection for Keyed Cycle")
@@ -45,7 +45,7 @@ object InputUtils {
             val current = stack.name.string.substringAfter("$key: ")
             if (current == value) return
             MenuUtils.packetClick(slot.id)
-            delay(200)
+            delay(200) //TODO: Why not use MenuUtils#onOpen?
             if (MenuUtils.currentMenu().title.string == "Are you sure?") {
                 MenuUtils.clickItems("Confirm")
                 delay(200)
