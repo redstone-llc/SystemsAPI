@@ -1,12 +1,9 @@
 package llc.redstone.systemsapi.mixins;
 
 import llc.redstone.systemsapi.util.MenuUtils;
-import llc.redstone.systemsapi.util.TextUtils;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.screen.slot.Slot;
-import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

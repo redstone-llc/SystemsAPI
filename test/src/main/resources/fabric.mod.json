@@ -23,9 +23,6 @@
       }
     ]
   },
-  "mixins": [
-    "test.mixins.json"
-  ],
   "depends": {
     "fabricloader": ">=${fabric_loader}",
     "minecraft": "${minecraft}",

@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 package llc.redstone.systemsapi.util
 
 import dev.isxander.yacl3.config.v3.value
@@ -11,7 +13,6 @@ import llc.redstone.systemsapi.util.ItemStackUtils.loreLines
 import llc.redstone.systemsapi.util.TextUtils.convertTextToString
 import net.minecraft.client.gui.screen.ChatScreen
 import net.minecraft.client.gui.screen.ingame.AnvilScreen
-import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.client.resource.language.I18n
 import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
@@ -42,17 +43,20 @@ object InputUtils {
         val stack = MenuUtils.currentMenu().screenHandler.getSlot(slot.id).stack
         return stack.name.string.substringAfter("$key: ")
     }
-    suspend fun setKeyedTitleCycle(slot: Slot, key: String, value: String) {
+    suspend fun setKeyedTitleCycle(slot: Slot, key: String, value: String, confirm: Boolean = false) {
         repeat(50) {
             val stack = MenuUtils.currentMenu().screenHandler.getSlot(slot.id).stack
             val current = stack.name.string.substringAfter("$key: ")
             if (current == value) return
             MenuUtils.packetClick(slot.id)
-            MenuUtils.onCurrentScreenUpdate() // TODO: will this work?
-            if (MenuUtils.currentMenu().title.string == "Are you sure?") {
+            if (confirm) {
+                val oldScreenName = MenuUtils.currentMenu().title.string
+//                MenuUtils.onOpen("Are you sure?") // TODO: Why does this not work?
+                scaledDelay(8.0)
+                if (MenuUtils.currentMenu().title.string != "Are you sure?") throw IllegalStateException("Couldn't find confirmation menu")
                 MenuUtils.clickItems("Confirm")
-                MenuUtils.onOpen(null, GenericContainerScreen::class)
-            }
+                MenuUtils.onOpen(oldScreenName)
+            } else MenuUtils.onCurrentScreenUpdate()
         }
         throw IllegalStateException("Could not find the correct selection for Titled Cycle")
     }

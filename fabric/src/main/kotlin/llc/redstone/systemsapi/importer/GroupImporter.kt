@@ -221,7 +221,9 @@ class GroupImporter(override var name: String) : Group {
         setKeyedTitleCycle(
             slot,
             key.displayName,
-            newValue
+            newValue,
+            confirm = (key == Group.Permissions.BUILD && newValue == "On") ||
+                      (key == Group.Permissions.OFFLINE_BUILD && newValue == "On")
         )
     }
 

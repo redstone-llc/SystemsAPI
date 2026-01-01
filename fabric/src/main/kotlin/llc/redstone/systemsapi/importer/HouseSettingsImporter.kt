@@ -45,7 +45,7 @@ object HouseSettingsImporter : HouseSettings {
     private suspend fun openPlayerDataMenu() {
         when (val currentMenu = getCurrentMenu()) {
             Menu.PLAYER_DATA -> return
-            Menu.PLAYER_STATES, Menu.PLAYER_VARIABLE_DURATIONS, -> {
+            Menu.PLAYER_STATES, Menu.PLAYER_VARIABLE_DURATIONS -> {
                 MenuUtils.clickItems(MenuItems.back)
             }
             else -> {
@@ -289,7 +289,8 @@ object HouseSettingsImporter : HouseSettings {
         if (current != newDuration) {
             MenuUtils.clickItems(MenuItems.playerStateDuration)
             InputUtils.textInput(
-                if (newDuration == Duration.ZERO) "Disable" else "${newDuration.toString(DurationUnit.SECONDS)}s"
+                if (newDuration == Duration.ZERO) "Disable"
+                else "${newDuration.toString(DurationUnit.SECONDS)}s"
             )
             MenuUtils.onOpen(Menu.PLAYER_STATES.title)
         }

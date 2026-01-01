@@ -4,7 +4,6 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.brigadier.context.CommandContext
 import llc.redstone.systemsapi.SystemsAPI
 import llc.redstone.systemsapi.api.Group
-import llc.redstone.test.TestMod
 import llc.redstone.test.TestMod.MC
 import llc.redstone.test.TestMod.sendFeedback
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal
@@ -27,11 +26,17 @@ object GroupsTest {
             try {
                 val group = SystemsAPI.getHousingImporter().getGroup("test")!!
 
-                group.setName("glorb")
+                group.setName("test")
                 group.setTag("glorb")
                 group.setTagVisibleInChat(false)
                 group.setColor(Group.GroupColor.LIGHT_PURPLE)
                 group.setPriority(20)
+                group.setPermissions(Group.PermissionSet().apply {
+                    this[Group.Permissions.BUILD] = true
+                    this[Group.Permissions.DEFAULT_GAME_MODE] = Group.DefaultGameMode.CREATIVE
+                    this[Group.Permissions.CHAT] = Group.ChatSpeed.OFF
+                    this[Group.Permissions.TP_OTHER_PLAYERS] = false
+                })
 
                 context.sendFeedback("Name", group.getName())
                 context.sendFeedback("Tag", group.getTag().toString())

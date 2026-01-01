@@ -8,43 +8,31 @@ import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.getProperty
 import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
 import llc.redstone.systemsapi.util.ItemUtils
+import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
 import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
 import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameExact
-import llc.redstone.systemsapi.util.MenuUtils
 import net.minecraft.item.Item
 import net.minecraft.item.Items
 
 internal class FunctionImporter(override var name: String) : Function {
-    private fun isFunctionEditMenuOpen(): Boolean = try {
-        MenuUtils.currentMenu().title.string.contains("Edit: ${this@FunctionImporter.name}")
-    } catch (_: Exception) {
-        false
+    private fun isFunctionEditMenuOpen(): Boolean = runCatching { MenuUtils.currentMenu().title.string.contains("Edit: ${this@FunctionImporter.name}") }.getOrDefault(false)
+    private fun isActionsMenuOpen(): Boolean = runCatching { MenuUtils.currentMenu().title.string.contains("Actions: ${this@FunctionImporter.name}") }.getOrDefault(false)
+
+    private suspend fun openFunctionEditMenu() {
+        if (isFunctionEditMenuOpen()) return
+
+        CommandUtils.runCommand("functions")
+        MenuUtils.onOpen("Functions")
+        MenuUtils.clickItems(this@FunctionImporter.name, paginated = true)
+        MenuUtils.onOpen("Edit: ${this@FunctionImporter.name}")
     }
 
-    private fun isActionsMenuOpen(): Boolean = try {
-        MenuUtils.currentMenu().title.string.contains("Actions: ${this@FunctionImporter.name}")
-    } catch (_: Exception) {
-        false
-    }
+    private suspend fun openActionsEditMenu() {
+        if (isActionsMenuOpen()) return
 
-    private suspend fun openFunctionEditMenu(): Boolean {
-        if (!isFunctionEditMenuOpen()) {
-            CommandUtils.runCommand("functions")
-            MenuUtils.onOpen("Functions")
-
-            MenuUtils.clickItems(this@FunctionImporter.name, paginated = true)
-            MenuUtils.onOpen("Edit: ${this@FunctionImporter.name}")
-        }
-        return true
-    }
-
-    private suspend fun openActionsEditMenu(): Boolean {
-        if (!isActionsMenuOpen()) {
-            CommandUtils.runCommand("function edit ${this@FunctionImporter.name}")
-            MenuUtils.onOpen("Actions: ${this@FunctionImporter.name}")
-        }
-        return true
+        CommandUtils.runCommand("function edit ${this@FunctionImporter.name}")
+        MenuUtils.onOpen("Actions: ${this@FunctionImporter.name}")
     }
 
     override suspend fun setName(newName: String) {

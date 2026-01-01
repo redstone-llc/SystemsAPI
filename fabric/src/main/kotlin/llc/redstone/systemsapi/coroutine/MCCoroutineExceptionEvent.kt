@@ -12,23 +12,22 @@ fun interface MCCoroutineExceptionEvent {
     companion object {
         val EVENT: Event<MCCoroutineExceptionEvent> =
             EventFactory.createArrayBacked(MCCoroutineExceptionEvent::class.java) { listeners ->
-                object : MCCoroutineExceptionEvent {
+                MCCoroutineExceptionEvent { throwable, entryPoint ->
+
                     /**
                      * Gets called from MCCoroutine with the occurred [throwable] in the given scope [entryPoint].
                      * @return True If the event should be cancelled (not get logged) or false if the event should not be cancelled.
                      */
-                    override fun onMCCoroutineException(throwable: Throwable, entryPoint: Any): Boolean {
-                        var cancel = false
+                    var cancel = false
 
-                        for (listener in listeners) {
-                            val result = listener.onMCCoroutineException(throwable, entryPoint)
-                            if (result) {
-                                cancel = true
-                            }
+                    for (listener in listeners) {
+                        val result = listener.onMCCoroutineException(throwable, entryPoint)
+                        if (result) {
+                            cancel = true
                         }
-
-                        return cancel
                     }
+
+                    cancel
                 }
             }
     }

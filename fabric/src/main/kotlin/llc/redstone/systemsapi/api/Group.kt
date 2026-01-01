@@ -106,7 +106,7 @@ interface Group {
         val KICK = PermissionKey.BoolType("Kick")
         val BAN = PermissionKey.BoolType("Ban")
         val MUTE = PermissionKey.BoolType("Mute")
-        val CHAT = PermissionKey.EnumType("Chat", ChatSpeed.entries.toTypedArray(), { it.displayName })
+        val CHAT = PermissionKey.EnumType("Chat", ChatSpeed.entries.toTypedArray()) { it.displayName }
         val PET_SPAWNING = PermissionKey.BoolType("Pet Spawning")
         val BUILD = PermissionKey.BoolType("Build")
         val OFFLINE_BUILD = PermissionKey.BoolType("Offline Build")
@@ -115,7 +115,7 @@ interface Group {
         val USE_CHESTS = PermissionKey.BoolType("Use Chests")
         val USE_ENDER_CHESTS = PermissionKey.BoolType("Use Ender Chests")
         val ITEM_EDITOR = PermissionKey.BoolType("Item Editor")
-        val DEFAULT_GAME_MODE = PermissionKey.EnumType("Default Game Mode", DefaultGameMode.entries.toTypedArray(), { it.displayName })
+        val DEFAULT_GAME_MODE = PermissionKey.EnumType("Default Game Mode", DefaultGameMode.entries.toTypedArray()) { it.displayName }
         val SWITCH_GAME_MODE = PermissionKey.BoolType("Switch Game Mode")
         val EDIT_VARIABLES = PermissionKey.BoolType("Edit Variables")
         val CHANGE_PLAYER_GROUP = PermissionKey.BoolType("Change Player Group")

@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 package llc.redstone.systemsapi.util
 
 import dev.isxander.yacl3.config.v3.value
@@ -205,7 +207,7 @@ object MenuUtils {
     }
 
     fun interactionClick(slot: Int, button: Int = 0) {
-        val gui = currentMenu()
+        val gui = MC.currentScreen as? HandledScreen<*> ?: throw IllegalStateException("Expected HandledScreen, but found ${MC.currentScreen?.javaClass?.name}")
 
         MC.interactionManager?.clickSlot(
             gui.screenHandler.syncId,
@@ -229,7 +231,7 @@ object MenuUtils {
         while (slots.isEmpty() && paginated) {
             val nextPageSlot = findSlots(GlobalMenuItems.NEXT_PAGE).firstOrNull() ?: return emptyList()
             packetClick(nextPageSlot.id)
-            scaledDelay()
+            scaledDelay(4.0)
             slots = currentSlots()
         }
         return slots
