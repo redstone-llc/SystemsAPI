@@ -1,6 +1,5 @@
 package llc.redstone.test
 
-import com.github.shynixn.mccoroutine.fabric.mcCoroutineConfiguration
 import com.mojang.brigadier.context.CommandContext
 import llc.redstone.test.tests.Function.withFunctionSubCommand
 import llc.redstone.test.tests.GroupsTest.withGroupsSubCommand
@@ -37,12 +36,6 @@ object TestMod : ClientModInitializer {
 
     override fun onInitializeClient() {
         LOGGER.info("Loaded v$VERSION for Minecraft $MINECRAFT.")
-
-        try {
-            mcCoroutineConfiguration.minecraftExecutor = MinecraftClient.getInstance()
-        } catch (e: Exception) {
-            TODO("Not yet implemented")
-        }
 
 
         ClientCommandRegistrationCallback.EVENT.register { dispatcher, registryAccess ->

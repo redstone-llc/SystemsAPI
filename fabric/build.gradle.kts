@@ -32,9 +32,6 @@ dependencies {
 
     modImplementation("net.fabricmc:fabric-language-kotlin:${property("deps.fabric_language_kotlin")}")
 
-    implementation("com.github.shynixn.mccoroutine:mccoroutine-fabric-api:2.22.0")
-    implementation("com.github.shynixn.mccoroutine:mccoroutine-fabric-core:2.22.0")
-
     modImplementation("dev.isxander:yet-another-config-lib:${property("deps.yacl")}")
     modImplementation("com.terraformersmc:modmenu:${property("deps.modmenu")}")
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
@@ -67,14 +64,15 @@ publishing {
             from(components["java"])
             groupId = project.group.toString()
             artifactId = "SystemsAPI"
-            version = "dev"
+            version = project.version.toString()
+
+//            version = "dev"
         }
     }
     repositories {
         maven {
             name = "releasesRepo"
             url = uri("https://repo.redstone.llc/releases")
-            version = project.version.toString()
             credentials {
                 username = property("releasesRepoUsername") as String
                 password = property("releasesRepoPassword") as String

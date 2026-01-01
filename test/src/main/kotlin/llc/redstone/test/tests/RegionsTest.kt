@@ -1,6 +1,5 @@
 package llc.redstone.test.tests
 
-import com.github.shynixn.mccoroutine.fabric.launch
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.brigadier.context.CommandContext
 import llc.redstone.systemsapi.SystemsAPI
@@ -26,7 +25,7 @@ object RegionsTest {
     }
 
     fun execute(context: CommandContext<FabricClientCommandSource>): Int {
-        TestMod.launch {
+        SystemsAPI.launch {
             try {
                 val region = SystemsAPI.getHousingImporter().getRegion("test")!!
                 region.setPvpSettings(

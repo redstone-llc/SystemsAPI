@@ -1,11 +1,17 @@
 package llc.redstone.systemsapi
 
-import com.github.shynixn.mccoroutine.fabric.mcCoroutineConfiguration
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import llc.redstone.systemsapi.api.House
+import llc.redstone.systemsapi.coroutine.MCCoroutineImpl
 import net.fabricmc.api.ClientModInitializer
 import net.minecraft.client.MinecraftClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import kotlin.coroutines.CoroutineContext
 
 object SystemsAPI : ClientModInitializer {
     internal val MOD_ID = "systemsapi"
@@ -15,6 +21,10 @@ object SystemsAPI : ClientModInitializer {
     internal val MC: MinecraftClient
         get() = MinecraftClient.getInstance()
 
+    var minecraftDispatcher = MCCoroutineImpl.getCoroutineSession(this).dispatcherMinecraft
+    var scope: CoroutineScope = MCCoroutineImpl.getCoroutineSession(this).scope
+    var mcCoroutineConfiguration = MCCoroutineImpl.getCoroutineSession(this).mcCoroutineConfiguration
+
     override fun onInitializeClient() {
         LOGGER.info("Loaded v$VERSION for Minecraft $MINECRAFT.")
 
@@ -23,5 +33,17 @@ object SystemsAPI : ClientModInitializer {
 
     fun getHousingImporter(): House {
         return llc.redstone.systemsapi.importer.HouseImporter
+    }
+
+    fun launch(
+        context: CoroutineContext = minecraftDispatcher,
+        start: CoroutineStart = CoroutineStart.DEFAULT,
+        block: suspend CoroutineScope.() -> Unit
+    ): Job {
+        if (!scope.isActive) {
+            return Job()
+        }
+
+        return scope.launch(context, start, block)
     }
 }

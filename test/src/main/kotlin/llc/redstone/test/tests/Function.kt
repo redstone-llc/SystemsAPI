@@ -1,6 +1,5 @@
 package llc.redstone.test.tests
 
-import com.github.shynixn.mccoroutine.fabric.launch
 import com.mojang.brigadier.arguments.BoolArgumentType
 import com.mojang.brigadier.arguments.IntegerArgumentType
 import com.mojang.brigadier.arguments.StringArgumentType
@@ -50,7 +49,7 @@ object Function {
         val amount = amount ?: (1..10).random()
         val random = args.contains("-r")
         val onlyOne = args.contains("-o")
-        TestMod.launch {
+        SystemsAPI.launch {
             try {
                 MC.player?.sendMessage(
                     MutableText.of(
