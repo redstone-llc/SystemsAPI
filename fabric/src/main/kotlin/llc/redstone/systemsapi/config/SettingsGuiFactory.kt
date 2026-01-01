@@ -7,50 +7,45 @@ import dev.isxander.yacl3.dsl.*
 import llc.redstone.systemsapi.SystemsAPI
 import net.minecraft.client.gui.screen.Screen
 
-fun createSettingsGui(parent: Screen?) = SettingsGuiFactory().createSettingsGui(parent)
+fun createSettingsGui(parent: Screen?): Screen = YetAnotherConfigLib(SystemsAPI.MOD_ID) {
+    save(SystemsAPISettings::saveToFile)
 
-private class SettingsGuiFactory {
-    val settings = SystemsAPISettings(SystemsAPISettings)
+    categories.register("importer") {
+        groups.register("menu") {
+            defaultDescription()
 
-    fun createSettingsGui(parent: Screen?) = YetAnotherConfigLib(SystemsAPI.MOD_ID) {
-        save(SystemsAPISettings::saveToFile)
-
-        val importer by categories.registering {
-            val menu by groups.registering {
-                options.register(SystemsAPISettings.clickDelayBase) {
-                    defaultDescription()
-                    controller = numberField(0, 10000L)
-                }
-                options.register(SystemsAPISettings.menuTimeout) {
-                    defaultDescription()
-                    controller = numberField(0, 10000L)
-                }
-                options.register(SystemsAPISettings.menuItemLoadedTimeout) {
-                    defaultDescription()
-                    controller = numberField(0, 10000L)
-                }
-                options.register(SystemsAPISettings.menuItemTimeout) {
-                    defaultDescription()
-                    controller = numberField(0, 10000L)
-                }
-                options.register(SystemsAPISettings.previousInputTimeout) {
-                    defaultDescription()
-                    controller = numberField(0, 10000L)
-                }
+            options.register(SystemsAPISettings.baseClickDelay) {
+                defaultDescription(2)
+                controller = slider(0..1000L, step = 10L)
             }
         }
-    }.generateScreen(parent)
+        groups.register("timeouts") {
+            defaultDescription()
 
+            options.register(SystemsAPISettings.menuTimeout) {
+                defaultDescription()
+                controller = numberField(0, 10000L)
+            }
+            options.register(SystemsAPISettings.menuItemLoadedTimeout) {
+                defaultDescription()
+                controller = numberField(0, 10000L)
+            }
+            options.register(SystemsAPISettings.menuItemTimeout) {
+                defaultDescription()
+                controller = numberField(0, 10000L)
+            }
+            options.register(SystemsAPISettings.previousInputTimeout) {
+                defaultDescription()
+                controller = numberField(0, 10000L)
+            }
+        }
+    }
+}.generateScreen(parent)
+
+private fun GroupDsl.defaultDescription(lines: Int? = null) = descriptionBuilder {
+    addDefaultText(lines)
 }
 
-private fun OptionDsl<*>.defaultDescription() {
-    descriptionBuilder {
-        addDefaultText()
-    }
-}
-
-private fun ButtonOptionDsl.defaultDescription() {
-    descriptionBuilder {
-        addDefaultText()
-    }
+private fun OptionDsl<*>.defaultDescription(lines: Int? = null) = descriptionBuilder {
+    addDefaultText(lines)
 }

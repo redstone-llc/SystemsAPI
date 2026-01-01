@@ -2,15 +2,21 @@
   "yacl3.config.systemsapi.title": "SystemsAPI",
 
   "yacl3.config.systemsapi.category.importer": "Importer Settings",
-  "yacl3.config.systemsapi.category.input.group.menu": "Menu",
-  "yacl3.config.systemsapi.category.input.group.menu.option.clickDelayBase": "Click Delay Base",
-  "yacl3.config.systemsapi.category.input.group.menu.option.clickDelayBase.description.1": "The base delay in milliseconds that SystemsAPI uses between navigation clicks.",
-  "yacl3.config.systemsapi.category.input.group.menu.option.menuTimeout": "Menu Open Timeout",
-  "yacl3.config.systemsapi.category.input.group.menu.option.menuTimeout.description.1": "The time in milliseconds before the menu has failed to open.",
-  "yacl3.config.systemsapi.category.input.group.menu.option.menuItemLoadedTimeout": "Menu Item Loaded Timeout",
-  "yacl3.config.systemsapi.category.input.group.menu.option.menuItemLoadedTimeout.description.1": "The time in milliseconds before the menu items have failed to load.",
-  "yacl3.config.systemsapi.category.input.group.menu.option.menuItemTimeout": "Menu Item Timeout",
-  "yacl3.config.systemsapi.category.input.group.menu.option.menuItemTimeout.description.1": "The time in milliseconds before a menu item has failed to be found.",
-  "yacl3.config.systemsapi.category.input.group.menu.option.previousInputTimeout": "Previous Input Timeout",
-  "yacl3.config.systemsapi.category.input.group.menu.option.previousInputTimeout.description.1": "The time in milliseconds before the previous input has failed to be found."
+
+  "yacl3.config.systemsapi.category.importer.group.menu": "Menus",
+  "yacl3.config.systemsapi.category.importer.group.menu.option.baseClickDelay": "Base Click Delay",
+  "yacl3.config.systemsapi.category.importer.group.menu.option.baseClickDelay.description.1": "The base delay in milliseconds between navigation clicks.\n",
+  "yacl3.config.systemsapi.category.importer.group.menu.option.baseClickDelay.description.2": "If, the importer is getting things wrong, you should increase this.",
+
+  "yacl3.config.systemsapi.category.importer.group.timeouts": "Timeouts",
+  "yacl3.config.systemsapi.category.importer.group.timeouts.description.1": "These values represent the time in milliseconds that the importer will wait for an expected event to occur before throwing an error.\n",
+  "yacl3.config.systemsapi.category.importer.group.timeouts.description.2": "If you have poor ping and are timing out frequently, you may want to increase these values.",
+  "yacl3.config.systemsapi.category.importer.group.timeouts.option.menuTimeout": "Menu Open Timeout",
+  "yacl3.config.systemsapi.category.importer.group.timeouts.option.menuTimeout.description.1": "The time in milliseconds that the importer will wait for a menu to open before throwing an error.",
+  "yacl3.config.systemsapi.category.importer.group.timeouts.option.menuItemLoadedTimeout": "Menu Item Loaded Timeout",
+  "yacl3.config.systemsapi.category.importer.group.timeouts.option.menuItemLoadedTimeout.description.1": "The time in milliseconds that the importer will wait for a menu to fully load before throwing an error.",
+  "yacl3.config.systemsapi.category.importer.group.timeouts.option.menuItemTimeout": "Menu Item Timeout",
+  "yacl3.config.systemsapi.category.importer.group.timeouts.option.menuItemTimeout.description.1": "The time in milliseconds that the importer will wait to receive an item before throwing an error.",
+  "yacl3.config.systemsapi.category.importer.group.timeouts.option.previousInputTimeout": "Previous Input Timeout",
+  "yacl3.config.systemsapi.category.importer.group.timeouts.option.previousInputTimeout.description.1": "The time in milliseconds that the importer will wait to receive a previous input throwing an error."
 }

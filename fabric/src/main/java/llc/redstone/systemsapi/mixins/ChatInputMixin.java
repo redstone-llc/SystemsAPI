@@ -17,9 +17,8 @@ public class ChatInputMixin {
             cancellable = true
     )
     private void onGameMessage(GameMessageS2CPacket packet, CallbackInfo ci) {
-        if (InputUtils.INSTANCE.getPendingString() == null) return;
-
-
+        if (InputUtils.INSTANCE.getPendingString$systemsapi() == null) return;
+        // TODO
     }
 
 }
