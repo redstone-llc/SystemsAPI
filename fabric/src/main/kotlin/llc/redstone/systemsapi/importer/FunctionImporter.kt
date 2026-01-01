@@ -1,6 +1,5 @@
 package llc.redstone.systemsapi.importer
 
-import kotlinx.coroutines.delay
 import llc.redstone.systemsapi.api.Function
 import llc.redstone.systemsapi.data.ItemStack
 import llc.redstone.systemsapi.util.CommandUtils
@@ -36,7 +35,6 @@ internal class FunctionImporter(override var name: String) : Function {
 
             MenuUtils.clickItems(this@FunctionImporter.name, paginated = true)
             MenuUtils.onOpen("Edit: ${this@FunctionImporter.name}")
-            delay(50)
         }
         return true
     }
@@ -45,7 +43,6 @@ internal class FunctionImporter(override var name: String) : Function {
         if (!isActionsMenuOpen()) {
             CommandUtils.runCommand("function edit ${this@FunctionImporter.name}")
             MenuUtils.onOpen("Actions: ${this@FunctionImporter.name}")
-            delay(50)
         }
         return true
     }
@@ -90,7 +87,6 @@ internal class FunctionImporter(override var name: String) : Function {
         val itemStack = ItemUtils.createFromNBT(newIcon.nbt ?: return)
         itemStack.giveItem(26)
         MenuUtils.clickPlayerSlot(26)
-        delay(50)
     }
 
     override suspend fun getAutomaticExecution(): Int {

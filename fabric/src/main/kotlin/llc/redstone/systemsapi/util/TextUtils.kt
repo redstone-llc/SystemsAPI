@@ -7,7 +7,6 @@ import net.minecraft.util.Formatting
 
 
 object TextUtils {
-
     fun convertTextToString(text: Text?, colors: Boolean = true): String? {
         if (text == null) return null
         return text.siblings.joinToString("") {

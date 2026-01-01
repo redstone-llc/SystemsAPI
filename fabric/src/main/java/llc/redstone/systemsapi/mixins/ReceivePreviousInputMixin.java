@@ -25,11 +25,11 @@ public class ReceivePreviousInputMixin {
     )
     private void onGameMessage(GameMessageS2CPacket packet, CallbackInfo ci) {
         if (Arrays.stream(MenuUtils.INSTANCE.getPendingClazz()).anyMatch(Objects::isNull)) {
-            MenuUtils.INSTANCE.completeOnClose();
+            MenuUtils.INSTANCE.completeOnClose$systemsapi();
             return;
         }
 
-        if (InputUtils.INSTANCE.getPendingString() == null) return;
+        if (InputUtils.INSTANCE.getPendingString$systemsapi() == null) return;
 
         Text message = packet.content();
         if (message.getSiblings().isEmpty()) return;
@@ -43,7 +43,7 @@ public class ReceivePreviousInputMixin {
         if (suggestCommand == null) return;
 
         ci.cancel();
-        InputUtils.INSTANCE.receivePreviousInput(suggestCommand.command());
+        InputUtils.INSTANCE.receivePreviousInput$systemsapi(suggestCommand.command());
     }
 
 }

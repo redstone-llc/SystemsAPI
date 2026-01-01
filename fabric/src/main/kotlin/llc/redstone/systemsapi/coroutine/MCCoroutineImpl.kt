@@ -1,5 +1,13 @@
 package llc.redstone.systemsapi.coroutine
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import llc.redstone.systemsapi.SystemsAPI
+import kotlin.coroutines.CoroutineContext
+
 object MCCoroutineImpl {
     private val items = HashMap<Any, CoroutineSessionImpl>()
 
@@ -35,4 +43,11 @@ object MCCoroutineImpl {
         val mcCoroutineConfiguration = MCCoroutineConfigurationImpl(extension, this)
         items[extension] = CoroutineSessionImpl(extension, mcCoroutineConfiguration)
     }
+
+    val SystemsAPI.minecraftDispatcher: CoroutineContext
+        get() = getCoroutineSession(this).dispatcherMinecraft
+    val SystemsAPI.scope: CoroutineScope
+        get() = getCoroutineSession(this).scope
+    val SystemsAPI.mcCoroutineConfiguration: MCCoroutineConfigurationImpl
+        get() = getCoroutineSession(this).mcCoroutineConfiguration
 }

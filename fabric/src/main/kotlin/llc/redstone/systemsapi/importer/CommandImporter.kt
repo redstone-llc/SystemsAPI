@@ -1,6 +1,5 @@
 package llc.redstone.systemsapi.importer
 
-import kotlinx.coroutines.delay
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.api.Command
 import llc.redstone.systemsapi.util.CommandUtils
@@ -31,7 +30,6 @@ internal class CommandImporter(override var name: String) : Command {
 
         CommandUtils.runCommand("command edit ${this@CommandImporter.name}")
         MenuUtils.onOpen("Edit /${this@CommandImporter.name}")
-        delay(50)
     }
 
     private suspend fun openActionsEditMenu() {
@@ -39,7 +37,6 @@ internal class CommandImporter(override var name: String) : Command {
 
         CommandUtils.runCommand("command actions ${this@CommandImporter.name}")
         MenuUtils.onOpen("Actions: /${this@CommandImporter.name}")
-        delay(50)
     }
 
     override suspend fun setName(newName: String) {

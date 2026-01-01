@@ -13,10 +13,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class ItemReceiveMixin {
     @Inject(method = "onScreenHandlerSlotUpdate", at = @At("HEAD"))
     private void onItemReceived(ScreenHandlerSlotUpdateS2CPacket packet, CallbackInfo ci) {
-        if (InputUtils.INSTANCE.getPendingStack() == null) return;
+        if (InputUtils.INSTANCE.getPendingStack$systemsapi() == null) return;
 
         ItemStack stack = packet.getStack();
         if (stack.isEmpty()) return;
-        InputUtils.INSTANCE.onItemReceived(stack);
+        InputUtils.INSTANCE.onItemReceived$systemsapi(stack);
     }
 }

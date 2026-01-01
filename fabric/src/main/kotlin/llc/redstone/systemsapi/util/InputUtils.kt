@@ -157,9 +157,9 @@ object InputUtils {
         }
     }
 
-    var pendingStack: CompletableDeferred<ItemStack>? = null
-    var pendingItemDisplayName: String? = null
-    var pendingItemCompareStack: ItemStack? = null
+    internal var pendingStack: CompletableDeferred<ItemStack>? = null
+    private var pendingItemDisplayName: String? = null
+    private var pendingItemCompareStack: ItemStack? = null
 
     // Returns an item that requires clicking and receiving in your inventory
     // Display Name shouldn't have colors in it, but can, compareStack only looks at the item type
@@ -180,7 +180,7 @@ object InputUtils {
             if (pendingStack === deferred) pendingStack = null
         }
     }
-    fun onItemReceived(stack: ItemStack) {
+    internal fun onItemReceived(stack: ItemStack) {
         pendingStack?.let { current ->
             if (pendingItemDisplayName != null) {
                 //Translate text to string
@@ -206,7 +206,7 @@ object InputUtils {
     }
 
 
-    var pendingString: CompletableDeferred<String>? = null
+    internal var pendingString: CompletableDeferred<String>? = null
     suspend fun getPreviousInput(click: suspend () -> Unit): String {
         val deferred = CompletableDeferred<String>()
         pendingString?.cancel()
@@ -219,7 +219,7 @@ object InputUtils {
             if (pendingString === deferred) pendingString = null
         }
     }
-    fun receivePreviousInput(value: String) {
+    internal fun receivePreviousInput(value: String) {
         CommandUtils.runCommand("chatinput cancel")
         pendingString?.let { current ->
             pendingString = null

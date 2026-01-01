@@ -17,11 +17,11 @@ public class OpenCloseScreenMixin {
     private void onScreenOpen(OpenScreenS2CPacket packet, CallbackInfo ci) {
         Screen screen = MinecraftClient.getInstance().currentScreen;
         if (screen == null) return;
-        MenuUtils.INSTANCE.completeOnOpenScreen(screen);
+        MenuUtils.INSTANCE.completeOnOpenScreen$systemsapi(screen);
     }
 
     @Inject(method = "onCloseScreen", at = @At(value = "RETURN"))
     private void onScreenClose(CloseScreenS2CPacket packet, CallbackInfo ci) {
-        MenuUtils.INSTANCE.completeOnClose();
+        MenuUtils.INSTANCE.completeOnClose$systemsapi();
     }
 }

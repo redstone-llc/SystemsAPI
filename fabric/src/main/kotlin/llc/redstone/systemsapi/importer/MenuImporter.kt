@@ -1,6 +1,5 @@
 package llc.redstone.systemsapi.importer
 
-import kotlinx.coroutines.delay
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.api.Menu
 import llc.redstone.systemsapi.util.CommandUtils
@@ -25,7 +24,6 @@ internal class MenuImporter(override var title: String) : Menu {
         if (isMenuEditMenuOpen()) return
         CommandUtils.runCommand("menu edit $title")
         MenuUtils.onOpen("Edit Menu: $title")
-        delay(50)
     }
 
     override suspend fun setTitle(newTitle: String) {

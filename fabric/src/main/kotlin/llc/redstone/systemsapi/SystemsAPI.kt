@@ -2,9 +2,13 @@ package llc.redstone.systemsapi
 
 import dev.isxander.yacl3.config.v3.value
 import kotlinx.coroutines.*
+import kotlinx.coroutines.launch
 import llc.redstone.systemsapi.api.House
 import llc.redstone.systemsapi.config.SystemsAPISettings
 import llc.redstone.systemsapi.coroutine.MCCoroutineImpl
+import llc.redstone.systemsapi.coroutine.MCCoroutineImpl.mcCoroutineConfiguration
+import llc.redstone.systemsapi.coroutine.MCCoroutineImpl.minecraftDispatcher
+import llc.redstone.systemsapi.coroutine.MCCoroutineImpl.scope
 import net.fabricmc.api.ClientModInitializer
 import net.minecraft.client.MinecraftClient
 import org.slf4j.Logger
@@ -18,10 +22,6 @@ object SystemsAPI : ClientModInitializer {
     internal val MINECRAFT = /*$ minecraft*/ "1.21.9";
     internal val MC: MinecraftClient
         get() = MinecraftClient.getInstance()
-
-    var minecraftDispatcher = MCCoroutineImpl.getCoroutineSession(this).dispatcherMinecraft
-    var scope: CoroutineScope = MCCoroutineImpl.getCoroutineSession(this).scope
-    var mcCoroutineConfiguration = MCCoroutineImpl.getCoroutineSession(this).mcCoroutineConfiguration
 
     override fun onInitializeClient() {
         LOGGER.info("Loaded v$VERSION for Minecraft $MINECRAFT.")

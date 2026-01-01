@@ -101,7 +101,7 @@ object MenuUtils {
         }
     }
 
-    fun completeOnClose() {
+    internal fun completeOnClose() {
         val pending = pendingScreen ?: return
         val screen = MC.currentScreen
         if (screen != null) return
@@ -110,7 +110,7 @@ object MenuUtils {
         pending.complete(null)
     }
 
-    fun checkScreen(screen: Screen?): Boolean {
+    private fun checkScreen(screen: Screen?): Boolean {
         if (screen == null && pendingNameMatch == null && pendingClazz.contains(null)) return true
         if (pendingClazz.isNotEmpty()) {
             val matchesClass = pendingClazz.any { it?.isInstance(screen) == true }
@@ -123,7 +123,7 @@ object MenuUtils {
         return true
     }
 
-    fun completeOnOpenScreen(screen: Screen) {
+    internal fun completeOnOpenScreen(screen: Screen) {
         val pending = pendingScreen ?: return
         if (!checkScreen(screen)) return
         pendingScreen = null
@@ -135,7 +135,7 @@ object MenuUtils {
     var itemsLoaded = mutableMapOf<String, ItemStack>()
 
     var pendingLoaded: CompletableDeferred<Screen>? = null
-    suspend fun awaitUntilMenuItemsLoaded(): Screen {
+    private suspend fun awaitUntilMenuItemsLoaded(): Screen {
         val deferred = CompletableDeferred<Screen>()
         pendingLoaded?.cancel()
         pendingLoaded = deferred
@@ -153,7 +153,7 @@ object MenuUtils {
         }
     }
 
-    fun render() {
+    internal fun render() {
         if (!isLoading) return
         val screen = MC.currentScreen as? HandledScreen<*> ?: return
         val delay = 0L // your gui delay
@@ -172,7 +172,7 @@ object MenuUtils {
         pending.complete(screen)
     }
 
-    fun renderStack(stack: ItemStack) {
+    internal fun renderStack(stack: ItemStack) {
         if (!isLoading) return
         val displayName = stack.name.string
         if (itemsLoaded.containsKey(displayName)) return
@@ -257,8 +257,6 @@ object MenuUtils {
     }
 
     // CLICKING ITEMS IN MENUS
-
-    // TODO: Check to make sure `paginated` works
     suspend fun clickItems(predicate: (ItemStack) -> Boolean, packet: Boolean = true, button: Int = 0, paginated: Boolean = false) {
         findSlots(predicate, paginated).forEach { slot ->
             when (packet) {

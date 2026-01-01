@@ -16,11 +16,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class ScreenRenderMixin {
     @Inject(method = "render", at=@At("HEAD"))
     public void render(DrawContext context, int mouseX, int mouseY, float deltaTicks, CallbackInfo ci) {
-        MenuUtils.INSTANCE.render();
+        MenuUtils.INSTANCE.render$systemsapi();
     }
 
     @Inject(method="drawSlot", at=@At("RETURN"))
     public void drawSlot(DrawContext context, Slot slot, CallbackInfo ci) {
-        MenuUtils.INSTANCE.renderStack(slot.getStack());
+        MenuUtils.INSTANCE.renderStack$systemsapi(slot.getStack());
     }
 }
