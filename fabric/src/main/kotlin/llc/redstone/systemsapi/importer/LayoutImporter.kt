@@ -1,7 +1,7 @@
 package llc.redstone.systemsapi.importer
 
-import kotlinx.coroutines.delay
 import llc.redstone.systemsapi.SystemsAPI.MC
+import llc.redstone.systemsapi.SystemsAPI.scaledDelay
 import llc.redstone.systemsapi.api.Layout
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.InputUtils
@@ -72,17 +72,17 @@ class LayoutImporter(override var name: String) : Layout {
         for ((index, oldStack) in oldStacks.withIndex()) {
             if (oldStack.hasStack()) {
                 MenuUtils.interactionClick(oldStack.id)
-                delay(200)
+                scaledDelay(4.0)
                 MenuUtils.interactionClick(71)
-                delay(100)
+                scaledDelay(2.0)
             }
 
             val newStack = stacks.getOrNull(index)
             if (newStack != null && !newStack.isEmpty) {
                 newStack.giveItem(26)
-                delay(200)
+                scaledDelay(4.0)
                 MenuUtils.interactionClick(71)
-                delay(100)
+                scaledDelay(2.0)
                 MenuUtils.interactionClick(range.first + index)
             } else Items.AIR.defaultStack.giveItem(26)
         }
@@ -111,7 +111,7 @@ class LayoutImporter(override var name: String) : Layout {
         if (stacks.size !in 1..8) throw IllegalArgumentException("Hotbar itemstack array length must be in 1..8")
 
         openLayoutMenu()
-        delay(200)
+        scaledDelay(4.0)
         setStacks(36..43, stacks)
         saveLayout()
     }
@@ -125,7 +125,7 @@ class LayoutImporter(override var name: String) : Layout {
         if (stacks.size !in 1..27) throw IllegalArgumentException("Inventory itemstack array length must be in 1..27")
 
         openLayoutMenu()
-        delay(200)
+        scaledDelay(4.0)
         setStacks(0..26, stacks)
         saveLayout()
     }

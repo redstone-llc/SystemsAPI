@@ -1,6 +1,7 @@
 package llc.redstone.systemsapi.importer
 
 import kotlinx.coroutines.delay
+import llc.redstone.systemsapi.SystemsAPI.scaledDelay
 import llc.redstone.systemsapi.api.HouseSettings
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.InputUtils
@@ -12,11 +13,11 @@ import llc.redstone.systemsapi.util.InputUtils.setDyeToggle
 import llc.redstone.systemsapi.util.InputUtils.setKeyedTitleCycle
 import llc.redstone.systemsapi.util.InputUtils.setLoreCycle
 import llc.redstone.systemsapi.util.ItemStackUtils.getProperty
+import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
 import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
 import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameContains
 import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameExact
-import llc.redstone.systemsapi.util.MenuUtils
 import net.minecraft.item.Items
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
@@ -159,7 +160,7 @@ object HouseSettingsImporter : HouseSettings {
             .filter { slot -> !newTags.map { it.displayName }.contains(slot.stack.name.string) }
         for (slot in toDeselect) {
             setDyeToggle(slot, false)
-            delay(100)
+            scaledDelay(2.0)
         }
 
         // Select
@@ -168,7 +169,7 @@ object HouseSettingsImporter : HouseSettings {
             .filter { slot -> newTags.map { it.displayName }.contains(slot.stack.name.string) }
         for (slot in toSelect) {
             setDyeToggle(slot, true)
-            delay(100)
+            scaledDelay(2.0)
         }
 
         openSettingsMenu()
@@ -207,7 +208,7 @@ object HouseSettingsImporter : HouseSettings {
             .filter { slot -> names.none { n -> slot.stack.name.string.startsWith(n) } }
         for (slot in toDeselect) {
             setDyeToggle(slot, false)
-            delay(100)
+            scaledDelay(2.0)
         }
 
         // Select
@@ -216,7 +217,7 @@ object HouseSettingsImporter : HouseSettings {
             .filter { slot -> names.any { n -> slot.stack.name.string.startsWith(n) } }
         for (slot in toSelect) {
             setDyeToggle(slot, true)
-            delay(100)
+            scaledDelay(2.0)
         }
 
         openSettingsMenu()

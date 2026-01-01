@@ -1,6 +1,5 @@
 package llc.redstone.systemsapi.util
 
-import kotlinx.coroutines.delay
 import llc.redstone.systemsapi.SystemsAPI.MC
 import net.minecraft.text.Text
 import net.minecraft.text.TextColor
@@ -28,11 +27,6 @@ object TextUtils {
 
     fun sendMessage(message: String) {
         MC.networkHandler?.sendChatMessage(message)
-    }
-
-    suspend fun sendMessage(message: String, delayMs: Long) {
-        delay(delayMs)
-        sendMessage(message)
     }
 
 }

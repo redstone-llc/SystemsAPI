@@ -17,6 +17,10 @@ private class SettingsGuiFactory {
 
         val importer by categories.registering {
             val menu by groups.registering {
+                options.register(SystemsAPISettings.clickDelayBase) {
+                    defaultDescription()
+                    controller = numberField(0, 10000L)
+                }
                 options.register(SystemsAPISettings.menuTimeout) {
                     defaultDescription()
                     controller = numberField(0, 10000L)

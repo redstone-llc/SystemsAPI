@@ -2,15 +2,16 @@ package llc.redstone.systemsapi.util
 
 import dev.isxander.yacl3.config.v3.value
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 import llc.redstone.systemsapi.SystemsAPI.MC
+import llc.redstone.systemsapi.SystemsAPI.scaledDelay
 import llc.redstone.systemsapi.config.SystemsAPISettings
 import llc.redstone.systemsapi.util.ItemStackUtils.getLoreLineMatches
 import llc.redstone.systemsapi.util.ItemStackUtils.loreLines
 import llc.redstone.systemsapi.util.TextUtils.convertTextToString
 import net.minecraft.client.gui.screen.ChatScreen
 import net.minecraft.client.gui.screen.ingame.AnvilScreen
+import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.client.resource.language.I18n
 import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
@@ -47,10 +48,10 @@ object InputUtils {
             val current = stack.name.string.substringAfter("$key: ")
             if (current == value) return
             MenuUtils.packetClick(slot.id)
-            delay(200) //TODO: Why not use MenuUtils#onOpen?
+            MenuUtils.onCurrentScreenUpdate() // TODO: will this work?
             if (MenuUtils.currentMenu().title.string == "Are you sure?") {
                 MenuUtils.clickItems("Confirm")
-                delay(200)
+                MenuUtils.onOpen(null, GenericContainerScreen::class)
             }
         }
         throw IllegalStateException("Could not find the correct selection for Titled Cycle")
@@ -71,8 +72,7 @@ object InputUtils {
             } ?: throw IllegalStateException("Could not find the current selection for Lore Cycle")
             if (current == value) return
             MenuUtils.packetClick(slot.id)
-            delay(150)
-            if (maxTries == 1) return
+            MenuUtils.onCurrentScreenUpdate()
         }
         throw IllegalStateException("Could not find the correct selection for Lored Cycle")
     }
@@ -94,7 +94,7 @@ object InputUtils {
 
             if (content == newValue) return
             MenuUtils.packetClick(slot.id, button = button)
-            delay(150)
+            MenuUtils.onCurrentScreenUpdate()
         }
     }
 
@@ -114,7 +114,7 @@ object InputUtils {
             } ?: throw IllegalStateException("Could not find the current selection for Lored Keyed Cycle")
             if (current == newValue) return
             MenuUtils.packetClick(slot.id, button = button)
-            delay(150)
+            MenuUtils.onCurrentScreenUpdate()
         }
     }
 
@@ -133,7 +133,7 @@ object InputUtils {
             val current = getDyeToggle(slot)
             if (current == newValue) return
             if (newValue != null) MenuUtils.packetClick(slot.id) else MenuUtils.packetClick(slot.id, button = 1)
-            delay(200)
+            MenuUtils.onCurrentScreenUpdate()
         }
         throw IllegalStateException("Could not find the correct selection for Dye Toggle")
     }
@@ -142,7 +142,7 @@ object InputUtils {
     suspend fun textInput(message: String) {
         when (val screen = MenuUtils.onOpen(null, AnvilScreen::class, ChatScreen::class, null)) {
             is AnvilScreen -> {
-                delay(100)
+                scaledDelay(4.0)
                 if (screen.screenHandler.setNewItemName(message)) {
                     MC.networkHandler?.sendPacket(RenameItemC2SPacket(message))
                 }
@@ -220,7 +220,7 @@ object InputUtils {
         }
     }
     fun receivePreviousInput(value: String) {
-        CommandUtils.runCommand("chatinput cancel", 0)
+        CommandUtils.runCommand("chatinput cancel")
         pendingString?.let { current ->
             pendingString = null
             current.complete(value)

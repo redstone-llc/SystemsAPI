@@ -1,7 +1,7 @@
 package llc.redstone.systemsapi.importer
 
-import kotlinx.coroutines.delay
 import llc.redstone.systemsapi.SystemsAPI.LOGGER
+import llc.redstone.systemsapi.SystemsAPI.scaledDelay
 import llc.redstone.systemsapi.api.Scoreboard
 import llc.redstone.systemsapi.api.Scoreboard.LineType
 import llc.redstone.systemsapi.api.Scoreboard.LineType.Companion.typesByDisplayName
@@ -11,13 +11,11 @@ import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.InputUtils.setKeyedCycle
 import llc.redstone.systemsapi.util.ItemStackUtils.getProperty
+import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
 import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
 import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameExact
-import llc.redstone.systemsapi.util.MenuUtils
-import net.minecraft.item.Item
 import net.minecraft.item.Items
-import net.minecraft.screen.slot.Slot
 
 object ScoreboardImporter : Scoreboard {
 
@@ -52,7 +50,7 @@ object ScoreboardImporter : Scoreboard {
             for (element in elements) {
                 LOGGER.info("clicking slot ${element.id}")
                 MenuUtils.packetClick(element.id, 1)
-                delay(10)
+                scaledDelay(0.5) // TODO: check--is this too fast?
             }
         } while (elements.isNotEmpty())
 

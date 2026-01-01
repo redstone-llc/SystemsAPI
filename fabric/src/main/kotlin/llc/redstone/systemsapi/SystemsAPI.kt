@@ -1,11 +1,9 @@
 package llc.redstone.systemsapi
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
+import dev.isxander.yacl3.config.v3.value
+import kotlinx.coroutines.*
 import llc.redstone.systemsapi.api.House
+import llc.redstone.systemsapi.config.SystemsAPISettings
 import llc.redstone.systemsapi.coroutine.MCCoroutineImpl
 import net.fabricmc.api.ClientModInitializer
 import net.minecraft.client.MinecraftClient
@@ -34,6 +32,8 @@ object SystemsAPI : ClientModInitializer {
     fun getHousingImporter(): House {
         return llc.redstone.systemsapi.importer.HouseImporter
     }
+
+    suspend fun scaledDelay(mul: Double = 1.0) = delay((SystemsAPISettings.clickDelayBase.value * mul).toLong())
 
     fun launch(
         context: CoroutineContext = minecraftDispatcher,

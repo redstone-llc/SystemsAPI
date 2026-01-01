@@ -3,11 +3,10 @@ package llc.redstone.systemsapi.util
 import dev.isxander.yacl3.config.v3.value
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 import llc.redstone.systemsapi.SystemsAPI.MC
+import llc.redstone.systemsapi.SystemsAPI.scaledDelay
 import llc.redstone.systemsapi.config.SystemsAPISettings
-import llc.redstone.systemsapi.importer.HouseImporter.isImporting
 import llc.redstone.systemsapi.importer.HouseImporter.setImporting
 import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
 import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
@@ -150,7 +149,7 @@ object MenuUtils {
             }
         } finally {
             if (pendingLoaded === deferred) pendingLoaded = null
-            delay(50)
+            scaledDelay(4.0)
         }
     }
 
@@ -230,7 +229,7 @@ object MenuUtils {
         while (slots.isEmpty() && paginated) {
             val nextPageSlot = findSlots(GlobalMenuItems.NEXT_PAGE).firstOrNull() ?: return emptyList()
             packetClick(nextPageSlot.id)
-            delay(200)
+            scaledDelay()
             slots = currentSlots()
         }
         return slots

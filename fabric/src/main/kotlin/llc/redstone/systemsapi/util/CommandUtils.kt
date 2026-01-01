@@ -6,22 +6,13 @@ import kotlinx.coroutines.withTimeout
 import llc.redstone.systemsapi.SystemsAPI.MC
 import net.minecraft.client.MinecraftClient
 import net.minecraft.network.packet.c2s.play.RequestCommandCompletionsC2SPacket
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
 
 object CommandUtils {
-    fun runCommand(command: String, delay: Long = 0L) {
-        if (delay == 0L) {
-            MinecraftClient.getInstance().player
-                ?.networkHandler
-                ?.sendChatCommand(command) ?: throw IllegalStateException("Unable to send command $command")
-        } else {
-            CompletableFuture.runAsync({
-                MinecraftClient.getInstance().player
-                    ?.networkHandler
-                    ?.sendChatCommand(command) ?: throw IllegalStateException("Unable to send command $command")
-            }, CompletableFuture.delayedExecutor(delay, TimeUnit.MILLISECONDS))
-        }
+    fun runCommand(command: String) {
+        MinecraftClient.getInstance().player
+            ?.networkHandler
+            ?.sendChatCommand(command) ?: throw IllegalStateException("Unable to send command $command")
+
     }
 
     var pending: CompletableDeferred<List<String>>? = null

@@ -1,16 +1,16 @@
 package llc.redstone.systemsapi.importer
 
-import kotlinx.coroutines.delay
 import llc.redstone.systemsapi.SystemsAPI.LOGGER
 import llc.redstone.systemsapi.SystemsAPI.MC
+import llc.redstone.systemsapi.SystemsAPI.scaledDelay
 import llc.redstone.systemsapi.api.Team
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.getProperty
+import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
 import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
 import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameExact
-import llc.redstone.systemsapi.util.MenuUtils
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.item.Items
 
@@ -25,7 +25,7 @@ class TeamImporter(override var name: String) : Team {
 
         CommandUtils.runCommand("team edit ${this@TeamImporter.name}")
         MenuUtils.onOpen("Manage Team: ${this@TeamImporter.name}")
-        delay(50)
+        scaledDelay()
     }
 
     override suspend fun setName(newName: String) {
@@ -119,7 +119,7 @@ class TeamImporter(override var name: String) : Team {
             LOGGER.info("attempt $attempt")
 
             MenuUtils.clickItems(MenuItems.friendlyFire)
-            delay(50)
+            scaledDelay()
         }
         throw IllegalStateException("Failed to set team friendly fire")
     }

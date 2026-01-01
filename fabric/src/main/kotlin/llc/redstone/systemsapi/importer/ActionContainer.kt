@@ -1,15 +1,15 @@
 package llc.redstone.systemsapi.importer
 
-import kotlinx.coroutines.delay
 import llc.redstone.systemsapi.SystemsAPI.MC
+import llc.redstone.systemsapi.SystemsAPI.scaledDelay
 import llc.redstone.systemsapi.data.Action
 import llc.redstone.systemsapi.data.ActionDefinition
 import llc.redstone.systemsapi.data.VariableHolder
 import llc.redstone.systemsapi.util.ItemStackUtils.loreLines
+import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
 import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
 import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameExact
-import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.TextUtils
 import net.minecraft.item.Items
 import kotlin.reflect.KParameter
@@ -171,7 +171,7 @@ class ActionContainer(
                     MenuUtils.interactionClick(slot.id, 1)
                     MenuUtils.onOpen(title)
                 }
-                delay(50)
+                scaledDelay()
             }
         }
 
