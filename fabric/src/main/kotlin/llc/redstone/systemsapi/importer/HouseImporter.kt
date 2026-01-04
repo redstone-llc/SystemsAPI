@@ -8,14 +8,24 @@ import llc.redstone.systemsapi.util.MenuUtils
 
 internal object HouseImporter : House {
     private var importing = false
+    private var timeRemaining: Long? = null
+
     override fun isImporting(): Boolean {
         return importing
     }
 
-    override fun setImporting(importing: Boolean) {
+    fun setImporting(importing: Boolean) {
         this.importing = importing
     }
 
+    override fun getTimeRemaining(): Long? {
+        if (!importing) return null
+        return timeRemaining?.div(1000L) // Convert to seconds
+    }
+
+    fun setTimeRemaining(timeRemaining: Long?) {
+        this.timeRemaining = timeRemaining
+    }
 
     override suspend fun getCommand(name: String): Command? {
         val commandImporter = CommandImporter(name)

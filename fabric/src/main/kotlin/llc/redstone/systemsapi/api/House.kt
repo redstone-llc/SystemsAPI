@@ -5,7 +5,7 @@ import llc.redstone.systemsapi.importer.ConditionContainer
 
 interface House {
     fun isImporting(): Boolean
-    fun setImporting(importing: Boolean)
+    fun getTimeRemaining(): Long?
 
     suspend fun getCommand(name: String): Command?
     suspend fun createCommand(name: String): Command

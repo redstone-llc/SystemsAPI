@@ -12,6 +12,8 @@ import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
 import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameExact
 import llc.redstone.systemsapi.util.TextUtils
 import net.minecraft.item.Items
+import net.minecraft.screen.slot.Slot
+import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotations
@@ -48,91 +50,41 @@ class ActionContainer(
         )
     }
 
+    fun estimateImportTime(actions: List<Action>): Long {
+        var timeRemaining = 0L
+        for (action in actions) {
+            val actionClass = action::class
+            val constructor = actionClass.primaryConstructor ?: continue
+            val properties = constructor.parameters.mapNotNull { param ->
+                val prop = actionClass.memberProperties.find { it.name == param.name } as? KProperty1<Action, *>
+                prop?.let { it to param }
+            }
+            for ((_, param) in properties) {
+                val classifier = param.type.classifier as? KClass<*> ?: continue
+                val returnValue = PropertySettings.importTimes.getOrDefault(classifier, 400L)
+                timeRemaining += returnValue
+            }
+            timeRemaining += actionNavigationTime
+        }
+        return timeRemaining
+    }
+
     suspend fun getActions(): List<Action> {
         HouseImporter.setImporting(true)
         try {
             val actions = mutableListOf<Action>()
-
             MenuUtils.onOpen(title)
-
 
             if (MenuUtils.findSlots(MenuItems.NO_ACTIONS).firstOrNull() != null) return actions
 
             for (slotIndex in slots.values) {
                 val slot = MenuUtils.getSlot(slotIndex)
-                if (!slot.hasStack()) break //No more actions
+                if (!slot.hasStack()) break
 
-                val item = slot.stack
-                val loreLines = item.loreLines(true).filter {
-                    it.contains(":") //Only care about lines with properties
-                }
-
-                val name = TextUtils.convertTextToString(item.name, false)
-                var actionClass = Action::class.sealedSubclasses.firstOrNull() {
-                    it.findAnnotations(ActionDefinition::class).any { ann -> ann.displayName == name }
-                } ?: continue
-
-                var constructor = actionClass.primaryConstructor!!
-                var parameters = constructor.parameters.toMutableList()
-                var actionProperties = actionClass.memberProperties
-                var properties = mutableListOf<Pair<KProperty1<Action, *>, KParameter?>>()
-
-                for (parm in parameters) {
-                    properties.add(actionProperties.find { it.name == parm.name } as KProperty1<Action, *> to parm)
-                }
-
-                suspend fun args(indexAddition: Int = 0): MutableMap<KParameter, Any?> {
-                    val args = mutableMapOf<KParameter, Any?>()
-                    properties.forEachIndexed { index, (prop, param) ->
-                        if (param == null) return@forEachIndexed
-                        val colorValue =
-                            (loreLines.getOrNull(index + indexAddition)?.split(": ")?.drop(1)?.joinToString(": ")
-                                ?: return@forEachIndexed).replaceFirst("&f", "")
-                        val value = colorValue.replace(Regex("&[0-9a-fk-or]"), "")
-
-                        val returnValue = PropertySettings.export(
-                            title,
-                            prop,
-                            slot,
-                            slots[index + indexAddition]!!,
-                            value,
-                            colorValue
-                        )
-                        if (returnValue is VariableHolder) {
-                            actionClass = when (returnValue) {
-                                VariableHolder.Player -> Action.PlayerVariable::class
-                                VariableHolder.Global -> Action.GlobalVariable::class
-                                VariableHolder.Team -> Action.TeamVariable::class
-                            }
-                            constructor = actionClass.primaryConstructor!!
-                            parameters = constructor.parameters.toMutableList()
-                            actionProperties = actionClass.memberProperties
-                            properties = mutableListOf()
-                            for (parm in parameters) {
-                                properties.add(actionProperties.find { it.name == parm.name } as KProperty1<Action, *> to parm)
-                            }
-                            // I hate recursion, but I think this is the cleanest way to handle it
-                            return args(1)
-                        }
-
-                        args[param] = returnValue
-                    }
-                    return args
-                }
-
-                val args = args()
-
-                if (args.size != constructor.parameters.size) {
-                    actionClass.constructors.forEach { newCon ->
-                        if (constructor.parameters.size == newCon.parameters.size) {
-                            actions.add(newCon.callBy(args))
-                        }
-                    }
-                } else {
-                    actions.add(constructor.callBy(args))
-                }
+                parseAction(slot)?.let { actions.add(it) }
             }
 
+            // Handle pagination
             MenuUtils.onOpen(title)
             if (MenuUtils.findSlots(MenuUtils.GlobalMenuItems.NEXT_PAGE).firstOrNull() != null) {
                 MenuUtils.clickItems(MenuUtils.GlobalMenuItems.NEXT_PAGE)
@@ -140,13 +92,64 @@ class ActionContainer(
                 actions.addAll(getActions())
             }
 
-            HouseImporter.setImporting(false)
-
             return actions
-        } catch (e: Exception) {
-            e.printStackTrace()
+        } finally {
             HouseImporter.setImporting(false)
-            throw e
+        }
+    }
+
+    private suspend fun parseAction(slot: Slot): Action? {
+        val item = slot.stack
+        val loreLines = item.loreLines(true).filter { it.contains(":") }
+        val name = TextUtils.convertTextToString(item.name, false)
+
+        val actionClass = Action::class.sealedSubclasses.firstOrNull {
+            it.findAnnotations(ActionDefinition::class).any { ann -> ann.displayName == name }
+        } ?: return null
+
+        return buildAction(actionClass, loreLines, slot, 0)
+    }
+
+    private suspend fun buildAction(
+        actionClass: KClass<out Action>,
+        loreLines: List<String>,
+        slot: Slot,
+        indexOffset: Int
+    ): Action? {
+        val constructor = actionClass.primaryConstructor ?: return null
+        val properties = constructor.parameters.mapNotNull { param ->
+            val prop = actionClass.memberProperties.find { it.name == param.name } as? KProperty1<Action, *>
+            prop?.let { it to param }
+        }
+
+        val args = mutableMapOf<KParameter, Any?>()
+
+        for ((index, pair) in properties.withIndex()) {
+            val (prop, param) = pair
+            val colorValue = loreLines.getOrNull(index + indexOffset)
+                ?.split(": ")?.drop(1)?.joinToString(": ")
+                ?.replaceFirst("&f", "") ?: continue
+            val value = colorValue.replace(Regex("&[0-9a-fk-or]"), "")
+
+            val returnValue = PropertySettings.export(title, prop, slot, slots[index + indexOffset]!!, value, colorValue)
+
+            // Handle VariableHolder by switching to the appropriate subclass
+            if (returnValue is VariableHolder) {
+                val newClass = when (returnValue) {
+                    VariableHolder.Player -> Action.PlayerVariable::class
+                    VariableHolder.Global -> Action.GlobalVariable::class
+                    VariableHolder.Team -> Action.TeamVariable::class
+                }
+                return buildAction(newClass, loreLines, slot, 1)
+            }
+
+            args[param] = returnValue
+        }
+
+        return if (args.size != constructor.parameters.size) {
+            actionClass.constructors.firstOrNull { it.parameters.size == constructor.parameters.size }?.callBy(args)
+        } else {
+            constructor.callBy(args)
         }
     }
 
@@ -183,13 +186,20 @@ class ActionContainer(
         TODO("Not yet implemented")
     }
 
+    var actionNavigationTime = 400L
+
     //List of actions to add to the container
     suspend fun addActions(actions: List<Action>) {
         if (actions.isEmpty()) return
 
         HouseImporter.setImporting(true)
 
-        for (action in actions) {
+        HouseImporter.setTimeRemaining(estimateImportTime(actions))
+
+        for ((index, action) in actions.withIndex()) {
+            HouseImporter.setTimeRemaining(estimateImportTime(actions.subList(index, actions.size)))
+
+            val startA = System.currentTimeMillis()
             //Wait for the "Actions: <name>" or "Edit Actions" to open
             //We do this every iteration to make sure we are right back at the Actions page
             MenuUtils.onOpen(title)
@@ -217,6 +227,8 @@ class ActionContainer(
                 properties.add(0, actionProperties.find { it.name == "holder" } ?: continue)
             }
 
+            val endA = System.currentTimeMillis()
+
             //Iterate through parameters
             for ((index, property) in properties.withIndex()) {
                 //Get the property and its values
@@ -232,11 +244,16 @@ class ActionContainer(
                 PropertySettings.import(property, slot, value)
             }
             //Make sure we are in the action settings menu before we go back to actions to add another one
+            var startB = System.currentTimeMillis()
             if (properties.isNotEmpty()) {
                 MenuUtils.onOpen("Action Settings")
                 MenuUtils.clickItems(MenuItems.BACK)
             }
             MenuUtils.onOpen(title)
+
+            var endB = System.currentTimeMillis()
+
+            actionNavigationTime = ((endA - startA) + (endB - startB))
         }
 
         HouseImporter.setImporting(false)

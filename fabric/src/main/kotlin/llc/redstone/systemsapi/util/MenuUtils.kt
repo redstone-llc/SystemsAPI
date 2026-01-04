@@ -151,7 +151,7 @@ object MenuUtils {
             }
         } finally {
             if (pendingLoaded === deferred) pendingLoaded = null
-            scaledDelay(4.0)
+            scaledDelay()
         }
     }
 

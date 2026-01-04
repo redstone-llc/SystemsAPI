@@ -14,6 +14,7 @@ import net.minecraft.nbt.NbtOps
 import net.minecraft.screen.slot.Slot
 import java.lang.reflect.ParameterizedType
 import kotlin.jvm.optionals.getOrNull
+import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.hasAnnotation
@@ -22,11 +23,23 @@ import kotlin.reflect.full.starProjectedType
 import kotlin.reflect.jvm.javaField
 
 object PropertySettings {
+    val importTimes = mutableMapOf<KClass<*>, Long>()
+    val exportTimes = mutableMapOf<KClass<*>, Long>()
+
     suspend fun import(property: KProperty1<out PropertyHolder, *>, slot: Slot, value: Any?) {
         val slotIndex = slot.id
         val index = slot.stack.loreLines(false).indexOfFirst { it == "Current Value:" }
         val currentValueColor = slot.stack.loreLines(true).getOrNull(index + 1) ?: ""
         val currentValue = currentValueColor.replace(Regex("&[0-9a-fk-or]"), "")
+
+        val startTime = System.currentTimeMillis()
+        val prevTime = importTimes.getOrDefault(property.returnType.classifier as KClass<*>, 400L)
+
+        fun finishImport() {
+            val endTime = System.currentTimeMillis()
+            val duration = endTime - startTime
+            importTimes[property.returnType.classifier as KClass<*>] = (prevTime + duration) / 2
+        }
 
         when (property.returnType.classifier) {
             Int::class, Double::class, StatValue::class -> {
@@ -42,6 +55,7 @@ object PropertySettings {
                     MenuUtils.packetClick(slotIndex)
                     MenuUtils.onOpen("Select Option")
                     MenuUtils.clickItems(value.toString(), paginated = true)
+                    finishImport()
                     return
                 }
 
@@ -80,7 +94,7 @@ object PropertySettings {
                     val actions = value.filterIsInstance<Action>()
                     if (actions.size != value.size) error("List contains non-action entries")
                     MenuUtils.packetClick(slotIndex)
-                    ActionContainer("Edit Actions").addActions(actions)
+                    genericContainer.addActions(actions)
                     MenuUtils.onOpen("Edit Actions")
                     MenuUtils.clickItems(MenuItems.BACK)
                     MenuUtils.onOpen("Action Settings")
@@ -107,6 +121,7 @@ object PropertySettings {
                 if (invSlot::class.annotations.find { it is CustomKey } != null) {
                     InputUtils.textInput(value.toString())
                 }
+                finishImport()
                 return
             }
 
@@ -132,6 +147,7 @@ object PropertySettings {
 
                     MenuUtils.clickItems(operation.key, paginated = true)
                 }
+                finishImport()
                 return
             }
         }
@@ -158,13 +174,19 @@ object PropertySettings {
                 }
             }
 
+            finishImport()
             return
         }
+        finishImport()
     }
 
     private val genericContainer = ActionContainer("Edit Actions")
 
     suspend fun export(title: String, prop: KProperty1<out PropertyHolder, *>, actionSlot: Slot, propertySlotIndex: Int, value: String, colorValue: String): Any? {
+
+        val startTime = System.currentTimeMillis()
+        val prevTime = exportTimes.getOrDefault(prop.returnType.classifier as KClass<*>, 50L)
+
         val argValue = when (prop.returnType.classifier) {
             String::class -> colorValue
             Int::class -> value.toInt()
@@ -284,22 +306,31 @@ object PropertySettings {
             else -> null
         }
 
+        fun finishExport() {
+            val endTime = System.currentTimeMillis()
+            val duration = endTime - startTime
+            exportTimes[prop.returnType.classifier as KClass<*>] = (prevTime + duration) / 2
+        }
+
         if (argValue != null) {
+            finishExport()
             return argValue
         }
 
         if (prop.returnType.isSubtypeOf(Keyed::class.starProjectedType)) {
             val companion = prop.returnType.classifier
-                .let { it as? kotlin.reflect.KClass<*> }
+                .let { it as? KClass<*> }
                 ?.companionObjectInstance
                 ?: error("No companion object for keyed enum: ${prop.returnType}")
 
             val getByKeyMethod = companion::class.members.find { it.name == "fromKey" }
                 ?: error("No getByKey method for keyed enum: ${prop.returnType}")
 
+            finishExport()
             return getByKeyMethod.call(companion, value)
         }
 
+        finishExport()
         return null
     }
 }
