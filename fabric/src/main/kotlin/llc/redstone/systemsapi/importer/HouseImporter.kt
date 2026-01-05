@@ -1,8 +1,11 @@
 package llc.redstone.systemsapi.importer
 
+import kotlinx.coroutines.cancel
+import llc.redstone.systemsapi.SystemsAPI
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.api.*
 import llc.redstone.systemsapi.api.Function
+import llc.redstone.systemsapi.coroutine.MCCoroutineImpl
 import llc.redstone.systemsapi.util.CommandUtils.getTabCompletions
 import llc.redstone.systemsapi.util.MenuUtils
 
@@ -18,10 +21,18 @@ internal object HouseImporter : House {
         this.importing = importing
     }
 
-    override fun getTimeRemaining(): Long? {
+    override fun getTimeRemaining(): Float? {
         if (!importing) return null
-        return timeRemaining?.div(1000L) // Convert to seconds
+        return timeRemaining?.div(1000f) // Convert to seconds
     }
+
+    override fun cancelImport() {
+        importing = false
+        timeRemaining = null
+
+        MCCoroutineImpl.getCoroutineSession(SystemsAPI).scope.cancel()
+    }
+
 
     fun setTimeRemaining(timeRemaining: Long?) {
         this.timeRemaining = timeRemaining
