@@ -1,6 +1,6 @@
 package llc.redstone.systemsapi.importer
 
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelChildren
 import llc.redstone.systemsapi.SystemsAPI
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.api.*
@@ -30,7 +30,7 @@ internal object HouseImporter : House {
         importing = false
         timeRemaining = null
 
-        MCCoroutineImpl.getCoroutineSession(SystemsAPI).scope.cancel()
+        MCCoroutineImpl.getCoroutineSession(SystemsAPI).scope.coroutineContext.cancelChildren()
     }
 
 

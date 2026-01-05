@@ -1,8 +1,6 @@
 package llc.redstone.systemsapi.mixins;
 
-import llc.redstone.systemsapi.SystemsAPI;
 import llc.redstone.systemsapi.util.MenuUtils;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.screen.slot.Slot;
@@ -15,10 +13,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class ScreenRenderMixin {
     @Inject(method = "render", at=@At("HEAD"))
     public void render(DrawContext context, int mouseX, int mouseY, float deltaTicks, CallbackInfo ci) {
-        if (SystemsAPI.INSTANCE.getHousingImporter().getTimeRemaining() != null) {
-            context.drawText(MinecraftClient.getInstance().textRenderer, "Time remaining: " + SystemsAPI.INSTANCE.getHousingImporter().getTimeRemaining() + "s", 50, 100, 0xFFFFFFFF, false);
-        }
-
         MenuUtils.INSTANCE.render$systemsapi();
     }
 
