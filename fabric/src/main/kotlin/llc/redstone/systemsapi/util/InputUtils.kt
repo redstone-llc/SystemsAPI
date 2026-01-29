@@ -11,6 +11,7 @@ import llc.redstone.systemsapi.config.SystemsAPISettings
 import llc.redstone.systemsapi.util.ItemStackUtils.getLoreLineMatches
 import llc.redstone.systemsapi.util.ItemStackUtils.loreLines
 import llc.redstone.systemsapi.util.TextUtils.convertTextToString
+import net.fabricmc.fabric.mixin.client.gametest.input.MouseAccessor
 import net.minecraft.client.gui.screen.ChatScreen
 import net.minecraft.client.gui.screen.ingame.AnvilScreen
 import net.minecraft.client.resource.language.I18n
@@ -154,7 +155,10 @@ object InputUtils {
             }
 
             null, is ChatScreen -> { //If they have Housing Toolbox and the setting is enabled
+                val cursor = Pair(MC.mouse.getScaledX(MC.window), MC.mouse.getScaledX(MC.window))
                 TextUtils.sendMessage(message)
+                val accessor = MC.mouse as MouseAccessor
+                accessor.invokeOnCursorPos(MC.window.handle, cursor.first, cursor.second)
             }
 
             else -> throw IllegalStateException("Expected AnvilScreen or ChatScreen, got ${screen.javaClass.name}")

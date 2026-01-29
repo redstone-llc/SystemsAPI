@@ -188,7 +188,21 @@ object PropertySettings {
         val prevTime = exportTimes.getOrDefault(prop.returnType.classifier as KClass<*>, 50L)
 
         val argValue = when (prop.returnType.classifier) {
-            String::class -> colorValue
+            String::class -> {
+                if (value.endsWith("...")) {
+                    InputUtils.getPreviousInput {
+                        MenuUtils.packetClick(actionSlot.id)
+                        MenuUtils.onOpen("Action Settings")
+                        MenuUtils.packetClick(propertySlotIndex)
+                    }.also {
+                        MenuUtils.onOpen("Action Settings")
+                        MenuUtils.clickItems(MenuItems.BACK)
+                        MenuUtils.onOpen(title)
+                    }
+                } else {
+                    colorValue
+                }
+            }
             Int::class -> value.toInt()
             Long::class -> value.toLong()
             Double::class -> value.toDouble()
