@@ -2,10 +2,9 @@
 
 package llc.redstone.systemsapi
 
-import dev.isxander.yacl3.config.v3.value
 import kotlinx.coroutines.*
 import llc.redstone.systemsapi.api.House
-import llc.redstone.systemsapi.config.SystemsAPISettings
+import llc.redstone.systemsapi.config.SystemsAPIConfig
 import llc.redstone.systemsapi.coroutine.MCCoroutineImpl.mcCoroutineConfiguration
 import llc.redstone.systemsapi.coroutine.MCCoroutineImpl.minecraftDispatcher
 import llc.redstone.systemsapi.coroutine.MCCoroutineImpl.scope
@@ -18,8 +17,9 @@ import kotlin.coroutines.CoroutineContext
 object SystemsAPI : ClientModInitializer {
     internal const val MOD_ID = "systemsapi"
     internal val LOGGER: Logger = LoggerFactory.getLogger("SystemsAPI")
-    internal const val VERSION = /*$ mod_version*/ "0.0.1";
+    internal const val VERSION = /*$ mod_version*/ "0.1.11";
     internal const val MINECRAFT = /*$ minecraft*/ "1.21.9";
+    internal val CONFIG = SystemsAPIConfig.createAndLoad()
     internal val MC: MinecraftClient
         get() = MinecraftClient.getInstance()
 
@@ -33,7 +33,7 @@ object SystemsAPI : ClientModInitializer {
         return llc.redstone.systemsapi.importer.HouseImporter
     }
 
-    suspend fun scaledDelay(mul: Double = 1.0) = delay((SystemsAPISettings.baseClickDelay.value * mul).toLong())
+    suspend fun scaledDelay(mul: Double = 1.0) = delay((CONFIG.baseClickDelay * mul).toLong())
 
     fun launch(
         context: CoroutineContext = minecraftDispatcher,

@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "2.2.10"
+    id("com.google.devtools.ksp") version "2.3.4"
     id("fabric-loom")
     `maven-publish`
 }
@@ -9,6 +10,9 @@ base.archivesName = property("mod.id") as String
 group = "llc.redstone"
 
 repositories {
+    maven("https://maven.kosmx.dev") //IDK why I couldnt make this a strict maven :shrug:
+    maven("https://maven.wispforest.io/releases")
+    maven { url = uri("https://jitpack.io") }
     /**
      * Restricts dependency search of the given [groups] to the [maven URL][url],
      * improving the setup speed.
@@ -17,6 +21,7 @@ repositories {
         forRepository { maven(url) { name = alias } }
         filter { groups.forEach(::includeGroup) }
     }
+    maven("https://maven.kosmx.dev")
 
     strictMaven("https://api.modrinth.com/maven", "Modrinth", "maven.modrinth")
     strictMaven("https://maven.terraformersmc.com/", "Terraformers")
@@ -31,12 +36,11 @@ dependencies {
     modImplementation("net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
 
     modImplementation("net.fabricmc:fabric-language-kotlin:${property("deps.fabric_language_kotlin")}")
-
-    modImplementation("dev.isxander:yet-another-config-lib:${property("deps.yacl")}")
-    modImplementation("com.terraformersmc:modmenu:${property("deps.modmenu")}")
+    modImplementation("io.wispforest:owo-lib:${property("deps.owo")}")
+    ksp("dev.kosmx.kowoconfig:ksp-owo-config:0.2.0")
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
 
-    modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.1")
+    modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
 }
 
 loom {
@@ -89,8 +93,7 @@ tasks {
             "version" to project.property("mod.version"),
             "minecraft" to project.property("mod.mc_dep"),
             "fabric_loader" to project.property("deps.fabric_loader"),
-            "fabric_language_kotlin" to project.property("deps.fabric_language_kotlin"),
-            "yacl" to project.property("deps.yacl"),
+            "fabric_language_kotlin" to project.property("deps.fabric_language_kotlin")
         )
 
         filesMatching("fabric.mod.json") { expand(props) }

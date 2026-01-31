@@ -33,9 +33,6 @@ dependencies {
 
     modImplementation("net.fabricmc:fabric-language-kotlin:${property("deps.fabric_language_kotlin")}")
 
-    modImplementation("dev.isxander:yet-another-config-lib:${property("deps.yacl")}")
-    modImplementation("com.terraformersmc:modmenu:${property("deps.modmenu")}")
-
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
 
     modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.1")

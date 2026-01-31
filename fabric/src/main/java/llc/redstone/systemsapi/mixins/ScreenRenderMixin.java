@@ -17,7 +17,13 @@ public class ScreenRenderMixin {
     }
 
     @Inject(method="drawSlot", at=@At("RETURN"))
+    //? if <1.21.11 {
     public void drawSlot(DrawContext context, Slot slot, CallbackInfo ci) {
         MenuUtils.INSTANCE.renderStack$systemsapi(slot.getStack());
     }
+    //?} else {
+     /*public void drawSlot(DrawContext context, Slot slot, int mouseX, int mouseY, CallbackInfo ci) {
+         MenuUtils.INSTANCE.renderStack$systemsapi(slot.getStack());
+     }
+    *///?}
 }

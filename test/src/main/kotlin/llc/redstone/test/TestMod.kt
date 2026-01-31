@@ -20,8 +20,8 @@ import org.slf4j.LoggerFactory
 object TestMod : ClientModInitializer {
     const val MOD_ID = "testmod"
     val LOGGER: Logger = LoggerFactory.getLogger("TestMod")
-    const val VERSION = /*$ mod_version*/ "0.0.1"
-    const val MINECRAFT = /*$ minecraft*/ "1.21.9"
+    const val VERSION = /*$ mod_version*/ "0.0.1";
+    const val MINECRAFT = /*$ minecraft*/ "1.21.9";
     val MC: MinecraftClient
         get() = MinecraftClient.getInstance()
 
