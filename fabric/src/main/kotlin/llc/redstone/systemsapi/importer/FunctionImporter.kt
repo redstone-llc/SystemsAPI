@@ -1,13 +1,11 @@
 package llc.redstone.systemsapi.importer
 
 import llc.redstone.systemsapi.api.Function
-import llc.redstone.systemsapi.data.ItemStack
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.CommandUtils.getTabCompletions
 import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.getProperty
 import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
-import llc.redstone.systemsapi.util.ItemUtils
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
 import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
@@ -66,13 +64,13 @@ internal class FunctionImporter(override var name: String) : Function {
         return slot.stack.item
     }
 
-    override suspend fun setIcon(newIcon: ItemStack) {
+    override suspend fun setIcon(newIcon: Item) {
         openFunctionEditMenu()
 
         MenuUtils.clickItems(MenuItems.icon)
         MenuUtils.onOpen("Select an Item")
 
-        val itemStack = ItemUtils.createFromNBT(newIcon.nbt ?: return)
+        val itemStack = newIcon.defaultStack
         itemStack.giveItem(26)
         MenuUtils.clickPlayerSlot(26)
     }
