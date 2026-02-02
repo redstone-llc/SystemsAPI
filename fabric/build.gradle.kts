@@ -3,6 +3,7 @@ plugins {
     id("com.google.devtools.ksp") version "2.3.4"
     id("fabric-loom")
     `maven-publish`
+    id("me.modmuss50.mod-publish-plugin")
 }
 
 version = "${property("mod.version")}+${stonecutter.current.version}"
@@ -62,6 +63,24 @@ java {
     sourceCompatibility = javaVersion
 }
 
+publishMods {
+    file = tasks.remapJar.map { it.archiveFile.get() }
+    additionalFiles.from(tasks.remapSourcesJar.map { it.archiveFile.get() })
+    displayName = "${property("mod.name")} ${property("mod.version")} for ${property("mod.mc_title")}"
+    version = property("mod.version") as String
+    changelog = rootProject.file("CHANGELOG.md").readText()
+    type = BETA
+    modLoaders.add("fabric")
+
+    dryRun = providers.environmentVariable("MODRINTH_TOKEN").getOrNull() == null
+
+    modrinth {
+        projectId = property("publish.modrinth") as String
+        accessToken = providers.environmentVariable("MODRINTH_TOKEN")
+        minecraftVersions.addAll(property("mod.mc_targets").toString().split(' '))
+    }
+}
+
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
@@ -84,6 +103,8 @@ publishing {
         }
     }
 }
+
+
 
 tasks {
     processResources {
