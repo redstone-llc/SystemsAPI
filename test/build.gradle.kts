@@ -9,6 +9,9 @@ base.archivesName = property("mod.id") as String
 group = "llc.redstone"
 
 repositories {
+    maven("https://maven.wispforest.io/releases")
+    maven { url = uri("https://jitpack.io") }
+
     /**
      * Restricts dependency search of the given [groups] to the [maven URL][url],
      * improving the setup speed.
@@ -30,12 +33,12 @@ dependencies {
     minecraft("com.mojang:minecraft:${stonecutter.current.version}")
     mappings("net.fabricmc:yarn:${property("deps.yarn")}:v2")
     modImplementation("net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
-
+    modImplementation("io.wispforest:owo-lib:${property("deps.owo")}")
     modImplementation("net.fabricmc:fabric-language-kotlin:${property("deps.fabric_language_kotlin")}")
 
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
 
-    modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.1")
+    modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
 
     val commonPath = common.hierarchy.toString()
     api(project(path = commonPath, configuration = "namedElements"))
