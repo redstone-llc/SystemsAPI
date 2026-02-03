@@ -1,16 +1,8 @@
 package llc.redstone.systemsapi.api
 
-import llc.redstone.systemsapi.util.InputUtils
-import llc.redstone.systemsapi.util.ItemStackUtils.getProperty
-import llc.redstone.systemsapi.util.MenuUtils
-import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
-import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
-import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameExact
-import net.minecraft.item.Items
-
 interface Scoreboard {
     suspend fun getLines(): List<LineType>
-    suspend fun setLines(newLines: List<LineType>)
+    suspend fun setLines(newLines: List<LineType>): Scoreboard
 
 
     sealed class VariableType(val displayName: String) {
@@ -38,45 +30,6 @@ interface Scoreboard {
                     .mapNotNull { it.objectInstance }
                     .associateBy { it.displayName }
             }
-            suspend fun fromItemStack(stack: net.minecraft.item.ItemStack, slot: Int): LineType? {
-                val name = runCatching { stack.name.string }.getOrNull() ?: return null
-
-                return when (name) {
-                    "Custom Line" -> {
-                        MenuUtils.packetClick(slot)
-                        MenuUtils.onOpen("Item Settings")
-                        val text = InputUtils.getPreviousInput {
-                            MenuUtils.clickItems("Text", Items.PAPER)
-                        }
-                        MenuUtils.onOpen("Item Settings")
-                        MenuUtils.clickItems(MenuItems.back)
-                        MenuUtils.onOpen("Scoreboard Editor")
-                        CustomLine(text)
-                    }
-                    "Variable Value" -> {
-                        val scope = when (stack.getProperty("Holder")) {
-                            "Player" -> Scoreboard.VariableType.Player
-                            "Global" -> Scoreboard.VariableType.Global
-                            "Team" -> {
-                                Scoreboard.VariableType.Team(stack.getProperty("Team") ?: throw IllegalStateException("Could not find variable team"))
-                            }
-                            else -> throw IllegalStateException("Could not find variable holder")
-                        }
-                        val key = stack.getProperty("Variable") ?: throw IllegalStateException("Could not find variable key")
-                        VariableValue(scope, key)
-                    }
-                    else -> typesByDisplayName[name]
-                }
-            }
-
-
-            private object MenuItems {
-                val back = ItemSelector(
-                    name = NameExact("Go Back"),
-                    item = ItemExact(Items.ARROW)
-                )
-            }
-
         }
     }
 }

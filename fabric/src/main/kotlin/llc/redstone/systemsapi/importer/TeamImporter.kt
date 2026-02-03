@@ -28,7 +28,7 @@ class TeamImporter(override var name: String) : Team {
         scaledDelay()
     }
 
-    override suspend fun setName(newName: String) {
+    override suspend fun setName(newName: String): Team {
         if (newName.length !in 1..16) throw IllegalArgumentException("Team name length must be in range 1..16")
         openTeamMenu()
 
@@ -36,6 +36,7 @@ class TeamImporter(override var name: String) : Team {
         InputUtils.textInput(newName)
 
         this@TeamImporter.name = newName
+        return this
     }
 
     override suspend fun getTag(): String {
@@ -50,7 +51,7 @@ class TeamImporter(override var name: String) : Team {
         return tag
     }
 
-    override suspend fun setTag(newTag: String) {
+    override suspend fun setTag(newTag: String): Team {
         openTeamMenu()
 
         val tag = MenuUtils.findSlots(MenuItems.tag).first()
@@ -59,10 +60,11 @@ class TeamImporter(override var name: String) : Team {
             ?.removeSurrounding("[", "]")
             ?: throw IllegalStateException("Failed to get team tag")
 
-        if (tag == newTag) return
+        if (tag == newTag) return this
 
         MenuUtils.clickItems(MenuItems.tag)
         InputUtils.textInput(newTag)
+        return this
     }
 
     override suspend fun getColor(): Team.TeamColor {
@@ -77,7 +79,7 @@ class TeamImporter(override var name: String) : Team {
         return color
     }
 
-    override suspend fun setColor(newColor: Team.TeamColor) {
+    override suspend fun setColor(newColor: Team.TeamColor): Team {
         if (newColor == Team.TeamColor.WHITE) throw IllegalArgumentException("Housing does not support setting the team color as White")
         openTeamMenu()
 
@@ -87,11 +89,12 @@ class TeamImporter(override var name: String) : Team {
                 ?.getProperty("Current Color")
         } ?: throw IllegalStateException("Failed to get team color")
 
-        if (color == newColor) return
+        if (color == newColor) return this
 
         MenuUtils.clickItems(MenuItems.color)
         MenuUtils.onOpen("Select Team Color")
         MenuUtils.clickItems(newColor.displayName)
+        return this
     }
 
     override suspend fun getFriendlyFire(): Boolean {
@@ -105,7 +108,7 @@ class TeamImporter(override var name: String) : Team {
         return friendlyFire
     }
 
-    override suspend fun setFriendlyFire(newFriendlyFire: Boolean) {
+    override suspend fun setFriendlyFire(newFriendlyFire: Boolean): Team {
         openTeamMenu()
 
         for (attempt in 1..10) {
@@ -114,7 +117,7 @@ class TeamImporter(override var name: String) : Team {
                 ?.getProperty("Current Value")
                 ?.equals("Enabled") ?: throw IllegalStateException("Failed to get team friendly fire")
 
-            if (friendlyFire == newFriendlyFire) return
+            if (friendlyFire == newFriendlyFire) return this
 
             LOGGER.info("attempt $attempt")
 

@@ -4,43 +4,43 @@ import kotlin.time.Duration
 
 interface HouseSettings {
     suspend fun getDaylightCycle(): Boolean
-    suspend fun setDaylightCycle(newDaylightCycle: Boolean)
+    suspend fun setDaylightCycle(newDaylightCycle: Boolean): HouseSettings
 
     suspend fun getMaxPlayers(): MaxPlayers
-    suspend fun setMaxPlayers(newMaxPlayers: MaxPlayers)
+    suspend fun setMaxPlayers(newMaxPlayers: MaxPlayers): HouseSettings
 
     suspend fun getHouseName(): String
-    suspend fun setHouseName(newName: String)
+    suspend fun setHouseName(newName: String): HouseSettings
 
     suspend fun getHouseTags(): Set<HouseTag>
-    suspend fun setHouseTags(newTags: Set<HouseTag>)
+    suspend fun setHouseTags(newTags: Set<HouseTag>): HouseSettings
 
     suspend fun getHouseLanguages(): Set<HouseLanguage>
-    suspend fun setHouseLanguages(newLanguages: Set<HouseLanguage>)
+    suspend fun setHouseLanguages(newLanguages: Set<HouseLanguage>): HouseSettings
 
     suspend fun getParkourAnnounce(): ParkourAnnounce
-    suspend fun setParkourAnnounce(newParkourAnnounce: ParkourAnnounce)
+    suspend fun setParkourAnnounce(newParkourAnnounce: ParkourAnnounce): HouseSettings
 
     suspend fun getPlayerStateDuration(): Duration
-    suspend fun setPlayerStateDuration(newDuration: Duration)
+    suspend fun setPlayerStateDuration(newDuration: Duration): HouseSettings
 
     suspend fun getPlayerStateTypes(): MutableMap<PlayerStateType, Boolean>
-    suspend fun setPlayerStateTypes(newStates: MutableMap<PlayerStateType, Boolean>)
+    suspend fun setPlayerStateTypes(newStates: MutableMap<PlayerStateType, Boolean>): HouseSettings
 
-    suspend fun clearPlayerStates()
+    suspend fun clearPlayerStates(): HouseSettings
 
     suspend fun getDefaultVariableDuration(): Duration
-    suspend fun setDefaultVariableDuration(newDuration: Duration)
+    suspend fun setDefaultVariableDuration(newDuration: Duration): HouseSettings
 
     suspend fun getVariableDurationOverride(variable: String): Duration?
-    suspend fun setVariableDurationOverride(variable: String, newDuration: Duration)
-    suspend fun removeVariableDurationOverride(variable: String)
+    suspend fun setVariableDurationOverride(variable: String, newDuration: Duration): HouseSettings
+    suspend fun removeVariableDurationOverride(variable: String): HouseSettings
 
     suspend fun getPvpSettings(): MutableMap<PvpSettings, Boolean>
-    suspend fun setPvpSettings(newPvpSettings: MutableMap<PvpSettings, Boolean>)
+    suspend fun setPvpSettings(newPvpSettings: MutableMap<PvpSettings, Boolean>): HouseSettings
 
     suspend fun getFishingSettings(): MutableMap<FishingSettings, Boolean>
-    suspend fun setFishingSettings(newFishingSettings: MutableMap<FishingSettings, Boolean>)
+    suspend fun setFishingSettings(newFishingSettings: MutableMap<FishingSettings, Boolean>): HouseSettings
 
 
     enum class HouseTag(val displayName: String) {

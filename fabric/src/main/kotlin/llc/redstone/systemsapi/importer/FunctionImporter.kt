@@ -22,18 +22,18 @@ internal class FunctionImporter(override var name: String) : Function {
 
         CommandUtils.runCommand("functions")
         MenuUtils.onOpen("Functions")
-        MenuUtils.clickItems(this@FunctionImporter.name, paginated = true)
-        MenuUtils.onOpen("Edit: ${this@FunctionImporter.name}")
+        MenuUtils.clickItems(this.name, paginated = true)
+        MenuUtils.onOpen("Edit: ${this.name}")
     }
 
     private suspend fun openActionsEditMenu() {
         if (isActionsMenuOpen()) return
 
-        CommandUtils.runCommand("function edit ${this@FunctionImporter.name}")
-        MenuUtils.onOpen("Actions: ${this@FunctionImporter.name}")
+        CommandUtils.runCommand("function edit ${this.name}")
+        MenuUtils.onOpen("Actions: ${this.name}")
     }
 
-    override suspend fun setName(newName: String) {
+    override suspend fun setName(newName: String): Function {
         if (newName.length !in 1..50) throw IllegalArgumentException("Title length must be in range 1..50")
         openFunctionEditMenu()
 
@@ -41,7 +41,8 @@ internal class FunctionImporter(override var name: String) : Function {
         MenuUtils.clickItems(MenuItems.name)
         InputUtils.textInput(newName)
 
-        this@FunctionImporter.name = newName
+        this.name = newName
+        return this
     }
 
     override suspend fun getDescription(): String {
@@ -50,12 +51,13 @@ internal class FunctionImporter(override var name: String) : Function {
         return InputUtils.getPreviousInput { MenuUtils.clickItems(MenuItems.description) }
     }
 
-    override suspend fun setDescription(newDescription: String) {
+    override suspend fun setDescription(newDescription: String): Function {
         if (newDescription.length !in 1..120) throw IllegalArgumentException("Description length must be in range 1..120")
         openFunctionEditMenu()
 
         MenuUtils.clickItems(MenuItems.description)
         InputUtils.textInput(newDescription)
+        return this
     }
 
     override suspend fun getIcon(): Item {
@@ -64,7 +66,7 @@ internal class FunctionImporter(override var name: String) : Function {
         return slot.stack.item
     }
 
-    override suspend fun setIcon(newIcon: Item) {
+    override suspend fun setIcon(newIcon: Item): Function {
         openFunctionEditMenu()
 
         MenuUtils.clickItems(MenuItems.icon)
@@ -73,6 +75,7 @@ internal class FunctionImporter(override var name: String) : Function {
         val itemStack = newIcon.defaultStack
         itemStack.giveItem(26)
         MenuUtils.clickPlayerSlot(26)
+        return this
     }
 
     override suspend fun getAutomaticExecution(): Int {
@@ -87,7 +90,7 @@ internal class FunctionImporter(override var name: String) : Function {
         return ticks
     }
 
-    override suspend fun setAutomaticExecution(newAutomaticExecution: Int) {
+    override suspend fun setAutomaticExecution(newAutomaticExecution: Int): Function {
         if (newAutomaticExecution !in 0..18000) throw IllegalArgumentException("Automatic execution ticks must be in range 1..18000")
         openFunctionEditMenu()
 
@@ -96,20 +99,21 @@ internal class FunctionImporter(override var name: String) : Function {
             ?.getProperty("Current")
             ?.let { if (it == "Disabled") 0 else it.toIntOrNull() }
             ?: throw IllegalStateException("Failed to set automatic execution")
-        if (ticks == newAutomaticExecution) return
+        if (ticks == newAutomaticExecution) return this
 
         MenuUtils.clickItems(MenuItems.automaticExecution)
         InputUtils.textInput(newAutomaticExecution.toString())
+        return this
     }
 
     override suspend fun getActionContainer(): ActionContainer {
         openActionsEditMenu()
-        return ActionContainer("Actions: ${this@FunctionImporter.name}")
+        return ActionContainer("Actions: ${this.name}")
     }
 
-    suspend fun exists(): Boolean = getTabCompletions("function edit").contains(this@FunctionImporter.name)
-    fun create() = CommandUtils.runCommand("function create ${this@FunctionImporter.name}")
-    override suspend fun delete() = CommandUtils.runCommand("function delete ${this@FunctionImporter.name}")
+    suspend fun exists(): Boolean = getTabCompletions("function edit").contains(this.name)
+    fun create() = CommandUtils.runCommand("function create ${this.name}")
+    override suspend fun delete() = CommandUtils.runCommand("function delete ${this.name}")
 
 
     private object MenuItems {

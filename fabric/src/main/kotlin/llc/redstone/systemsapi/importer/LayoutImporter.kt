@@ -47,7 +47,7 @@ class LayoutImporter(override var name: String) : Layout {
         }
     }
 
-    private suspend fun setArmorPiece(label: String, newStack: ItemStack) {
+    private suspend fun setArmorPiece(label: String, newStack: ItemStack): Layout {
         val player = MC.player ?: throw IllegalStateException("Could not access the player")
         openLayoutMenu()
         openArmorSelection(label)
@@ -59,6 +59,7 @@ class LayoutImporter(override var name: String) : Layout {
         oldStack.giveItem(26)
         MenuUtils.clickItems(MenuItems.back)
         MenuUtils.onOpen("Layout Editor")
+        return this
     }
 
     private fun getStacks(range: IntRange): Array<ItemStack> =
@@ -91,29 +92,30 @@ class LayoutImporter(override var name: String) : Layout {
 
 
     override suspend fun getHelmet(): ItemStack? = getArmorPiece("Helmet")
-    override suspend fun setHelmet(stack: ItemStack) = setArmorPiece("Helmet", stack)
+    override suspend fun setHelmet(stack: ItemStack): Layout = setArmorPiece("Helmet", stack)
 
     override suspend fun getChestplate(): ItemStack? = getArmorPiece("Chestplate")
-    override suspend fun setChestplate(stack: ItemStack) = setArmorPiece("Chestplate", stack)
+    override suspend fun setChestplate(stack: ItemStack): Layout = setArmorPiece("Chestplate", stack)
 
     override suspend fun getLeggings(): ItemStack? = getArmorPiece("Leggings")
-    override suspend fun setLeggings(stack: ItemStack) = setArmorPiece("Leggings", stack)
+    override suspend fun setLeggings(stack: ItemStack): Layout = setArmorPiece("Leggings", stack)
 
     override suspend fun getBoots(): ItemStack? = getArmorPiece("Boots")
-    override suspend fun setBoots(stack: ItemStack) = setArmorPiece("Boots", stack)
+    override suspend fun setBoots(stack: ItemStack): Layout = setArmorPiece("Boots", stack)
 
     override suspend fun getHotbar(): Array<ItemStack> {
         openLayoutMenu()
         return getStacks(36..43)
     }
 
-    override suspend fun setHotbar(stacks: Array<ItemStack>) {
+    override suspend fun setHotbar(stacks: Array<ItemStack>): Layout {
         if (stacks.size !in 1..8) throw IllegalArgumentException("Hotbar itemstack array length must be in 1..8")
 
         openLayoutMenu()
         scaledDelay(4.0)
         setStacks(36..43, stacks)
         saveLayout()
+        return this
     }
 
     override suspend fun getInventory(): Array<ItemStack> {
@@ -121,13 +123,14 @@ class LayoutImporter(override var name: String) : Layout {
         return getStacks(0..26)
     }
 
-    override suspend fun setInventory(stacks: Array<ItemStack>) {
+    override suspend fun setInventory(stacks: Array<ItemStack>): Layout {
         if (stacks.size !in 1..27) throw IllegalArgumentException("Inventory itemstack array length must be in 1..27")
 
         openLayoutMenu()
         scaledDelay(4.0)
         setStacks(0..26, stacks)
         saveLayout()
+        return this
     }
 
     suspend fun exists(): Boolean = CommandUtils.getTabCompletions("layout edit").contains(name)
