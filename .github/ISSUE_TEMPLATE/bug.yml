@@ -1,0 +1,39 @@
+name: Issue
+description: File a bug report.
+title: "[BUG] "
+labels: ["bug", "triage"]
+type: "Bug"
+body:
+  - type: markdown
+    attributes:
+      value: "**Welcome to submit a new issue!**\n- It takes only 4 steps, so please be patient :)\n- Tip: If your issue is not a feature request and is not an issue (e.g. \"how do I use X feature\"), please use [Discussions](https://github.com/redstone-llc/SystemsAPI/discussions) instead."
+
+  - type: checkboxes
+    attributes:
+      label: "Step 1. Before you submit"
+      options:
+        - label: I have read the above instructions and am sure that this is supposed to be posted here.
+          required: true
+
+  - type: input
+    attributes:
+      label: "Step 2. Version"
+      description: "What version of the library are you having trouble with?"
+      placeholder: "eg. 0.2.0+1.21.9"
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: "Step 3. Describe the issue"
+      description: "Include clear steps to reproduce the issue."
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: "Step 4: Relevant logs"
+      description: "Paste any relevant logs you've found in here. This will be formatted automatically, so no need to include backticks."
+      render: shell
+    validations:
+      required: false
