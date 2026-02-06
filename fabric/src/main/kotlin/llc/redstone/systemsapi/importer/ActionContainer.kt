@@ -156,7 +156,6 @@ class ActionContainer(
     suspend fun setActions(newActions: List<Action>) {
         //Clear existing actions
         MenuUtils.onOpen(title)
-
         if (MenuUtils.findSlots(MenuItems.NO_ACTIONS).firstOrNull() == null) {
             //There are existing actions, remove them
             while (true) {
@@ -167,7 +166,7 @@ class ActionContainer(
                     actionSlots.add(slotIndex)
                 }
 
-                if (actionSlots.isEmpty()) break
+                if (MenuUtils.findSlots(MenuItems.NO_ACTIONS).firstOrNull() != null) break
 
                 for (slotIndex in actionSlots) {
                     val slot = MenuUtils.getSlot(slotIndex)

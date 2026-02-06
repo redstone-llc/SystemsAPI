@@ -78,6 +78,8 @@ publishMods {
         projectId = property("publish.modrinth") as String
         accessToken = providers.environmentVariable("MODRINTH_TOKEN")
         minecraftVersions.addAll(property("mod.mc_targets").toString().split(' '))
+
+        requires ("fabric-language-kotlin", "owo-lib", "fabric-api")
     }
 }
 
