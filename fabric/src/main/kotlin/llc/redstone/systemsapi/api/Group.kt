@@ -3,24 +3,24 @@ package llc.redstone.systemsapi.api
 interface Group {
     var name: String
     suspend fun getName(): String = name
-    suspend fun setName(newName: String)
+    suspend fun setName(newName: String): Group
 
     suspend fun getTag(): String?
-    suspend fun setTag(newTag: String)
+    suspend fun setTag(newTag: String): Group
 
     suspend fun getTagVisibleInChat(): Boolean
-    suspend fun setTagVisibleInChat(newVisibleInChat: Boolean)
+    suspend fun setTagVisibleInChat(newVisibleInChat: Boolean): Group
 
     suspend fun getColor(): GroupColor
-    suspend fun setColor(newColor: GroupColor)
+    suspend fun setColor(newColor: GroupColor): Group
 
     suspend fun getPriority(): Int
-    suspend fun setPriority(newPriority: Int)
+    suspend fun setPriority(newPriority: Int): Group
 
     suspend fun getPermissions(): PermissionSet
-    suspend fun setPermissions(newPermissions: PermissionSet)
+    suspend fun setPermissions(newPermissions: PermissionSet): Group
 
-    suspend fun clearGroupPlayers()
+    suspend fun clearGroupPlayers(): Group
 
     suspend fun delete()
 

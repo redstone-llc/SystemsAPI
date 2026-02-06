@@ -41,7 +41,7 @@ class GroupImporter(override var name: String) : Group {
         MenuUtils.onOpen("Edit Group")
     }
 
-    override suspend fun setName(newName: String) {
+    override suspend fun setName(newName: String): Group {
         require(newName.length in 1..16) { "Group name length must be in range 1..16" }
         openGroupMenu()
         MenuUtils.clickItems(MenuItems.name)
@@ -49,6 +49,7 @@ class GroupImporter(override var name: String) : Group {
         MenuUtils.onOpen("Edit Group")
 
         this.name = newName
+        return this
     }
 
     override suspend fun getTag(): String? {
@@ -59,7 +60,7 @@ class GroupImporter(override var name: String) : Group {
             .let { if (it == "Not Set") null else it.removeSurrounding("[", "]") }
     }
 
-    override suspend fun setTag(newTag: String) {
+    override suspend fun setTag(newTag: String): Group {
         require(newTag.length in 1..10) { "Group tag length must be in range 1.10" }
         openGroupMenu()
 
@@ -67,11 +68,13 @@ class GroupImporter(override var name: String) : Group {
             .stack
             .getProperty("Current Tag")!!
             .let { if (it == "Not Set") null else it.removeSurrounding("[", "]") }
-        if (current == newTag) return
+        if (current == newTag) return this
 
         MenuUtils.clickItems(MenuItems.tag)
         InputUtils.textInput(newTag)
         MenuUtils.onOpen("Edit Group")
+
+        return this
     }
 
     override suspend fun getTagVisibleInChat(): Boolean {
@@ -82,14 +85,14 @@ class GroupImporter(override var name: String) : Group {
         ) == "Enabled"
     }
 
-    override suspend fun setTagVisibleInChat(newVisibleInChat: Boolean) {
+    override suspend fun setTagVisibleInChat(newVisibleInChat: Boolean): Group {
         openGroupMenu()
 
         val current = getInlineKeyedLoreCycle(
             MenuUtils.findSlots(MenuItems.tag).first(),
             "Tag Shows in Chat"
         ) == "Enabled"
-        if (current == newVisibleInChat) return
+        if (current == newVisibleInChat) return this
 
         setInlineKeyedLoreCycle(
             MenuUtils.findSlots(MenuItems.tag).first(),
@@ -97,6 +100,8 @@ class GroupImporter(override var name: String) : Group {
             if (newVisibleInChat) "Enabled" else "Disabled",
             button = 1
         )
+
+        return this
     }
 
     override suspend fun getColor(): Group.GroupColor {
@@ -108,19 +113,21 @@ class GroupImporter(override var name: String) : Group {
         } ?: throw IllegalStateException("Failed to get group color")
     }
 
-    override suspend fun setColor(newColor: Group.GroupColor) {
+    override suspend fun setColor(newColor: Group.GroupColor): Group {
         openGroupMenu()
 
         val current = Group.GroupColor.entries.firstOrNull() {
             it.displayName == MenuUtils.findSlots(MenuItems.color).first()
                 .stack.getProperty("Current Color")
         } ?: throw IllegalStateException("Failed to get group color")
-        if (current == newColor) return
+        if (current == newColor) return this
 
         MenuUtils.clickItems(MenuItems.color)
         MenuUtils.onOpen("Select Group Color")
         MenuUtils.clickItems(newColor.displayName)
         MenuUtils.onOpen("Edit Group")
+
+        return this
     }
 
     override suspend fun getPriority(): Int {
@@ -131,18 +138,20 @@ class GroupImporter(override var name: String) : Group {
             ?.toInt() ?: throw IllegalStateException("Failed to get group priority")
     }
 
-    override suspend fun setPriority(newPriority: Int) {
+    override suspend fun setPriority(newPriority: Int): Group {
         require(newPriority in 1..20) { "Priority must be in range 1..20" }
 
         val current = MenuUtils.findSlots(MenuItems.priority).first()
             .stack
             .getProperty("Current Priority")
             ?.toInt() ?: throw IllegalStateException("Failed to get group priority")
-        if (current == newPriority) return
+        if (current == newPriority) return this
 
         MenuUtils.clickItems(MenuItems.priority)
         InputUtils.textInput(newPriority.toString())
         MenuUtils.onOpen("Edit Group")
+
+        return this
     }
 
     override suspend fun getPermissions(): Group.PermissionSet {
@@ -164,7 +173,7 @@ class GroupImporter(override var name: String) : Group {
         return result
     }
 
-    override suspend fun setPermissions(newPermissions: Group.PermissionSet) {
+    override suspend fun setPermissions(newPermissions: Group.PermissionSet): Group {
         openGroupMenu()
         MenuUtils.clickItems(MenuItems.permissions)
         MenuUtils.onOpen("Permissions $name")
@@ -177,14 +186,17 @@ class GroupImporter(override var name: String) : Group {
 
             captureAndSet(newPermissions, permission, slot, current)
         }
+
+        return this
     }
 
-    override suspend fun clearGroupPlayers() {
+    override suspend fun clearGroupPlayers(): Group {
         openGroupMenu()
         MenuUtils.clickItems(MenuItems.clearPlayers)
         MenuUtils.onOpen("Are you sure?")
         MenuUtils.clickItems("Confirm")
         MenuUtils.onOpen("Edit Group")
+        return this
     }
 
     suspend fun exists(): Boolean {

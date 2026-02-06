@@ -50,7 +50,7 @@ open class NpcImporter(override var name: String) : Npc {
         MenuUtils.onOpen("Edit NPC - $name")
     }
 
-    override suspend fun setName(newName: String) {
+    override suspend fun setName(newName: String): Npc {
         require(newName.length in 1..32) { "Name length must be between 1 and 32" }
         openNpcMenu()
 
@@ -60,6 +60,7 @@ open class NpcImporter(override var name: String) : Npc {
         MenuUtils.onOpen("Edit NPC - $newName")
 
         this.name = newName
+        return this
     }
 
     override suspend fun getNpcType(): Npc.NpcType {
@@ -72,13 +73,14 @@ open class NpcImporter(override var name: String) : Npc {
         } ?: throw IllegalStateException("Could not find NPC type")
     }
 
-    override suspend fun setNpcType(newNpcType: Npc.NpcType) {
+    override suspend fun setNpcType(newNpcType: Npc.NpcType): Npc {
         openNpcMenu()
 
         MenuUtils.clickItems(MenuItems.type)
         MenuUtils.onOpen("Change NPC Type")
         MenuUtils.clickItems(newNpcType.displayName, paginated = true)
         MenuUtils.onOpen("Edit NPC - $name")
+        return this
     }
 
     override suspend fun getLookAtPlayers(): Boolean {
@@ -89,16 +91,17 @@ open class NpcImporter(override var name: String) : Npc {
         ).let { it == "On" }
     }
 
-    override suspend fun setLookAtPlayers(newLookAtPlayers: Boolean) {
+    override suspend fun setLookAtPlayers(newLookAtPlayers: Boolean): Npc {
         openNpcMenu()
         val current = getLookAtPlayers()
-        if (current == newLookAtPlayers) return
+        if (current == newLookAtPlayers) return this
 
         setKeyedTitleCycle(
             MenuUtils.findSlots(MenuItems.lookAtPlayers).first(),
             (MenuItems.lookAtPlayers.name as NameContains).value,
             if (newLookAtPlayers) "On" else "Off"
         )
+        return this
     }
 
     override suspend fun getHideNameTag(): Boolean {
@@ -109,16 +112,17 @@ open class NpcImporter(override var name: String) : Npc {
         ).let { it == "On" }
     }
 
-    override suspend fun setHideNameTag(newHideNameTag: Boolean) {
+    override suspend fun setHideNameTag(newHideNameTag: Boolean): Npc {
         openNpcMenu()
         val current = getLookAtPlayers()
-        if (current == newHideNameTag) return
+        if (current == newHideNameTag) return this
 
         setKeyedTitleCycle(
             MenuUtils.findSlots(MenuItems.hideNameTag).first(),
             (MenuItems.hideNameTag.name as NameContains).value,
             if (newHideNameTag) "On" else "Off"
         )
+        return this
     }
 
     override suspend fun getLeftClickActionContainer(): ActionContainer {
@@ -151,7 +155,7 @@ open class NpcImporter(override var name: String) : Npc {
         return current
     }
 
-    override suspend fun setLeftClickRedirect(newLeftClickRedirect: Boolean) {
+    override suspend fun setLeftClickRedirect(newLeftClickRedirect: Boolean): Npc {
         openNpcMenu()
         MenuUtils.clickItems(MenuItems.leftClickActions)
         MenuUtils.onOpen("Edit Actions")
@@ -160,7 +164,7 @@ open class NpcImporter(override var name: String) : Npc {
             MenuUtils.findSlots(MenuItems.leftClickRedirect).first(),
             "Current Value"
         ).let { it == "Enabled" }
-        if (current == newLeftClickRedirect) return
+        if (current == newLeftClickRedirect) return this
 
         setKeyedLoreCycle(
             MenuUtils.findSlots(MenuItems.leftClickRedirect).first(),
@@ -170,6 +174,7 @@ open class NpcImporter(override var name: String) : Npc {
 
         MenuUtils.clickItems(MenuItems.back)
         MenuUtils.onOpen("Edit NPC - $current")
+        return this
     }
 
     override suspend fun delete() {

@@ -1,0 +1,21 @@
+name: Feature request
+description: Suggest a new feature.
+title: "[FEATURE] "
+labels: ["enhancement"]
+type: "Feature"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        "**Thanks for wanting to improve SystemsAPI!**" |
+        ""
+
+  - type: textarea
+    attributes:
+      label: "What would you like to be added?"
+      description: "Can be a suggestion for enhancing an existing feature, too."
+
+  - type: textarea
+    attributes:
+      label: "How will it help?"
+      description: "It's helpful to include examples (like in your use case). How will this improve the mod?"

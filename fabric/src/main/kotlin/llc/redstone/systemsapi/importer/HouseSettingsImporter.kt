@@ -72,7 +72,7 @@ object HouseSettingsImporter : HouseSettings {
         return current
     }
 
-    override suspend fun setDaylightCycle(newDaylightCycle: Boolean) {
+    override suspend fun setDaylightCycle(newDaylightCycle: Boolean): HouseSettings {
         openSettingsMenu()
 
         MenuUtils.clickItems(MenuItems.timeSelector)
@@ -82,7 +82,7 @@ object HouseSettingsImporter : HouseSettings {
             MenuUtils.findSlots(MenuItems.daylightCycle).first(),
             listOf("Click to disable!", "Click to enable!")
         ).let { it == "Click to disable!" }
-        if (current == newDaylightCycle) return
+        if (current == newDaylightCycle) return this
 
         setLoreCycle(
             MenuUtils.findSlots(MenuItems.daylightCycle).first(),
@@ -90,6 +90,8 @@ object HouseSettingsImporter : HouseSettings {
             if (newDaylightCycle) "Click to disable!" else "Click to enable!",
             maxTries = 1
         )
+
+        return this
     }
 
     override suspend fun getMaxPlayers(): HouseSettings.MaxPlayers {
@@ -103,29 +105,32 @@ object HouseSettingsImporter : HouseSettings {
         } ?: throw IllegalStateException("Could not find Max Players")
     }
 
-    override suspend fun setMaxPlayers(newMaxPlayers: HouseSettings.MaxPlayers) {
+    override suspend fun setMaxPlayers(newMaxPlayers: HouseSettings.MaxPlayers): HouseSettings {
         openSettingsMenu()
 
         val current = getMaxPlayers()
-        if (newMaxPlayers == current) return
+        if (newMaxPlayers == current) return this
 
         setKeyedTitleCycle(
             MenuUtils.findSlots(MenuItems.maxPlayers).first(),
             (MenuItems.maxPlayers.name as NameContains).value,
             newMaxPlayers.displayName
         )
+
+        return this
     }
 
     override suspend fun getHouseName(): String {
         TODO("Not yet implemented")
     }
 
-    override suspend fun setHouseName(newName: String) {
+    override suspend fun setHouseName(newName: String): HouseSettings {
         require (newName.length in 3..32) {
             "Name length must be in range 3..32"
         }
 
         CommandUtils.runCommand("house name $newName")
+        return this
     }
 
     override suspend fun getHouseTags(): Set<HouseSettings.HouseTag> {
@@ -148,7 +153,7 @@ object HouseSettingsImporter : HouseSettings {
         return tags
     }
 
-    override suspend fun setHouseTags(newTags: Set<HouseSettings.HouseTag>) {
+    override suspend fun setHouseTags(newTags: Set<HouseSettings.HouseTag>): HouseSettings {
         openSettingsMenu()
 
         MenuUtils.clickItems(MenuItems.houseTags)
@@ -173,6 +178,7 @@ object HouseSettingsImporter : HouseSettings {
         }
 
         openSettingsMenu()
+        return this
     }
 
     override suspend fun getHouseLanguages(): Set<HouseSettings.HouseLanguage> {
@@ -195,7 +201,7 @@ object HouseSettingsImporter : HouseSettings {
         return languages
     }
 
-    override suspend fun setHouseLanguages(newLanguages: Set<HouseSettings.HouseLanguage>) {
+    override suspend fun setHouseLanguages(newLanguages: Set<HouseSettings.HouseLanguage>): HouseSettings {
         openSettingsMenu()
 
         MenuUtils.clickItems(MenuItems.houseLanguage)
@@ -221,6 +227,7 @@ object HouseSettingsImporter : HouseSettings {
         }
 
         openSettingsMenu()
+        return this
     }
 
     override suspend fun getParkourAnnounce(): HouseSettings.ParkourAnnounce {
@@ -236,7 +243,7 @@ object HouseSettingsImporter : HouseSettings {
         } ?: throw IllegalStateException("Could not find Parkour Announce")
     }
 
-    override suspend fun setParkourAnnounce(newParkourAnnounce: HouseSettings.ParkourAnnounce) {
+    override suspend fun setParkourAnnounce(newParkourAnnounce: HouseSettings.ParkourAnnounce): HouseSettings {
         openSettingsMenu()
 
         val slot = MenuUtils.findSlots(MenuItems.parkourAnnounce).first()
@@ -247,13 +254,15 @@ object HouseSettingsImporter : HouseSettings {
                 (MenuItems.parkourAnnounce.name as NameContains).value
             )
         } ?: throw IllegalStateException("Could not find Parkour Announce")
-        if (newParkourAnnounce == current) return
+        if (newParkourAnnounce == current) return this
 
         setKeyedTitleCycle(
             slot,
             (MenuItems.parkourAnnounce.name as NameContains).value,
             newParkourAnnounce.displayName
         )
+
+        return this
     }
 
     override suspend fun getPlayerStateDuration(): Duration {
@@ -272,7 +281,7 @@ object HouseSettingsImporter : HouseSettings {
         return current
     }
 
-    override suspend fun setPlayerStateDuration(newDuration: Duration) {
+    override suspend fun setPlayerStateDuration(newDuration: Duration): HouseSettings {
         require(newDuration in Duration.ZERO..365.days) {
             "Duration must be between 0 and 365 days."
         }
@@ -296,6 +305,7 @@ object HouseSettingsImporter : HouseSettings {
         }
 
         openPlayerDataMenu()
+        return this
     }
 
     override suspend fun getPlayerStateTypes(): MutableMap<HouseSettings.PlayerStateType, Boolean> {
@@ -320,7 +330,7 @@ object HouseSettingsImporter : HouseSettings {
         return map
     }
 
-    override suspend fun setPlayerStateTypes(newStates: MutableMap<HouseSettings.PlayerStateType, Boolean>) {
+    override suspend fun setPlayerStateTypes(newStates: MutableMap<HouseSettings.PlayerStateType, Boolean>): HouseSettings {
         openPlayerDataMenu()
         MenuUtils.clickItems(MenuItems.playerStates)
         MenuUtils.onOpen(Menu.PLAYER_STATES.title)
@@ -346,15 +356,15 @@ object HouseSettingsImporter : HouseSettings {
         MenuUtils.clickItems(MenuItems.back)
         MenuUtils.onOpen(Menu.PLAYER_STATES.title)
         openPlayerDataMenu()
+        return this
     }
 
-    override suspend fun clearPlayerStates() {
+    override suspend fun clearPlayerStates(): HouseSettings {
         openPlayerDataMenu()
         MenuUtils.clickItems(MenuItems.playerStates)
         MenuUtils.onOpen(Menu.PLAYER_STATES.title)
-
-
         MenuUtils.clickItems(MenuItems.clearPlayerStates)
+
         var slots = MenuUtils.findSlots("Confirm")
         repeat(10) {
             slots = MenuUtils.findSlots("Confirm")
@@ -363,6 +373,7 @@ object HouseSettingsImporter : HouseSettings {
         }
         if (slots.isEmpty()) throw IllegalStateException("Failed to clear player states")
         MenuUtils.clickItems("Confirm")
+        return this
     }
 
     override suspend fun getDefaultVariableDuration(): Duration {
@@ -380,7 +391,7 @@ object HouseSettingsImporter : HouseSettings {
         return current
     }
 
-    override suspend fun setDefaultVariableDuration(newDuration: Duration) {
+    override suspend fun setDefaultVariableDuration(newDuration: Duration): HouseSettings {
         require(newDuration in Duration.ZERO..365.days) {
             "Duration must be between 0 and 365 days."
         }
@@ -403,6 +414,7 @@ object HouseSettingsImporter : HouseSettings {
         }
 
         openPlayerDataMenu()
+        return this
     }
 
     override suspend fun getVariableDurationOverride(variable: String): Duration? {
@@ -421,7 +433,7 @@ object HouseSettingsImporter : HouseSettings {
             ?.let { if (it == "Disabled") Duration.ZERO else Duration.parse(it) }
     }
 
-    override suspend fun setVariableDurationOverride(variable: String, newDuration: Duration) {
+    override suspend fun setVariableDurationOverride(variable: String, newDuration: Duration): HouseSettings {
         require(newDuration in Duration.ZERO..365.days) {
             "Duration must be between 0 and 365 days."
         }
@@ -442,9 +454,10 @@ object HouseSettingsImporter : HouseSettings {
         )
         MenuUtils.onOpen(Menu.PLAYER_VARIABLE_DURATIONS.title)
         openPlayerDataMenu()
+        return this
     }
 
-    override suspend fun removeVariableDurationOverride(variable: String) {
+    override suspend fun removeVariableDurationOverride(variable: String): HouseSettings {
         openPlayerDataMenu()
         MenuUtils.clickItems(MenuItems.playerVariableDurations)
         MenuUtils.onOpen(Menu.PLAYER_VARIABLE_DURATIONS.title)
@@ -453,6 +466,7 @@ object HouseSettingsImporter : HouseSettings {
         MenuUtils.clickItems(variable, button = 1)
 
         openPlayerDataMenu()
+        return this
     }
 
     // TODO: Support default inventory layout
@@ -474,7 +488,7 @@ object HouseSettingsImporter : HouseSettings {
         return map
     }
 
-    override suspend fun setPvpSettings(newPvpSettings: MutableMap<HouseSettings.PvpSettings, Boolean>) {
+    override suspend fun setPvpSettings(newPvpSettings: MutableMap<HouseSettings.PvpSettings, Boolean>): HouseSettings {
         openSettingsMenu()
         MenuUtils.clickItems(MenuItems.pvpDamageSettings)
         MenuUtils.onOpen("PvP + Damage Settings")
@@ -495,6 +509,7 @@ object HouseSettingsImporter : HouseSettings {
         }
 
         openSettingsMenu()
+        return this
     }
 
     override suspend fun getFishingSettings(): MutableMap<HouseSettings.FishingSettings, Boolean> {
@@ -515,7 +530,7 @@ object HouseSettingsImporter : HouseSettings {
         return map
     }
 
-    override suspend fun setFishingSettings(newFishingSettings: MutableMap<HouseSettings.FishingSettings, Boolean>) {
+    override suspend fun setFishingSettings(newFishingSettings: MutableMap<HouseSettings.FishingSettings, Boolean>): HouseSettings {
         openSettingsMenu()
         MenuUtils.clickItems(MenuItems.fishingSettings)
         MenuUtils.onOpen("Fishing Settings")
@@ -536,6 +551,7 @@ object HouseSettingsImporter : HouseSettings {
         }
 
         openSettingsMenu()
+        return this
     }
 
 

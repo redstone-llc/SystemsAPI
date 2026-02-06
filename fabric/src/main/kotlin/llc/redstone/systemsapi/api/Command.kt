@@ -6,16 +6,16 @@ interface Command {
     var name: String
 
     suspend fun getName(): String = name
-    suspend fun setName(newName: String)
+    suspend fun setName(newName: String): Command
 
     suspend fun getCommandMode(): CommandMode
-    suspend fun setCommandMode(newCommandMode: CommandMode)
+    suspend fun setCommandMode(newCommandMode: CommandMode): Command
 
     suspend fun getRequiredGroupPriority(): Int
-    suspend fun setRequiredGroupPriority(newPriority: Int)
+    suspend fun setRequiredGroupPriority(newPriority: Int): Command
 
     suspend fun getListed(): Boolean
-    suspend fun setListed(newListed: Boolean)
+    suspend fun setListed(newListed: Boolean): Command
 
     suspend fun getActionContainer(): ActionContainer
 

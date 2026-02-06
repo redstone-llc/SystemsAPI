@@ -5,10 +5,10 @@ import llc.redstone.systemsapi.api.Menu
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
+import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
 import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
 import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameExact
-import llc.redstone.systemsapi.util.MenuUtils
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.component.DataComponentTypes
 import net.minecraft.item.ItemStack
@@ -26,12 +26,13 @@ internal class MenuImporter(override var title: String) : Menu {
         MenuUtils.onOpen("Edit Menu: $title")
     }
 
-    override suspend fun setTitle(newTitle: String) {
+    override suspend fun setTitle(newTitle: String): Menu {
         if (newTitle.length !in 1..32) throw IllegalArgumentException("Title length must be in range 1..32")
         openMenuEditMenu()
         MenuUtils.clickItems(MenuItems.title)
         InputUtils.textInput(newTitle)
         title = newTitle
+        return this
     }
 
     override suspend fun getMenuSize(): Int {
@@ -42,13 +43,14 @@ internal class MenuImporter(override var title: String) : Menu {
         return Regex("""\d+""").find(stack.name.string)?.value?.toIntOrNull() ?: throw IllegalStateException("[Menu $title] Couldn't find menu size.")
     }
 
-    override suspend fun changeMenuSize(newSize: Int) {
+    override suspend fun changeMenuSize(newSize: Int): Menu {
         if (newSize !in 1..6) throw IllegalArgumentException("New size must be in 1..6")
         openMenuEditMenu()
         MenuUtils.clickItems(MenuItems.size)
         MenuUtils.onOpen("Change Menu Size")
         if (newSize == 1) MenuUtils.clickItems("1 Row", Items.BEACON)
         else MenuUtils.clickItems("$newSize Rows", Items.BEACON)
+        return this
     }
 
     override suspend fun getAllMenuElements(): Array<Menu.MenuElement> {
@@ -101,7 +103,7 @@ internal class MenuImporter(override var title: String) : Menu {
             }
         }
 
-        override suspend fun setItem(item: ItemStack) {
+        override suspend fun setItem(item: ItemStack): Menu.MenuElement {
             val player = MC.player ?: throw IllegalStateException("Could not access the player")
             MenuUtils.onOpen("Edit Elements: $title")
 
@@ -112,6 +114,7 @@ internal class MenuImporter(override var title: String) : Menu {
             item.giveItem(26)
             MenuUtils.clickPlayerSlot(26)
             oldStack.giveItem(26)
+            return this
         }
 
         override suspend fun getActionContainer(): ActionContainer? {

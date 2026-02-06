@@ -39,9 +39,9 @@ sealed class Action(
     )
     data class Conditional(
         val conditions: List<Condition>,
-        val matchAnyCondition: Boolean,
-        val ifActions: List<Action>,
-        val elseActions: List<Action>,
+        val matchAnyCondition: Boolean = false,
+        val ifActions: List<Action> = emptyList(),
+        val elseActions: List<Action> = emptyList(),
     ) : Action("CONDITIONAL")
 
     @ActionDefinition(

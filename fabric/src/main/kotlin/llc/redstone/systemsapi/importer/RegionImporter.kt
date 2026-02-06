@@ -43,7 +43,7 @@ internal class RegionImporter(override var name: String) : Region {
         MenuUtils.onOpen("Edit Actions")
     }
 
-    override suspend fun setName(newName: String) {
+    override suspend fun setName(newName: String): Region {
         if (newName.length !in 1..50) throw IllegalArgumentException("Region name length must be in range 1..50")
         openRegionEditMenu()
 
@@ -51,16 +51,13 @@ internal class RegionImporter(override var name: String) : Region {
         InputUtils.textInput(newName)
 
         name = newName
+        return this
     }
 
-    override suspend fun teleportToRegion() {
-        openRegionEditMenu()
-        MenuUtils.clickItems(MenuItems.teleport)
-    }
-
-    override suspend fun moveRegion() {
+    override suspend fun moveRegion(): Region {
         openRegionEditMenu()
         MenuUtils.clickItems(MenuItems.move)
+        return this
     }
 
     override suspend fun getPvpSettings(): MutableMap<Region.PvpSettings, Boolean?> {
@@ -79,7 +76,7 @@ internal class RegionImporter(override var name: String) : Region {
         return map
     }
 
-    override suspend fun setPvpSettings(newPvpSettings: MutableMap<Region.PvpSettings, Boolean?>) {
+    override suspend fun setPvpSettings(newPvpSettings: MutableMap<Region.PvpSettings, Boolean?>): Region {
         openRegionEditMenu()
         MenuUtils.clickItems(MenuItems.pvpSettings)
         MenuUtils.onOpen("PVP + Damage Settings - $name")
@@ -98,6 +95,7 @@ internal class RegionImporter(override var name: String) : Region {
             if (newValue == current) continue
             setDyeToggle(slot, newValue)
         }
+        return this
     }
 
     override suspend fun getEntryActionContainer(): ActionContainer {

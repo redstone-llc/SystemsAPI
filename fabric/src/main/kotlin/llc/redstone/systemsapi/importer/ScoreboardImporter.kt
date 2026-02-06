@@ -37,7 +37,7 @@ object ScoreboardImporter : Scoreboard {
             .mapNotNull { fromItemStack(it.stack, it.id) }
     }
 
-    override suspend fun setLines(newLines: List<LineType>) {
+    override suspend fun setLines(newLines: List<LineType>): Scoreboard {
         if (newLines.sumOf { it.lines } !in 1..10) throw IllegalArgumentException("New lines exceed scoreboard line limit of 1..10")
         openScoreboardMenu()
 
@@ -64,7 +64,7 @@ object ScoreboardImporter : Scoreboard {
             val gui = MenuUtils.currentMenu()
 
             when (line) {
-                is LineType.CustomLine -> {
+                is CustomLine -> {
                     val itemIndex = (44 downTo 0).firstOrNull { index ->
                         val slot = gui.screenHandler.getSlot(index)
                         slot.hasStack()
@@ -78,7 +78,7 @@ object ScoreboardImporter : Scoreboard {
                     MenuUtils.clickItems(MenuItems.back)
                     MenuUtils.onOpen("Scoreboard Editor")
                 }
-                is LineType.VariableValue -> {
+                is VariableValue -> {
                     val itemIndex = (44 downTo 0).firstOrNull { index ->
                         val slot = gui.screenHandler.getSlot(index)
                         slot.hasStack()
@@ -107,6 +107,7 @@ object ScoreboardImporter : Scoreboard {
             }
 
         }
+        return this
     }
 
     suspend fun fromItemStack(stack: net.minecraft.item.ItemStack, slot: Int): LineType? {

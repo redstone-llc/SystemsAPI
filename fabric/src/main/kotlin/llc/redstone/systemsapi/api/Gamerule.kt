@@ -3,7 +3,7 @@ package llc.redstone.systemsapi.api
 interface Gamerule {
 
     suspend fun getGamerule(gamerule: Gamerules): Boolean
-    suspend fun setGamerule(gamerule: Gamerules, newValue: Boolean)
+    suspend fun setGamerule(gamerule: Gamerules, newValue: Boolean): Gamerule
 
     enum class Gamerules(val displayName: String) {
         JOIN_MESSAGES("joinMessages"),

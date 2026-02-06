@@ -8,22 +8,22 @@ import kotlin.reflect.KClass
 interface Npc {
     var name: String
     suspend fun getName(): String = name
-    suspend fun setName(newName: String)
+    suspend fun setName(newName: String): Npc
 
     suspend fun getNpcType(): NpcType
-    suspend fun setNpcType(newNpcType: NpcType)
+    suspend fun setNpcType(newNpcType: NpcType): Npc
 
     suspend fun getLookAtPlayers(): Boolean
-    suspend fun setLookAtPlayers(newLookAtPlayers: Boolean)
+    suspend fun setLookAtPlayers(newLookAtPlayers: Boolean): Npc
 
     suspend fun getHideNameTag(): Boolean
-    suspend fun setHideNameTag(newHideNameTag: Boolean)
+    suspend fun setHideNameTag(newHideNameTag: Boolean): Npc
 
     suspend fun getLeftClickActionContainer(): ActionContainer
     suspend fun getRightClickActionContainer(): ActionContainer
 
     suspend fun getLeftClickRedirect(): Boolean
-    suspend fun setLeftClickRedirect(newLeftClickRedirect: Boolean)
+    suspend fun setLeftClickRedirect(newLeftClickRedirect: Boolean): Npc
 
     suspend fun delete()
 

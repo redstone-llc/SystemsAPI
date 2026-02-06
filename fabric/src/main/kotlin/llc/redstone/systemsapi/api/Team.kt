@@ -4,16 +4,16 @@ interface Team {
     var name: String
 
     suspend fun getName(): String = name
-    suspend fun setName(newName: String)
+    suspend fun setName(newName: String): Team
 
     suspend fun getTag(): String
-    suspend fun setTag(newTag: String)
+    suspend fun setTag(newTag: String): Team
 
     suspend fun getColor(): TeamColor
-    suspend fun setColor(newColor: TeamColor)
+    suspend fun setColor(newColor: TeamColor): Team
 
     suspend fun getFriendlyFire(): Boolean
-    suspend fun setFriendlyFire(newFriendlyFire: Boolean)
+    suspend fun setFriendlyFire(newFriendlyFire: Boolean): Team
 
     suspend fun delete()
 

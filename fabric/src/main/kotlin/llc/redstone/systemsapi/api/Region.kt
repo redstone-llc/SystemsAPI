@@ -6,15 +6,13 @@ interface Region {
     var name: String
 
     suspend fun getName(): String = name
-    suspend fun setName(newName: String)
-
-    suspend fun teleportToRegion()
+    suspend fun setName(newName: String): Region
 
     // Region must be selected to run this.
-    suspend fun moveRegion()
+    suspend fun moveRegion(): Region
 
     suspend fun getPvpSettings(): MutableMap<PvpSettings, Boolean?>
-    suspend fun setPvpSettings(newPvpSettings: MutableMap<PvpSettings, Boolean?>)
+    suspend fun setPvpSettings(newPvpSettings: MutableMap<PvpSettings, Boolean?>): Region
 
     suspend fun getEntryActionContainer(): ActionContainer
     suspend fun getExitActionContainer(): ActionContainer

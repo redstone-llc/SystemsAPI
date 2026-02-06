@@ -29,9 +29,10 @@ object GameruleImporter : Gamerule {
         }
     }
 
-    override suspend fun setGamerule(gamerule: Gamerule.Gamerules, newValue: Boolean) {
+    override suspend fun setGamerule(gamerule: Gamerule.Gamerules, newValue: Boolean): Gamerule {
         val value = if (newValue) "enabled" else "disabled"
         CommandUtils.runCommand("gamerule ${gamerule.displayName} $value")
+        return this
     }
 
 }

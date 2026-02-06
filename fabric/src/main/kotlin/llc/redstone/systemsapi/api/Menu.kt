@@ -7,10 +7,10 @@ interface Menu {
     var title: String
 
     suspend fun getTitle(): String = title
-    suspend fun setTitle(newTitle: String)
+    suspend fun setTitle(newTitle: String): Menu
 
     suspend fun getMenuSize(): Int
-    suspend fun changeMenuSize(newSize: Int)
+    suspend fun changeMenuSize(newSize: Int): Menu
 
     suspend fun getMenuElement(index: Int): MenuElement
     suspend fun getAllMenuElements(): Array<MenuElement>
@@ -19,7 +19,7 @@ interface Menu {
 
     interface MenuElement {
         suspend fun getItem(): ItemStack
-        suspend fun setItem(item: ItemStack)
+        suspend fun setItem(item: ItemStack): MenuElement
 
         suspend fun getActionContainer(): ActionContainer?
     }
