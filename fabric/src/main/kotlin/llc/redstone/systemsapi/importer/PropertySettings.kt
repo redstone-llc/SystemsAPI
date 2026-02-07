@@ -209,6 +209,7 @@ object PropertySettings {
             Boolean::class -> value.equals("enabled", ignoreCase = true)
             //Stat Values
             StatValue::class -> {
+                val value = value.replace(",", "")
                 when {
                     value == "Not Set" -> null
                     value.matches(Regex("-?\\d+")) -> StatValue.I32(value.toInt())

@@ -383,7 +383,7 @@ sealed class Action(
             ])
         ]
     )
-    sealed class ChangeVariable protected constructor(
+    sealed class ChangeVariable(
         val holder: VariableHolder
     ): Action("CHANGE_VARIABLE")
 
@@ -436,8 +436,7 @@ sealed class Action(
         val op: StatOp,
         val amount: StatValue,
         val unset: Boolean = false
-    ) : ChangeVariable(VariableHolder.Team) {
-    }
+    ) : ChangeVariable(VariableHolder.Team)
 
     @ActionDefinition(
         displayName = "Change Variable",
@@ -1048,21 +1047,21 @@ sealed class StatValue {
         override fun toString() = value.toString()
     }
     data class Str(val value: String) : StatValue() {
-        override fun toString() = value
+        override fun toString() = "\"$value\""
     }
 }
 
 sealed class InventorySlot(override val key: String, val slot: Int): Keyed {
     @CustomKey
     data class ManualInput(val inputSlot: Int) : InventorySlot("Manual Input", inputSlot)
-    class HandSlot() : InventorySlot("Hand Slot", -2)
-    class FirstAvailableSlot() : InventorySlot("First Available Slot", -1)
+    class HandSlot : InventorySlot("Hand Slot", -2)
+    class FirstAvailableSlot : InventorySlot("First Available Slot", -1)
     class HotbarSlot(slot: Int) : InventorySlot("Hotbar Slot $slot", slot - 1)
     class PlayerInventorySlot(slot: Int) : InventorySlot("Inventory Slot $slot", slot + 8)
-    class HelmetSlot() : InventorySlot("Helmet", 39)
-    class ChestplateSlot() : InventorySlot("Chestplate", 38)
-    class LeggingsSlot() : InventorySlot("Leggings", 37)
-    class BootsSlot() : InventorySlot("Boots", 36)
+    class HelmetSlot : InventorySlot("Helmet", 39)
+    class ChestplateSlot : InventorySlot("Chestplate", 38)
+    class LeggingsSlot : InventorySlot("Leggings", 37)
+    class BootsSlot : InventorySlot("Boots", 36)
     override fun toString(): String {
         return "$slot"
     }
