@@ -2,6 +2,8 @@ package llc.redstone.systemsapi.importer
 
 import kotlinx.coroutines.cancelChildren
 import llc.redstone.systemsapi.SystemsAPI
+import llc.redstone.systemsapi.SystemsAPI.DYNAMIC_FPS
+import llc.redstone.systemsapi.SystemsAPI.LOGGER
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.api.*
 import llc.redstone.systemsapi.api.Function
@@ -17,7 +19,15 @@ internal object HouseImporter : House {
         return importing
     }
 
-    fun setImporting(importing: Boolean) {
+    override fun setImporting(importing: Boolean) {
+        if (importing == this.importing) return
+        if (importing) {
+            LOGGER.info("Disabling Dynamic FPS for import...")
+            DYNAMIC_FPS?.disable()
+        } else {
+            LOGGER.info("Re-enabling Dynamic FPS after import...")
+            DYNAMIC_FPS?.enable()
+        }
         this.importing = importing
     }
 

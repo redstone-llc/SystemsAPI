@@ -38,7 +38,9 @@ dependencies {
 
     modImplementation("net.fabricmc:fabric-language-kotlin:${property("deps.fabric_language_kotlin")}")
     modImplementation("io.wispforest:owo-lib:${property("deps.owo")}")
+    modImplementation("maven.modrinth:dynamic-fps:3.11.4-fabric,${stonecutter.current.version}")
     ksp("dev.kosmx.kowoconfig:ksp-owo-config:0.2.0")
+
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
 
     modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
