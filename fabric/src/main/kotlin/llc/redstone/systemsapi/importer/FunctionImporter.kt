@@ -22,7 +22,7 @@ internal class FunctionImporter(override var name: String) : Function {
 
         CommandUtils.runCommand("functions")
         MenuUtils.onOpen("Functions")
-        MenuUtils.clickItems(this.name, paginated = true)
+        MenuUtils.clickItems(this.name, paginated = true, button = 1)
         MenuUtils.onOpen("Edit: ${this.name}")
     }
 
