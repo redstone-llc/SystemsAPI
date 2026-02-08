@@ -154,6 +154,7 @@ class ActionContainer(
     }
 
     suspend fun setActions(newActions: List<Action>) {
+        HouseImporter.setImporting(true)
         //Clear existing actions
         MenuUtils.onOpen(title)
         if (MenuUtils.findSlots(MenuItems.NO_ACTIONS).firstOrNull() == null) {
