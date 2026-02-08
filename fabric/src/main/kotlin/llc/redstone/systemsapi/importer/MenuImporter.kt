@@ -2,6 +2,7 @@ package llc.redstone.systemsapi.importer
 
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.api.Menu
+import llc.redstone.systemsapi.util.ChatUtils
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
@@ -73,8 +74,14 @@ internal class MenuImporter(override var title: String) : Menu {
     }
 
     suspend fun exists(): Boolean = CommandUtils.getTabCompletions("menus edit").contains(title)
-    fun create() = CommandUtils.runCommand("menus create $title")
-    override suspend fun delete() = CommandUtils.runCommand("menus delete $title")
+    suspend fun create() {
+        CommandUtils.runCommand("menus create $title")
+        MenuUtils.onOpen("Edit Menu: $title")
+    }
+    override suspend fun delete() {
+        CommandUtils.runCommand("menus delete $title")
+        ChatUtils.onRecieve("Deleted the custom menu")
+    }
 
 
     private object MenuItems {

@@ -4,6 +4,7 @@ import llc.redstone.systemsapi.SystemsAPI.LOGGER
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.SystemsAPI.scaledDelay
 import llc.redstone.systemsapi.api.Team
+import llc.redstone.systemsapi.util.ChatUtils
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.getProperty
@@ -142,10 +143,13 @@ class TeamImporter(override var name: String) : Team {
     suspend fun create() {
         if (this.exists()) throw IllegalStateException("Team already exists")
         CommandUtils.runCommand("team create ${this@TeamImporter.name}")
-        MenuUtils.onOpen("Manage Team: ${this@TeamImporter.name}")
+        MenuUtils.onOpen("Manage Team: $name")
     }
 
-    override suspend fun delete() = CommandUtils.runCommand("team delete ${this@TeamImporter.name}")
+    override suspend fun delete() {
+        CommandUtils.runCommand("team delete ${this@TeamImporter.name}")
+        ChatUtils.onRecieve("Deleted the team $name")
+    }
 
 
     private object MenuItems {

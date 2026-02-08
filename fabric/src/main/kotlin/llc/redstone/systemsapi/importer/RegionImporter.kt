@@ -3,6 +3,7 @@ package llc.redstone.systemsapi.importer
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.SystemsAPI.scaledDelay
 import llc.redstone.systemsapi.api.Region
+import llc.redstone.systemsapi.util.ChatUtils
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.CommandUtils.getTabCompletions
 import llc.redstone.systemsapi.util.InputUtils
@@ -109,9 +110,13 @@ internal class RegionImporter(override var name: String) : Region {
     }
 
     suspend fun exists(): Boolean = getTabCompletions("region edit").contains(name)
-    fun create() = CommandUtils.runCommand("region create $name")
+    suspend fun create() {
+        CommandUtils.runCommand("region create $name")
+        ChatUtils.onRecieve("Created region $name!")
+    }
     override suspend fun delete() {
         CommandUtils.runCommand("region delete $name")
+        ChatUtils.onRecieve("Deleted the region $name")
     }
 
 

@@ -3,6 +3,7 @@ package llc.redstone.systemsapi.importer
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.SystemsAPI.scaledDelay
 import llc.redstone.systemsapi.api.Layout
+import llc.redstone.systemsapi.util.ChatUtils
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
@@ -134,8 +135,14 @@ class LayoutImporter(override var name: String) : Layout {
     }
 
     suspend fun exists(): Boolean = CommandUtils.getTabCompletions("layout edit").contains(name)
-    fun create() = CommandUtils.runCommand("layout create $name")
-    override suspend fun delete() = CommandUtils.runCommand("layout delete $name")
+    suspend fun create() {
+        CommandUtils.runCommand("layout create $name")
+        MenuUtils.onOpen("Layout Editor")
+    }
+    override suspend fun delete() {
+        CommandUtils.runCommand("layout delete $name")
+        ChatUtils.onRecieve("Deleted the layout $name")
+    }
 
 
     private object MenuItems {

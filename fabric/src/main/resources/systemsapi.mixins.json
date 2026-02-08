@@ -6,6 +6,7 @@
   "client": [
     "CancelPauseScreenMixin",
     "ChatInputMixin",
+    "ClientPlayNetworkHandlerMixin",
     "CommandSuggestionMixin",
     "ItemReceiveMixin",
     "OpenCloseScreenMixin",
