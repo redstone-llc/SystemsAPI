@@ -212,8 +212,13 @@ object PropertySettings {
                 val value = value.replace(",", "")
                 when {
                     value == "Not Set" -> null
-                    value.matches(Regex("-?\\d+")) -> StatValue.I32(value.toInt())
-                    value.matches(Regex("-?\\d+")) -> StatValue.Lng(value.toLong())
+                    value.matches(Regex("-?\\d+")) -> {
+                        if (value.toIntOrNull() == null) {
+                            StatValue.Lng(value.toLong())
+                        } else {
+                            StatValue.I32(value.toInt())
+                        }
+                    }
                     value.matches(Regex("-?\\d+(\\.\\d+)?")) -> StatValue.Dbl(value.toDouble())
                     else -> StatValue.Str(colorValue)
                 }
