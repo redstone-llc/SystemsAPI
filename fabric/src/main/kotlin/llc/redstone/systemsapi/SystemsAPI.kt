@@ -17,8 +17,8 @@ import kotlin.coroutines.CoroutineContext
 object SystemsAPI : ClientModInitializer {
     internal const val MOD_ID = "systemsapi"
     internal val LOGGER: Logger = LoggerFactory.getLogger("SystemsAPI")
-    internal const val VERSION = /*$ mod_version*/ "0.1.11";
-    internal const val MINECRAFT = /*$ minecraft*/ "1.21.11";
+    internal const val VERSION = /*$ mod_version*/ "0.1.11"
+    internal const val MINECRAFT = /*$ minecraft*/ "1.21.9"
     internal val CONFIG = SystemsAPIConfig.createAndLoad()
     internal val MC: MinecraftClient
         get() = MinecraftClient.getInstance()
