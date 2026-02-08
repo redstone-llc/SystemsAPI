@@ -43,6 +43,10 @@ SystemsAPI is a fabric library that abstracts Hypixel Housing's house systems fo
     - [x] Roles
 - [ ] Scope and limit abstraction, for easy action validation
 
+## Demo
+
+https://github.com/user-attachments/assets/aeba131a-c802-44fd-9c94-915c43e6092a
+
 ## Usage
 
 To use SystemsAPI in your mod, include the project in your maven/gradle project. Replace `VERSION` with the latest version, as shown in the Maven badge above (omit the `V`).

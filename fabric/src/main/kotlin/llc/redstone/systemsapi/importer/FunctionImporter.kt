@@ -1,6 +1,7 @@
 package llc.redstone.systemsapi.importer
 
 import llc.redstone.systemsapi.api.Function
+import llc.redstone.systemsapi.util.ChatUtils
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.CommandUtils.getTabCompletions
 import llc.redstone.systemsapi.util.InputUtils
@@ -22,7 +23,7 @@ internal class FunctionImporter(override var name: String) : Function {
 
         CommandUtils.runCommand("functions")
         MenuUtils.onOpen("Functions")
-        MenuUtils.clickItems(this.name, paginated = true)
+        MenuUtils.clickItems(this.name, paginated = true, button = 1)
         MenuUtils.onOpen("Edit: ${this.name}")
     }
 
@@ -112,8 +113,14 @@ internal class FunctionImporter(override var name: String) : Function {
     }
 
     suspend fun exists(): Boolean = getTabCompletions("function edit").contains(this.name)
-    fun create() = CommandUtils.runCommand("function create ${this.name}")
-    override suspend fun delete() = CommandUtils.runCommand("function delete ${this.name}")
+    suspend fun create() {
+        CommandUtils.runCommand("function create ${this.name}")
+        MenuUtils.onOpen("Actions: $name")
+    }
+    override suspend fun delete() {
+        CommandUtils.runCommand("function delete ${this.name}")
+        ChatUtils.onRecieve("Deleted the function $name")
+    }
 
 
     private object MenuItems {

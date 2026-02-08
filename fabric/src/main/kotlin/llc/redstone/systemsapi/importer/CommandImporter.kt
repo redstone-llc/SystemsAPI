@@ -2,6 +2,7 @@ package llc.redstone.systemsapi.importer
 
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.api.Command
+import llc.redstone.systemsapi.util.ChatUtils
 import llc.redstone.systemsapi.util.CommandUtils
 import llc.redstone.systemsapi.util.CommandUtils.getTabCompletions
 import llc.redstone.systemsapi.util.InputUtils
@@ -136,9 +137,13 @@ internal class CommandImporter(override var name: String) : Command {
     suspend fun create() {
         if (this.exists()) throw IllegalStateException("Command already exists")
         CommandUtils.runCommand("command create ${this@CommandImporter.name}")
+        MenuUtils.onOpen("Actions: /$name")
     }
 
-    override suspend fun delete() = CommandUtils.runCommand("command delete ${this@CommandImporter.name}")
+    override suspend fun delete() {
+        CommandUtils.runCommand("command delete ${this@CommandImporter.name}")
+        ChatUtils.onRecieve("Deleted the command $name")
+    }
 
 
     private object MenuItems {

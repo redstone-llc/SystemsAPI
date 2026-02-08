@@ -1,6 +1,7 @@
 package llc.redstone.test
 
 import com.mojang.brigadier.context.CommandContext
+import llc.redstone.systemsapi.SystemsAPI
 import llc.redstone.test.tests.Function.withFunctionSubCommand
 import llc.redstone.test.tests.GroupsTest.withGroupsSubCommand
 import llc.redstone.test.tests.HouseSettingsTest.withHouseSettingsSubCommand
@@ -10,6 +11,7 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.minecraft.client.MinecraftClient
+import net.minecraft.item.Items
 import net.minecraft.text.MutableText
 import net.minecraft.text.PlainTextContent.of
 import net.minecraft.text.Style
@@ -21,11 +23,10 @@ object TestMod : ClientModInitializer {
     const val MOD_ID = "testmod"
     val LOGGER: Logger = LoggerFactory.getLogger("TestMod")
     const val VERSION = /*$ mod_version*/ "0.0.1";
-    const val MINECRAFT = /*$ minecraft*/ "1.21.9";
+    const val MINECRAFT = /*$ minecraft*/ "1.21.11";
     val MC: MinecraftClient
         get() = MinecraftClient.getInstance()
 
-    // helper lambda: sends label (dark blue) + value (light blue)
     fun CommandContext<FabricClientCommandSource>.sendFeedback(label: String, value: Any) {
         val darkBlue = TextColor.fromRgb(0x1C5796)   // darker blue
         val lightBlue = TextColor.fromRgb(0x48719E)  // lighter blue
@@ -36,7 +37,6 @@ object TestMod : ClientModInitializer {
 
     override fun onInitializeClient() {
         LOGGER.info("Loaded v$VERSION for Minecraft $MINECRAFT.")
-
 
         ClientCommandRegistrationCallback.EVENT.register { dispatcher, registryAccess ->
             dispatcher.register(
@@ -49,6 +49,21 @@ object TestMod : ClientModInitializer {
                     .withHouseSettingsSubCommand()
                     .withRegionsSubCommand()
                     .withGroupsSubCommand()
+            )
+
+            dispatcher.register(
+                literal("demo")
+                    .executes { context ->
+                        SystemsAPI.launch {
+                            val importer = SystemsAPI.getHousingImporter()
+
+                            importer.createFunction("mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm")
+                                .setIcon(Items.REDSTONE)
+                                .setDescription("Does some cool stuff")
+                                .setAutomaticExecution(10)
+                        }
+                        1
+                    }
             )
         }
     }
