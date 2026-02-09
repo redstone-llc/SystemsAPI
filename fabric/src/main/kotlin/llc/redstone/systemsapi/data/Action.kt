@@ -958,31 +958,52 @@ data class ItemStack(
 sealed class Location(override val key: String): Keyed {
     @CustomKey
     class Custom(
-        val relX: Boolean,
-        val relY: Boolean,
-        val relZ: Boolean,
-        val relPitch: Boolean = false,
-        val relYaw: Boolean = false,
-        val x: Double?,
-        val y: Double?,
-        val z: Double?,
-        val pitch: Float?,
-        val yaw: Float?,
+        val x: Coordinate,
+        val y: Coordinate,
+        val z: Coordinate,
+        val pitch: Coordinate? = null,
+        val yaw: Coordinate? = null,
     ) : Location("Custom Coordinates") {
+        enum class Type {
+            NORMAL, RELATIVE, CARET
+        }
+
+        data class Coordinate(val value: Number?, val type: Type) {
+            constructor(value: Number) : this(value, Type.NORMAL)
+        }
+
         override fun toString(): String {
-            val x = if (x == 0.0) "" else x.toString()
-            val y = if (y == 0.0) "" else y.toString()
-            val z = if (z == 0.0) "" else z.toString()
-            val xString = if (relX) "~$x" else x
-            val yString = if (relY) "~$y" else y
-            val zString = if (relZ) "~$z" else z
-            if (pitch != null && yaw != null) {
-                val pitchString = if (relPitch) "~$pitch" else pitch
-                val yawString = if (relYaw) "~$yaw" else yaw
-                return "$xString $yString $zString $pitchString $yawString"
-            } else {
-                return "$xString $yString $zString"
+            val xStr = when (x.type) {
+                Type.NORMAL -> x.value.toString()
+                Type.RELATIVE -> "~${x.value ?: ""}"
+                Type.CARET -> "^${x.value ?: ""}"
             }
+            val yStr = when (y.type) {
+                Type.NORMAL -> y.value.toString()
+                Type.RELATIVE -> "~${y.value ?: ""}"
+                Type.CARET -> "^${y.value ?: ""}"
+            }
+            val zStr = when (z.type) {
+                Type.NORMAL -> z.value.toString()
+                Type.RELATIVE -> "~${z.value.toString()}"
+                Type.CARET -> "^${z.value.toString()}"
+            }
+            val pitchStr = if (pitch != null) {
+                when (pitch.type) {
+                    Type.NORMAL -> pitch.value.toString()
+                    Type.RELATIVE -> "~${pitch.value ?: ""}"
+                    Type.CARET -> "^${pitch.value ?: ""}"
+                }
+            } else null
+            val yawStr = if (yaw != null) {
+                when (yaw.type) {
+                    Type.NORMAL -> yaw.value.toString()
+                    Type.RELATIVE -> "~${yaw.value ?: ""}"
+                    Type.CARET -> "^${yaw.value ?: ""}"
+                }
+            } else null
+
+            return listOfNotNull(xStr, yStr, zStr, pitchStr, yawStr).joinToString(" ")
         }
     }
 
