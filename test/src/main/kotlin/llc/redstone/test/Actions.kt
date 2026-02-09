@@ -1,14 +1,13 @@
 package llc.redstone.test
 
+import llc.redstone.systemsapi.data.*
 import llc.redstone.systemsapi.data.Action.*
 import llc.redstone.systemsapi.data.Condition.*
-import llc.redstone.systemsapi.data.*
 import llc.redstone.systemsapi.data.enums.*
 import llc.redstone.systemsapi.util.ItemUtils
 import net.minecraft.component.DataComponentTypes
 import net.minecraft.item.Items
 import net.minecraft.text.Text
-import kotlin.collections.listOf
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.primaryConstructor
@@ -496,16 +495,9 @@ object Actions {
 
             else -> {
                 Location.Custom(
-                    relX = listOf(true, false).random(),
-                    relY = listOf(true, false).random(),
-                    relZ = listOf(true, false).random(),
-                    relPitch = listOf(false).random(),
-                    relYaw = listOf(false).random(),
-                    x = Math.random() * 100,
-                    y = Math.random() * 100,
-                    z = Math.random() * 100,
-                    pitch = if (Math.random() > 0.5) Math.random().toFloat() * 90f else null,
-                    yaw = if (Math.random() > 0.5) Math.random().toFloat() * 90f else null
+                    x = Location.Custom.Coordinate(0.0),
+                    y = Location.Custom.Coordinate(0.0),
+                    z = Location.Custom.Coordinate(0.0),
                 )
             }
         }
