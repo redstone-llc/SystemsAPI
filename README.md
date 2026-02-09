@@ -17,10 +17,7 @@
 
 ## Overview
 
-SystemsAPI is a fabric library that abstracts Hypixel Housing's house systems for other mods to use. For an example implementation, see [HTSL Reborn](https://github.com/sinender/HTSLReborn).
-
-> [!WARNING]
-> This project is a work in progress! Expect constant changes to API structure at this stage.
+SystemsAPI is a fabric library that abstracts Hypixel Housing's house systems for other mods to use. For an example implementation, see [HTSL Reborn](https://github.com/sinender/HTSLReborn), or the `test` directory in this repository.
 
 ## Features
 
