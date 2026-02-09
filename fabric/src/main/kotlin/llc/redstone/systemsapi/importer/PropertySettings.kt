@@ -293,32 +293,27 @@ object PropertySettings {
                         val xPart = parts[0]
                         val yPart = parts[1]
                         val zPart = parts[2]
-                        val pitchPart = parts.getOrNull(3)?.split(": ")?.getOrNull(1)
-                        val yawPart = parts.getOrNull(4)?.split(": ")?.getOrNull(1)
+                        val pitch = parts.getOrNull(3)?.split(": ")?.getOrNull(1)
+                        val yaw = parts.getOrNull(4)?.split(": ")?.getOrNull(1)
 
-                        val relX = xPart.startsWith("~")
-                        val relY = yPart.startsWith("~")
-                        val relZ = zPart.startsWith("~")
-                        val relPitch = pitchPart?.startsWith("~") ?: false
-                        val relYaw = yawPart?.startsWith("~") ?: false
-
-                        val x = xPart.removePrefix("~").toDoubleOrNull() ?: 0.0
-                        val y = yPart.removePrefix("~").toDoubleOrNull() ?: 0.0
-                        val z = zPart.removePrefix("~").toDoubleOrNull() ?: 0.0
-                        val pitch = pitchPart?.removePrefix("~")?.toFloatOrNull()
-                        val yaw = yawPart?.removePrefix("~")?.toFloatOrNull()
+                        fun parsePart(part: String?): Location.Custom.Coordinate? {
+                            if (part == null) return null
+                            return Location.Custom.Coordinate(
+                                value = part.removePrefix("~").removePrefix("^").toDoubleOrNull() ?: 0.0,
+                                type = when {
+                                    part.startsWith("~") -> Location.Custom.Type.RELATIVE
+                                    part.startsWith("^") -> Location.Custom.Type.CARET
+                                    else -> Location.Custom.Type.NORMAL
+                                }
+                            )
+                        }
 
                         Location.Custom(
-                            relX = relX,
-                            relY = relY,
-                            relZ = relZ,
-                            relPitch = relPitch,
-                            relYaw = relYaw,
-                            x = x,
-                            y = y,
-                            z = z,
-                            pitch = pitch,
-                            yaw = yaw,
+                            x = parsePart(xPart) ?: error("Invalid X coordinate: $xPart"),
+                            y = parsePart(yPart) ?: error("Invalid Y coordinate: $yPart"),
+                            z = parsePart(zPart) ?: error("Invalid Z coordinate: $zPart"),
+                            pitch = parsePart(pitch),
+                            yaw = parsePart(yaw)
                         )
                     }
                 }
