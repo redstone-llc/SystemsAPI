@@ -28,6 +28,8 @@ jobs:
           gradle-version: "9.2.0"
 
       - name: Build docs with Dokka
+        env:
+          GRADLE_OPTS: "-Xmx4g -XX:MaxMetaspaceSize=512m"
         run: ./gradlew :fabric:1.21.9:dokkaGenerateHtml
 
       - name: Upload artifact
