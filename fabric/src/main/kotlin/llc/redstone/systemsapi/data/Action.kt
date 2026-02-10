@@ -74,8 +74,8 @@ sealed class Action(
         ]
     )
     data class ChangePlayerGroup(
-        @property:Pagination val newGroup: String,
-        val includeHigherGroups: Boolean = false,
+        @property:Pagination val newGroup: String?,
+        val includeHigherGroups: Boolean = true,
     ) : Action("CHANGE_PLAYER_GROUP")
 
     @ActionDefinition(
@@ -132,9 +132,9 @@ sealed class Action(
     data class DisplayTitle(
         val title: String,
         val subtitle: String,
-        val fadeIn: Int,
-        val stay: Int,
-        val fadeOut: Int,
+        val fadeIn: Int = 1,
+        val stay: Int = 5,
+        val fadeOut: Int = 1,
     ) : Action("TITLE")
 
     @ActionDefinition(
@@ -240,7 +240,7 @@ sealed class Action(
     )
     data class GiveItem(
         val item: ItemStack?,
-        val allowMultiple: Boolean,
+        val allowMultiple: Boolean = false,
         val inventorySlot: InventorySlot?,
         val replaceExistingItem: Boolean = false,
     ) : Action("GIVE_ITEM")
@@ -303,13 +303,13 @@ sealed class Action(
         ]
     )
     data class ApplyPotionEffect(
-        val effect: PotionEffect,
-        val duration: Int,
-        val level: Int,
+        val effect: PotionEffect?,
+        val duration: Int = 60,
+        val level: Int = 1,
         @SerialName("override_existing_effects")
-        val override: Boolean,
+        val override: Boolean = false,
         @SerialName("show_potion_icon")
-        val showIcon: Boolean = false,
+        val showIcon: Boolean = true,
     ) : Action("POTION_EFFECT")
 
     @ActionDefinition(
@@ -408,7 +408,7 @@ sealed class Action(
     data class PlayerVariable(
         val variable: String,
         val op: StatOp,
-        val amount: StatValue,
+        val amount: StatValue? = null,
         val unset: Boolean = false
     ) : ChangeVariable(VariableHolder.Player)
 
@@ -434,7 +434,7 @@ sealed class Action(
         @property:Pagination val teamName: String,
         val variable: String,
         val op: StatOp,
-        val amount: StatValue,
+        val amount: StatValue? = null,
         val unset: Boolean = false
     ) : ChangeVariable(VariableHolder.Team)
 
@@ -459,7 +459,7 @@ sealed class Action(
     data class GlobalVariable(
         val variable: String,
         val op: StatOp,
-        val amount: StatValue,
+        val amount: StatValue? = null,
         val unset: Boolean = false
     ) : ChangeVariable(VariableHolder.Global)
 
@@ -525,10 +525,10 @@ sealed class Action(
         ]
     )
     data class PlaySound(
-        val sound: Sound,
-        val volume: Double,
-        val pitch: Double,
-        val location: Location,
+        val sound: Sound?,
+        val volume: Double = 0.7,
+        val pitch: Double = 1.0,
+        val location: Location?,
     ) : Action("PLAY_SOUND")
 
     @ActionDefinition(
@@ -665,7 +665,7 @@ sealed class Action(
             ])
         ]
     )
-    data class ExecuteFunction(@property:Pagination val name: String, val global: Boolean) : Action("TRIGGER_FUNCTION")
+    data class ExecuteFunction(@property:Pagination val name: String, val global: Boolean = false) : Action("TRIGGER_FUNCTION")
 
     @ActionDefinition(
         displayName = "Apply Inventory Layout",
@@ -716,7 +716,7 @@ sealed class Action(
     )
     data class EnchantHeldItem(
         val enchantment: Enchantment,
-        val level: Int,
+        val level: Int = 1,
     ) : Action("ENCHANT_HELD_ITEM")
     
     @ActionDefinition(
@@ -807,13 +807,13 @@ sealed class Action(
     )
     data class DropItem(
         val item: ItemStack?,
-        val location: Location,
-        val dropNaturally: Boolean,
-        val disableMerging: Boolean,
-        val despawnDurationTicks: Int,
-        val pickupDelayTicks: Int,
-        val prioritizePlayer: Boolean,
-        val inventoryFallback: Boolean,
+        val location: Location?,
+        val dropNaturally: Boolean = true,
+        val disableMerging: Boolean = false,
+        val despawnDurationTicks: Int = 6000,
+        val pickupDelayTicks: Int = 10,
+        val prioritizePlayer: Boolean = false,
+        val inventoryFallback: Boolean = false,
     ) : Action("DROP_ITEM")
 
     @ActionDefinition(
@@ -859,8 +859,8 @@ sealed class Action(
         ]
     )
     data class LaunchToTarget(
-        val location: Location,
-        val strength: Double
+        val location: Location?,
+        val strength: Double = 2.0
     ) : Action("LAUNCH_TO_TARGET")
 
     @ActionDefinition(
