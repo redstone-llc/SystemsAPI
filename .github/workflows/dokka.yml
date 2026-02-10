@@ -2,6 +2,7 @@ name: Generate and deploy Dokka to GitHub Pages
 
 on:
   release:
+    types: [published]
   workflow_dispatch:
 
 permissions:
