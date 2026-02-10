@@ -30,6 +30,7 @@ jobs:
       - name: Build docs with Dokka
         env:
           GRADLE_OPTS: "-Xmx2g -XX:+UseParallelGC -XX:MaxMetaspaceSize=384m"
+          _JAVA_OPTIONS: "-Xmx4g"
         run: ./gradlew :fabric:1.21.9:dokkaGenerateHtml
 
       - name: Upload artifact
