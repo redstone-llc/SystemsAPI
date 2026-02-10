@@ -4,6 +4,7 @@ plugins {
     id("fabric-loom")
     `maven-publish`
     id("me.modmuss50.mod-publish-plugin")
+    id("org.jetbrains.dokka") version "2.1.0"
 }
 
 version = "${property("mod.version")}+${stonecutter.current.version}"
