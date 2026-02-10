@@ -1,6 +1,5 @@
 name: Bug report
 description: File a bug report.
-title: ""
 labels: ["triage"]
 type: "Bug"
 body:
