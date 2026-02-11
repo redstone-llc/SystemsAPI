@@ -30,7 +30,7 @@ class TeamImporter(override var name: String) : Team {
     }
 
     override suspend fun setName(newName: String): Team {
-        if (newName.length !in 1..16) throw IllegalArgumentException("Team name length must be in range 1..16")
+        if (newName.length in 1..16) throw IllegalArgumentException("Team name length must be in range 1..16")
         openTeamMenu()
 
         MenuUtils.clickItems(MenuItems.name)
@@ -53,6 +53,7 @@ class TeamImporter(override var name: String) : Team {
     }
 
     override suspend fun setTag(newTag: String): Team {
+        require(newTag.length in 1..10) { "Tag length must be in range 1..10" }
         openTeamMenu()
 
         val tag = MenuUtils.findSlots(MenuItems.tag).first()
