@@ -5,6 +5,9 @@ import llc.redstone.systemsapi.data.ItemStack
 import llc.redstone.systemsapi.importer.ActionContainer
 import kotlin.reflect.KClass
 
+/**
+ * > **Warning:** NPCs are not functional at this moment.
+ */
 interface Npc {
     var name: String
     suspend fun getName(): String = name

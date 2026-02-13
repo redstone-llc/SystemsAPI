@@ -15,6 +15,8 @@ import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameExact
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.item.Items
 
+const val MAX_NAME_LENGTH = 30
+
 internal class CommandImporter(override var name: String) : Command {
     private fun isCommandEditMenuOpen(): Boolean {
         val container = MC.currentScreen as? GenericContainerScreen ?: return false
@@ -41,6 +43,7 @@ internal class CommandImporter(override var name: String) : Command {
     }
 
     override suspend fun setName(newName: String): Command {
+        require(newName.length <= MAX_NAME_LENGTH) { "Command name must be less than $MAX_NAME_LENGTH characters but was ${newName.length}" }
         openCommandEditMenu()
 
         MenuUtils.clickItems(MenuItems.name)
@@ -88,6 +91,7 @@ internal class CommandImporter(override var name: String) : Command {
     }
 
     override suspend fun setRequiredGroupPriority(newPriority: Int): Command {
+        require(newPriority in 0..20) { "Priority must be between 0 and 20" }
         openCommandEditMenu()
 
         val priority = MenuUtils.findSlots(MenuItems.requiredGroupPriority).first()
@@ -135,6 +139,7 @@ internal class CommandImporter(override var name: String) : Command {
 
     suspend fun exists(): Boolean = getTabCompletions("command edit").contains(this@CommandImporter.name)
     suspend fun create() {
+        require(name.length <= MAX_NAME_LENGTH) { "Command name must be less than $MAX_NAME_LENGTH characters but was ${name.length}" }
         if (this.exists()) throw IllegalStateException("Command already exists")
         CommandUtils.runCommand("command create ${this@CommandImporter.name}")
         MenuUtils.onOpen("Actions: /$name")

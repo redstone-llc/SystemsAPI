@@ -44,7 +44,7 @@ internal class MenuImporter(override var title: String) : Menu {
         return Regex("""\d+""").find(stack.name.string)?.value?.toIntOrNull() ?: throw IllegalStateException("[Menu $title] Couldn't find menu size.")
     }
 
-    override suspend fun changeMenuSize(newSize: Int): Menu {
+    override suspend fun setMenuSize(newSize: Int): Menu {
         if (newSize !in 1..6) throw IllegalArgumentException("New size must be in 1..6")
         openMenuEditMenu()
         MenuUtils.clickItems(MenuItems.size)
