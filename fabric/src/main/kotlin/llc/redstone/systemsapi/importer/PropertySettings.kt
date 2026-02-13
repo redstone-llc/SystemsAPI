@@ -41,6 +41,9 @@ object PropertySettings {
             importTimes[property.returnType.classifier as KClass<*>] = (prevTime + duration) / 2
         }
 
+        if (value == null || !slot.hasStack()) {
+            return
+        }
         when (property.returnType.classifier) {
             Int::class, Double::class, StatValue::class -> {
                 if (currentValue != value.toString()) {
@@ -120,6 +123,25 @@ object PropertySettings {
 
                 if (invSlot::class.annotations.find { it is CustomKey } != null) {
                     InputUtils.textInput(value.toString())
+                }
+                finishImport()
+                return
+            }
+
+            Location::class -> {
+                if (currentValue == value.toString()) return
+
+                val location = value as Location
+
+                MenuUtils.packetClick(slotIndex)
+                MenuUtils.onOpen("Select Option")
+
+                when (location) {
+                    is Location.CurrentLocation, Location.HouseSpawn, Location.InvokersLocation -> MenuUtils.clickItems(location.key, paginated = true)
+                    is Location.Custom -> {
+                        MenuUtils.clickItems("Custom Coordinates", paginated = true)
+                        InputUtils.textInput(location.toString())
+                    }
                 }
                 finishImport()
                 return

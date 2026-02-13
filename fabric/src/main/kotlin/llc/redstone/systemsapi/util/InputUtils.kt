@@ -143,6 +143,7 @@ object InputUtils {
 
     // For anvil and chat inputs
     suspend fun textInput(message: String) {
+        val message = message.ifEmpty { "&r" }
         when (val screen = MenuUtils.onOpen(null, AnvilScreen::class, ChatScreen::class, null)) {
             is AnvilScreen -> {
                 scaledDelay(4.0)
