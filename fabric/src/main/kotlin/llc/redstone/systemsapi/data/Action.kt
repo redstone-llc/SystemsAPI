@@ -1058,6 +1058,46 @@ enum class StatOp(override val key: String, val advanced: Boolean = false): Keye
 
 
 sealed class StatValue {
+    companion object {
+        fun from(value: Any): StatValue {
+            return when (value) {
+                is Long -> Lng(value)
+                is Int -> I32(value)
+                is Double -> Dbl(value)
+                is String -> fromString(value)
+                else -> throw IllegalArgumentException("Unsupported stat value type: ${value::class}")
+            }
+        }
+
+        fun fromString(str: String, colorStr: String? = null): StatValue {
+            val longValue = str.toLongOrNull()
+            if (longValue != null) return Lng(longValue)
+            if (str.endsWith("L", true)) {
+                val longWithoutSuffix = str.substring(0, str.length - 1)
+                val longValueWithSuffix = longWithoutSuffix.toLongOrNull()
+                if (longValueWithSuffix != null) return Lng(longValueWithSuffix)
+            }
+
+            val intValue = str.toIntOrNull()
+            if (intValue != null) return I32(intValue)
+
+            val doubleValue = str.toDoubleOrNull()
+            if (doubleValue != null) return Dbl(doubleValue)
+            if (str.endsWith("D", true)) {
+                val doubleWithoutSuffix = str.substring(0, str.length - 1)
+                val doubleValueWithSuffix = doubleWithoutSuffix.toDoubleOrNull()
+                if (doubleValueWithSuffix != null) return Dbl(doubleValueWithSuffix)
+            }
+
+            val str = colorStr ?: str
+
+            if (str.startsWith("\"") && str.endsWith("\"") && str.length >= 2) {
+                return Str(str.substring(1, str.length - 1))
+            }
+
+            return UnquotedStr(str)
+        }
+    }
     data class Lng(val value: Long) : StatValue() {
         override fun toString() = value.toString() + "L"
     }
@@ -1066,6 +1106,9 @@ sealed class StatValue {
     }
     data class Dbl(val value: Double) : StatValue() {
         override fun toString() = value.toString()
+    }
+    data class UnquotedStr(val value: String) : StatValue() {
+        override fun toString() = value
     }
     data class Str(val value: String) : StatValue() {
         override fun toString() = "\"$value\""

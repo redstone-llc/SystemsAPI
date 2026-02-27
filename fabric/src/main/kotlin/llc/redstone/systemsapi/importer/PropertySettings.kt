@@ -16,10 +16,7 @@ import java.lang.reflect.ParameterizedType
 import kotlin.jvm.optionals.getOrNull
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
-import kotlin.reflect.full.companionObjectInstance
-import kotlin.reflect.full.hasAnnotation
-import kotlin.reflect.full.isSubtypeOf
-import kotlin.reflect.full.starProjectedType
+import kotlin.reflect.full.*
 import kotlin.reflect.jvm.javaField
 
 object PropertySettings {
@@ -174,7 +171,7 @@ object PropertySettings {
             }
         }
 
-        if (property.returnType.isSubtypeOf(Keyed::class.starProjectedType)) {
+        if (property.returnType.isSubtypeOf(Keyed::class.starProjectedType.withNullability(true))) {
             val keyed = value as Keyed
 
             if (keyed is KeyedCycle) {
@@ -208,23 +205,40 @@ object PropertySettings {
 
         val startTime = System.currentTimeMillis()
         val prevTime = exportTimes.getOrDefault(prop.returnType.classifier as KClass<*>, 50L)
+        var colorValue = colorValue
+        var value = value
 
-        val argValue = when (prop.returnType.classifier) {
-            String::class -> {
-                if (value.endsWith("...")) {
-                    InputUtils.getPreviousInput {
-                        MenuUtils.packetClick(actionSlot.id)
-                        MenuUtils.onOpen("Action Settings")
-                        MenuUtils.packetClick(propertySlotIndex)
-                    }.also {
-                        MenuUtils.onOpen("Action Settings")
-                        MenuUtils.clickItems(MenuItems.BACK)
-                        MenuUtils.onOpen(title)
-                    }
-                } else {
-                    colorValue
+        if (value == "Not Set") {
+            return null
+        }
+
+        if (value.endsWith("...")) {
+            if (prop.returnType.classifier == Location::class) {
+                MenuUtils.packetClick(actionSlot.id)
+                MenuUtils.onOpen("Action Settings")
+                MenuUtils.getSlot(propertySlotIndex).stack.loreLines(false).getOrNull(2)?.let {
+                    colorValue = it
+                }
+                MenuUtils.clickItems(MenuItems.BACK)
+                MenuUtils.onOpen(title)
+            } else {
+                colorValue = InputUtils.getPreviousInput {
+                    MenuUtils.packetClick(actionSlot.id)
+                    MenuUtils.onOpen("Action Settings")
+                    MenuUtils.packetClick(propertySlotIndex)
+                }.also {
+                    MenuUtils.onOpen("Action Settings")
+                    MenuUtils.clickItems(MenuItems.BACK)
+                    MenuUtils.onOpen(title)
                 }
             }
+            value = colorValue.replace(Regex("&[0-9a-fk-or]"), "")
+        }
+
+        value = value.replace(",", "")
+
+        val argValue = when (prop.returnType.classifier) {
+            String::class -> colorValue
             Int::class -> value.toInt()
             Long::class -> value.toLong()
             Double::class -> value.toDouble()
@@ -234,15 +248,7 @@ object PropertySettings {
                 val value = value.replace(",", "")
                 when {
                     value == "Not Set" -> null
-                    value.matches(Regex("-?\\d+")) -> {
-                        if (value.toIntOrNull() == null) {
-                            StatValue.Lng(value.toLong())
-                        } else {
-                            StatValue.I32(value.toInt())
-                        }
-                    }
-                    value.matches(Regex("-?\\d+(\\.\\d+)?")) -> StatValue.Dbl(value.toDouble())
-                    else -> StatValue.Str(colorValue)
+                    else -> StatValue.fromString(value, colorValue)
                 }
             }
 
@@ -301,9 +307,6 @@ object PropertySettings {
 
             Location::class -> {
                 when (value) {
-                    "Not Set" -> {
-                        null
-                    }
                     "Invokers Location" -> {
                         Location.CurrentLocation
                     }
@@ -354,7 +357,7 @@ object PropertySettings {
             return argValue
         }
 
-        if (prop.returnType.isSubtypeOf(Keyed::class.starProjectedType)) {
+        if (prop.returnType.isSubtypeOf(Keyed::class.starProjectedType.withNullability(true))) {
             val companion = prop.returnType.classifier
                 .let { it as? KClass<*> }
                 ?.companionObjectInstance

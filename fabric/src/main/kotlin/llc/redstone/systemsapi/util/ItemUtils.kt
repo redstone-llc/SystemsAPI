@@ -7,13 +7,13 @@ import kotlin.jvm.optionals.getOrNull
 
 object ItemUtils {
     fun toNBT(itemStack: ItemStack): NbtCompound {
-        return ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, itemStack).result()
+        return ItemStack.VALIDATED_CODEC.encodeStart(NbtOps.INSTANCE, itemStack).result()
             .getOrNull()?.asCompound()?.getOrNull()
             ?: throw IllegalStateException("Could not convert item to nbt")
     }
 
     fun createFromNBT(nbt: NbtCompound): ItemStack {
-        return ItemStack.CODEC.decode(NbtOps.INSTANCE, nbt).result().getOrNull()?.first
+        return ItemStack.VALIDATED_CODEC.decode(NbtOps.INSTANCE, nbt).result().getOrNull()?.first
             ?: throw IllegalArgumentException("Failed to decode ItemStack from NBT")
     }
 }

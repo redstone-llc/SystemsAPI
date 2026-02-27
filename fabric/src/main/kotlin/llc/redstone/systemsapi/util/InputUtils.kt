@@ -197,7 +197,6 @@ object InputUtils {
             }
 
             if (pendingItemCompareStack != null) {
-                println("${stack.item} != ${pendingItemCompareStack!!.item}")
                 if (stack.item != pendingItemCompareStack!!.item) return
             }
 
