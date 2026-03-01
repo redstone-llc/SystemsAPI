@@ -22,7 +22,7 @@ enum class Lobby(override val key: String) : Keyed {
     MurderMystery("Murder Mystery"),
     BuildBattle("Build Battle"),
     Duels("Duels"),
-    WoolWars("Wool Wars");
+    WoolGames("Wool Games");
 
     companion object {
         fun fromKey(key: String): Lobby? = entries.find { it.key.equals(key, true) }
