@@ -5,10 +5,10 @@ import llc.redstone.systemsapi.data.DisplayName
 import llc.redstone.systemsapi.data.VariableHolder
 import llc.redstone.systemsapi.util.ItemStackUtils.getLoreLineMatchesOrNull
 import llc.redstone.systemsapi.util.ItemStackUtils.loreLines
+import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
 import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
 import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameExact
-import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.TextUtils
 import net.minecraft.item.Items
 import kotlin.reflect.KParameter
@@ -29,6 +29,18 @@ object ConditionContainer {
         6 to 16,
         7 to 19,
         8 to 20,
+        9 to 21,
+        10 to 22,
+        11 to 23,
+        12 to 24,
+        13 to 25,
+        14 to 28,
+        15 to 29,
+        16 to 30,
+        17 to 31,
+        18 to 32,
+        19 to 33,
+        20 to 34,
     )
 
     //List of actions to add to the container
@@ -104,7 +116,7 @@ object ConditionContainer {
 
 
             val name = TextUtils.convertTextToString(item.name, false)
-            var conditionClass = Condition::class.sealedSubclasses.firstOrNull() { it.findAnnotations(DisplayName::class).any { ann -> ann.value == name } }
+            var conditionClass = Condition::class.sealedSubclasses.firstOrNull { it.findAnnotations(DisplayName::class).any { ann -> ann.value == name } }
                 ?: continue
 
             var constructor = conditionClass.primaryConstructor!!
@@ -175,6 +187,12 @@ object ConditionContainer {
             }
 
             conditions.add(conditionInstance)
+        }
+
+        if (MenuUtils.findSlots(MenuUtils.GlobalMenuItems.NEXT_PAGE).firstOrNull() != null) {
+            MenuUtils.clickItems(MenuUtils.GlobalMenuItems.NEXT_PAGE)
+            MenuUtils.onOpen("Edit Conditions")
+            conditions.addAll(exportConditions())
         }
 
         return conditions
