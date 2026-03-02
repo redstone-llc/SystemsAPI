@@ -1,200 +1,207 @@
 package llc.redstone.systemsapi.data.enums
 
+import llc.redstone.systemsapi.data.CustomKey
 import llc.redstone.systemsapi.data.KeyedLabeled
 
-enum class Sound(override val label: String, override val key: String) : KeyedLabeled {
-    AmbienceCave("Ambience Cave", "ambient.cave.cave"),
-    AmbienceRain("Ambience Rain", "ambient.weather.rain"),
-    AmbienceThunder("Ambience Thunder", "ambient.weather.thunder"),
-    AnvilBreak("Anvil Break", "random.anvil_break"),
-    AnvilLand("Anvil Land", "random.anvil_land"),
-    AnvilUse("Anvil Use", "random.anvil_use"),
-    ArrowHit("Arrow Hit", "random.bowhit"),
-    Burp("Burp", "random.burp"),
-    ChestClose("Chest Close", "random.chestclosed"),
-    ChestOpen("Chest Open", "random.chestopen"),
-    Click("Click", "random.click"),
-    DoorClose("Door Close", "random.door_close"),
-    DoorOpen("Door Open", "random.door_open"),
-    Drink("Drink", "random.drink"),
-    Eat("Eat", "random.eat"),
-    Explode("Explode", "random.explode"),
-    FallBig("Fall Big", "game.player.hurt.fall.big"),
-    FallSmall("Fall Small", "game.player.hurt.fall.small"),
-    Fizz("Fizz", "random.fizz"),
-    Fuse("Fuse", "game.tnt.primed"),
-    Glass("Glass", "dig.glass"),
-    HurtFlesh("Hurt Flesh", "game.player.hurt"),
-    ItemBreak("Item Break", "random.break"),
-    ItemPickup("Item Pickup", "random.pop"),
-    LavaPop("Lava Pop", "liquid.lavapop"),
-    LevelUp("Level Up", "random.levelup"),
-    NoteBass("Note Bass", "note.bass"),
-    NotePiano("Note Piano", "note.harp"),
-    NoteBassDrum("Note Bass Drum", "note.bd"),
-    NoteSticks("Note Sticks", "note.hat"),
-    NoteBassGuitar("Note Bass Guitar", "note.bassattack"),
-    NoteSnareDrum("Note Snare Drum", "note.snare"),
-    NotePling("Note Pling", "note.pling"),
-    OrbPickup("Orb Pickup", "random.orb"),
-    ShootArrow("Shoot Arrow", "random.bow"),
-    Splash("Splash", "game.player.swim.splash"),
-    Swim("Swim", "game.player.swim"),
-    WoodClick("Wood Click", "random.wood_click"),
-    BatDeath("Bat Death", "mob.bat.death"),
-    BatHurt("Bat Hurt", "mob.bat.hurt"),
-    BatIdle("Bat Idle", "mob.bat.idle"),
-    BatLoop("Bat Loop", "mob.bat.loop"),
-    BatTakeoff("Bat Takeoff", "mob.bat.takeoff"),
-    BlazeBreath("Blaze Breath", "mob.blaze.breathe"),
-    BlazeDeath("Blaze Death", "mob.blaze.death"),
-    BlazeHit("Blaze Hit", "mob.blaze.hit"),
-    CatHiss("Cat Hiss", "mob.cat.hiss"),
-    CatHit("Cat Hit", "mob.cat.hitt"),
-    CatMeow("Cat Meow", "mob.cat.meow"),
-    CatPurr("Cat Purr", "mob.cat.purr"),
-    CatPurreow("Cat Purreow", "mob.cat.purreow"),
-    ChickenIdle("Chicken Idle", "mob.chicken.say"),
-    ChickenHurt("Chicken Hurt", "mob.chicken.hurt"),
-    ChickenEggPop("Chicken Egg Pop", "mob.chicken.plop"),
-    ChickenWalk("Chicken Walk", "mob.chicken.step"),
-    CowIdle("Cow Idle", "mob.cow.say"),
-    CowHurt("Cow Hurt", "mob.cow.hurt"),
-    CowWalk("Cow Walk", "mob.cow.step"),
-    CreeperHiss("Creeper Hiss", "mob.creeper.say"),
-    CreeperDeath("Creeper Death", "mob.creeper.death"),
-    EnderdragonDeath("Enderdragon Death", "mob.enderdragon.end"),
-    EnderdragonGrowl("Enderdragon Growl", "mob.enderdragon.growl"),
-    EnderdragonHit("Enderdragon Hit", "mob.enderdragon.hit"),
-    EnderdragonWings("Enderdragon Wings", "mob.enderdragon.wings"),
-    EndermanDeath("Enderman Death", "mob.endermen.death"),
-    EndermanHit("Enderman Hit", "mob.endermen.hit"),
-    EndermanIdle("Enderman Idle", "mob.endermen.idle"),
-    EndermanTeleport("Enderman Teleport", "mob.endermen.portal"),
-    EndermanScream("Enderman Scream", "mob.endermen.scream"),
-    EndermanStare("Enderman Stare", "mob.endermen.stare"),
-    GhastScream("Ghast Scream", "mob.ghast.scream"),
-    GhastScream2("Ghast Scream2", "mob.ghast.affectionate_scream"),
-    GhastCharge("Ghast Charge", "mob.ghast.charge"),
-    GhastDeath("Ghast Death", "mob.ghast.death"),
-    GhastFireball("Ghast Fireball", "mob.ghast.fireball"),
-    GhastMoan("Ghast Moan", "mob.ghast.moan"),
-    GuardianHit("Guardian Hit", "mob.guardian.hit"),
-    GuardianIdle("Guardian Idle", "mob.guardian.idle"),
-    GuardianDeath("Guardian Death", "mob.guardian.death"),
-    GuardianElderHit("Guardian Elder Hit", "mob.guardian.elder.hit"),
-    GuardianElderIdle("Guardian Elder Idle", "mob.guardian.elder.idle"),
-    GuardianElderDeath("Guardian Elder Death", "mob.guardian.elder.death"),
-    GuardianLandHit("Guardian Land Hit", "mob.guardian.land.hit"),
-    GuardianLandIdle("Guardian Land Idle", "mob.guardian.land.idle"),
-    GuardianLandDeath("Guardian Land Death", "mob.guardian.land.death"),
-    GuardianCurse("Guardian Curse", "mob.guardian.curse"),
-    GuardianAttack("Guardian Attack", "mob.guardian.attack"),
-    GuardianFlop("Guardian Flop", "mob.guardian.flop"),
-    IrongolemDeath("Irongolem Death", "mob.irongolem.death"),
-    IrongolemHit("Irongolem Hit", "mob.irongolem.hit"),
-    IrongolemThrow("Irongolem Throw", "mob.irongolem.throw"),
-    IrongolemWalk("Irongolem Walk", "mob.irongolem.walk"),
-    MagmacubeWalk("Magmacube Walk", "mob.magmacube.small"),
-    MagmacubeWalk2("Magmacube Walk2", "mob.magmacube.big"),
-    MagmacubeJump("Magmacube Jump", "mob.magmacube.jump"),
-    PigIdle("Pig Idle", "mob.pig.say"),
-    PigDeath("Pig Death", "mob.pig.death"),
-    PigWalk("Pig Walk", "mob.pig.step"),
-    RabbitAmbient("Rabbit Ambient", "mob.rabbit.idle"),
-    RabbitDeath("Rabbit Death", "mob.rabbit.death"),
-    RabbitHurt("Rabbit Hurt", "mob.rabbit.hurt"),
-    RabbitJump("Rabbit Jump", "mob.rabbit.hop"),
-    SheepIdle("Sheep Idle", "mob.sheep.say"),
-    SheepShear("Sheep Shear", "mob.sheep.shear"),
-    SheepWalk("Sheep Walk", "mob.sheep.step"),
-    SilverfishHit("Silverfish Hit", "mob.silverfish.hit"),
-    SilverfishKill("Silverfish Kill", "mob.silverfish.kill"),
-    SilverfishIdle("Silverfish Idle", "mob.silverfish.say"),
-    SilverfishWalk("Silverfish Walk", "mob.silverfish.step"),
-    SkeletonIdle("Skeleton Idle", "mob.skeleton.say"),
-    SkeletonDeath("Skeleton Death", "mob.skeleton.death"),
-    SkeletonHurt("Skeleton Hurt", "mob.skeleton.hurt"),
-    SkeletonWalk("Skeleton Walk", "mob.skeleton.step"),
-    SlimeAttack("Slime Attack", "mob.slime.attack"),
-    SlimeWalk("Slime Walk", "mob.slime.small"),
-    SlimeWalk2("Slime Walk2", "mob.slime.big"),
-    SpiderIdle("Spider Idle", "mob.spider.say"),
-    SpiderDeath("Spider Death", "mob.spider.death"),
-    SpiderWalk("Spider Walk", "mob.spider.step"),
-    WitherDeath("Wither Death", "mob.wither.death"),
-    WitherHurt("Wither Hurt", "mob.wither.hurt"),
-    WitherIdle("Wither Idle", "mob.wither.idle"),
-    WitherShoot("Wither Shoot", "mob.wither.shoot"),
-    WitherSpawn("Wither Spawn", "mob.wither.spawn"),
-    WolfBark("Wolf Bark", "mob.wolf.bark"),
-    WolfDeath("Wolf Death", "mob.wolf.death"),
-    WolfGrowl("Wolf Growl", "mob.wolf.growl"),
-    WolfHowl("Wolf Howl", "mob.wolf.howl"),
-    WolfHurt("Wolf Hurt", "mob.wolf.hurt"),
-    WolfPant("Wolf Pant", "mob.wolf.panting"),
-    WolfShake("Wolf Shake", "mob.wolf.shake"),
-    WolfWalk("Wolf Walk", "mob.wolf.step"),
-    WolfWhine("Wolf Whine", "mob.wolf.whine"),
-    ZombieMetal("Zombie Metal", "mob.zombie.metal"),
-    ZombieWood("Zombie Wood", "mob.zombie.wood"),
-    ZombieWoodbreak("Zombie Woodbreak", "mob.zombie.woodbreak"),
-    ZombieIdle("Zombie Idle", "mob.zombie.say"),
-    ZombieDeath("Zombie Death", "mob.zombie.death"),
-    ZombieHurt("Zombie Hurt", "mob.zombie.hurt"),
-    ZombieInfect("Zombie Infect", "mob.zombie.infect"),
-    ZombieUnfect("Zombie Unfect", "mob.zombie.unfect"),
-    ZombieRemedy("Zombie Remedy", "mob.zombie.remedy"),
-    ZombieWalk("Zombie Walk", "mob.zombie.step"),
-    ZombiePigIdle("Zombie Pig Idle", "mob.zombiepig.zpig"),
-    ZombiePigAngry("Zombie Pig Angry", "mob.zombiepig.zpigangry"),
-    ZombiePigDeath("Zombie Pig Death", "mob.zombiepig.zpigdeath"),
-    ZombiePigHurt("Zombie Pig Hurt", "mob.zombiepig.zpighurt"),
-    FireworkBlast("Firework Blast", "fireworks.blast"),
-    FireworkBlast2("Firework Blast2", "fireworks.blast_far"),
-    FireworkLargeBlast("Firework Large Blast", "fireworks.largeBlast"),
-    FireworkLargeBlast2("Firework Large Blast2", "fireworks.largeBlast_far"),
-    FireworkTwinkle("Firework Twinkle", "fireworks.twinkle"),
-    FireworkTwinkle2("Firework Twinkle2", "fireworks.twinkle_far"),
-    FireworkLaunch("Firework Launch", "fireworks.launch"),
-    FireworksBlast("Fireworks Blast", "fireworks.blast"),
-    FireworksBlast2("Fireworks Blast2", "fireworks.blast_far"),
-    FireworksLargeBlast("Fireworks Large Blast", "fireworks.largeBlast"),
-    FireworksLargeBlast2("Fireworks Large Blast2", "fireworks.largeBlast_far"),
-    FireworksTwinkle("Fireworks Twinkle", "fireworks.twinkle"),
-    FireworksTwinkle2("Fireworks Twinkle2", "fireworks.twinkle_far"),
-    FireworksLaunch("Fireworks Launch", "fireworks.launch"),
-    SuccessfulHit("Successful Hit", "random.successful_hit"),
-    HorseAngry("Horse Angry", "mob.horse.angry"),
-    HorseArmor("Horse Armor", "mob.horse.armor"),
-    HorseBreathe("Horse Breathe", "mob.horse.breathe"),
-    HorseDeath("Horse Death", "mob.horse.death"),
-    HorseGallop("Horse Gallop", "mob.horse.gallop"),
-    HorseHit("Horse Hit", "mob.horse.hit"),
-    HorseIdle("Horse Idle", "mob.horse.idle"),
-    HorseJump("Horse Jump", "mob.horse.jump"),
-    HorseLand("Horse Land", "mob.horse.land"),
-    HorseSaddle("Horse Saddle", "mob.horse.leather"),
-    HorseSoft("Horse Soft", "mob.horse.soft"),
-    HorseWood("Horse Wood", "mob.horse.wood"),
-    DonkeyAngry("Donkey Angry", "mob.horse.donkey.angry"),
-    DonkeyDeath("Donkey Death", "mob.horse.donkey.death"),
-    DonkeyHit("Donkey Hit", "mob.horse.donkey.hit"),
-    DonkeyIdle("Donkey Idle", "mob.horse.donkey.idle"),
-    HorseSkeletonDeath("Horse Skeleton Death", "mob.horse.skeleton.death"),
-    HorseSkeletonHit("Horse Skeleton Hit", "mob.horse.skeleton.hit"),
-    HorseSkeletonIdle("Horse Skeleton Idle", "mob.horse.skeleton.idle"),
-    HorseZombieDeath("Horse Zombie Death", "mob.horse.zombie.death"),
-    HorseZombieHit("Horse Zombie Hit", "mob.horse.zombie.hit"),
-    HorseZombieIdle("Horse Zombie Idle", "mob.horse.zombie.idle"),
-    VillagerDeath("Villager Death", "mob.villager.death"),
-    VillagerHaggle("Villager Haggle", "mob.villager.haggle"),
-    VillagerHit("Villager Hit", "mob.villager.hit"),
-    VillagerIdle("Villager Idle", "mob.villager.idle"),
-    VillagerNo("Villager No", "mob.villager.no"),
-    VillagerYes("Villager Yes", "mob.villager.yes");
+sealed class Sound(override val label: String, override val key: String) : KeyedLabeled {
+    @CustomKey
+    class Custom(val sound: String): Sound("Custom", "Custom Sound") {
+            override fun toString(): String = sound
+    }
+    data object AmbienceCave : Sound("Ambience Cave", "ambient.cave.cave")
+    data object AmbienceRain : Sound("Ambience Rain", "ambient.weather.rain")
+    data object AmbienceThunder : Sound("Ambience Thunder", "ambient.weather.thunder")
+    data object AnvilBreak : Sound("Anvil Break", "random.anvil_break")
+    data object AnvilLand : Sound("Anvil Land", "random.anvil_land")
+    data object AnvilUse : Sound("Anvil Use", "random.anvil_use")
+    data object ArrowHit : Sound("Arrow Hit", "random.bowhit")
+    data object Burp : Sound("Burp", "random.burp")
+    data object ChestClose : Sound("Chest Close", "random.chestclosed")
+    data object ChestOpen : Sound("Chest Open", "random.chestopen")
+    data object Click : Sound("Click", "random.click")
+    data object DoorClose : Sound("Door Close", "random.door_close")
+    data object DoorOpen : Sound("Door Open", "random.door_open")
+    data object Drink : Sound("Drink", "random.drink")
+    data object Eat : Sound("Eat", "random.eat")
+    data object Explode : Sound("Explode", "random.explode")
+    data object FallBig : Sound("Fall Big", "game.player.hurt.fall.big")
+    data object FallSmall : Sound("Fall Small", "game.player.hurt.fall.small")
+    data object Fizz : Sound("Fizz", "random.fizz")
+    data object Fuse : Sound("Fuse", "game.tnt.primed")
+    data object Glass : Sound("Glass", "dig.glass")
+    data object HurtFlesh : Sound("Hurt Flesh", "game.player.hurt")
+    data object ItemBreak : Sound("Item Break", "random.break")
+    data object ItemPickup : Sound("Item Pickup", "random.pop")
+    data object LavaPop : Sound("Lava Pop", "liquid.lavapop")
+    data object LevelUp : Sound("Level Up", "random.levelup")
+    data object NoteBass : Sound("Note Bass", "note.bass")
+    data object NotePiano : Sound("Note Piano", "note.harp")
+    data object NoteBassDrum : Sound("Note Bass Drum", "note.bd")
+    data object NoteSticks : Sound("Note Sticks", "note.hat")
+    data object NoteBassGuitar : Sound("Note Bass Guitar", "note.bassattack")
+    data object NoteSnareDrum : Sound("Note Snare Drum", "note.snare")
+    data object NotePling : Sound("Note Pling", "note.pling")
+    data object OrbPickup : Sound("Orb Pickup", "random.orb")
+    data object ShootArrow : Sound("Shoot Arrow", "random.bow")
+    data object Splash : Sound("Splash", "game.player.swim.splash")
+    data object Swim : Sound("Swim", "game.player.swim")
+    data object WoodClick : Sound("Wood Click", "random.wood_click")
+    data object BatDeath : Sound("Bat Death", "mob.bat.death")
+    data object BatHurt : Sound("Bat Hurt", "mob.bat.hurt")
+    data object BatIdle : Sound("Bat Idle", "mob.bat.idle")
+    data object BatLoop : Sound("Bat Loop", "mob.bat.loop")
+    data object BatTakeoff : Sound("Bat Takeoff", "mob.bat.takeoff")
+    data object BlazeBreath : Sound("Blaze Breath", "mob.blaze.breathe")
+    data object BlazeDeath : Sound("Blaze Death", "mob.blaze.death")
+    data object BlazeHit : Sound("Blaze Hit", "mob.blaze.hit")
+    data object CatHiss : Sound("Cat Hiss", "mob.cat.hiss")
+    data object CatHit : Sound("Cat Hit", "mob.cat.hitt")
+    data object CatMeow : Sound("Cat Meow", "mob.cat.meow")
+    data object CatPurr : Sound("Cat Purr", "mob.cat.purr")
+    data object CatPurreow : Sound("Cat Purreow", "mob.cat.purreow")
+    data object ChickenIdle : Sound("Chicken Idle", "mob.chicken.say")
+    data object ChickenHurt : Sound("Chicken Hurt", "mob.chicken.hurt")
+    data object ChickenEggPop : Sound("Chicken Egg Pop", "mob.chicken.plop")
+    data object ChickenWalk : Sound("Chicken Walk", "mob.chicken.step")
+    data object CowIdle : Sound("Cow Idle", "mob.cow.say")
+    data object CowHurt : Sound("Cow Hurt", "mob.cow.hurt")
+    data object CowWalk : Sound("Cow Walk", "mob.cow.step")
+    data object CreeperHiss : Sound("Creeper Hiss", "mob.creeper.say")
+    data object CreeperDeath : Sound("Creeper Death", "mob.creeper.death")
+    data object EnderdragonDeath : Sound("Enderdragon Death", "mob.enderdragon.end")
+    data object EnderdragonGrowl : Sound("Enderdragon Growl", "mob.enderdragon.growl")
+    data object EnderdragonHit : Sound("Enderdragon Hit", "mob.enderdragon.hit")
+    data object EnderdragonWings : Sound("Enderdragon Wings", "mob.enderdragon.wings")
+    data object EndermanDeath : Sound("Enderman Death", "mob.endermen.death")
+    data object EndermanHit : Sound("Enderman Hit", "mob.endermen.hit")
+    data object EndermanIdle : Sound("Enderman Idle", "mob.endermen.idle")
+    data object EndermanTeleport : Sound("Enderman Teleport", "mob.endermen.portal")
+    data object EndermanScream : Sound("Enderman Scream", "mob.endermen.scream")
+    data object EndermanStare : Sound("Enderman Stare", "mob.endermen.stare")
+    data object GhastScream : Sound("Ghast Scream", "mob.ghast.scream")
+    data object GhastScream2 : Sound("Ghast Scream2", "mob.ghast.affectionate_scream")
+    data object GhastCharge : Sound("Ghast Charge", "mob.ghast.charge")
+    data object GhastDeath : Sound("Ghast Death", "mob.ghast.death")
+    data object GhastFireball : Sound("Ghast Fireball", "mob.ghast.fireball")
+    data object GhastMoan : Sound("Ghast Moan", "mob.ghast.moan")
+    data object GuardianHit : Sound("Guardian Hit", "mob.guardian.hit")
+    data object GuardianIdle : Sound("Guardian Idle", "mob.guardian.idle")
+    data object GuardianDeath : Sound("Guardian Death", "mob.guardian.death")
+    data object GuardianElderHit : Sound("Guardian Elder Hit", "mob.guardian.elder.hit")
+    data object GuardianElderIdle : Sound("Guardian Elder Idle", "mob.guardian.elder.idle")
+    data object GuardianElderDeath : Sound("Guardian Elder Death", "mob.guardian.elder.death")
+    data object GuardianLandHit : Sound("Guardian Land Hit", "mob.guardian.land.hit")
+    data object GuardianLandIdle : Sound("Guardian Land Idle", "mob.guardian.land.idle")
+    data object GuardianLandDeath : Sound("Guardian Land Death", "mob.guardian.land.death")
+    data object GuardianCurse : Sound("Guardian Curse", "mob.guardian.curse")
+    data object GuardianAttack : Sound("Guardian Attack", "mob.guardian.attack")
+    data object GuardianFlop : Sound("Guardian Flop", "mob.guardian.flop")
+    data object IrongolemDeath : Sound("Irongolem Death", "mob.irongolem.death")
+    data object IrongolemHit : Sound("Irongolem Hit", "mob.irongolem.hit")
+    data object IrongolemThrow : Sound("Irongolem Throw", "mob.irongolem.throw")
+    data object IrongolemWalk : Sound("Irongolem Walk", "mob.irongolem.walk")
+    data object MagmacubeWalk : Sound("Magmacube Walk", "mob.magmacube.small")
+    data object MagmacubeWalk2 : Sound("Magmacube Walk2", "mob.magmacube.big")
+    data object MagmacubeJump : Sound("Magmacube Jump", "mob.magmacube.jump")
+    data object PigIdle : Sound("Pig Idle", "mob.pig.say")
+    data object PigDeath : Sound("Pig Death", "mob.pig.death")
+    data object PigWalk : Sound("Pig Walk", "mob.pig.step")
+    data object RabbitAmbient : Sound("Rabbit Ambient", "mob.rabbit.idle")
+    data object RabbitDeath : Sound("Rabbit Death", "mob.rabbit.death")
+    data object RabbitHurt : Sound("Rabbit Hurt", "mob.rabbit.hurt")
+    data object RabbitJump : Sound("Rabbit Jump", "mob.rabbit.hop")
+    data object SheepIdle : Sound("Sheep Idle", "mob.sheep.say")
+    data object SheepShear : Sound("Sheep Shear", "mob.sheep.shear")
+    data object SheepWalk : Sound("Sheep Walk", "mob.sheep.step")
+    data object SilverfishHit : Sound("Silverfish Hit", "mob.silverfish.hit")
+    data object SilverfishKill : Sound("Silverfish Kill", "mob.silverfish.kill")
+    data object SilverfishIdle : Sound("Silverfish Idle", "mob.silverfish.say")
+    data object SilverfishWalk : Sound("Silverfish Walk", "mob.silverfish.step")
+    data object SkeletonIdle : Sound("Skeleton Idle", "mob.skeleton.say")
+    data object SkeletonDeath : Sound("Skeleton Death", "mob.skeleton.death")
+    data object SkeletonHurt : Sound("Skeleton Hurt", "mob.skeleton.hurt")
+    data object SkeletonWalk : Sound("Skeleton Walk", "mob.skeleton.step")
+    data object SlimeAttack : Sound("Slime Attack", "mob.slime.attack")
+    data object SlimeWalk : Sound("Slime Walk", "mob.slime.small")
+    data object SlimeWalk2 : Sound("Slime Walk2", "mob.slime.big")
+    data object SpiderIdle : Sound("Spider Idle", "mob.spider.say")
+    data object SpiderDeath : Sound("Spider Death", "mob.spider.death")
+    data object SpiderWalk : Sound("Spider Walk", "mob.spider.step")
+    data object WitherDeath : Sound("Wither Death", "mob.wither.death")
+    data object WitherHurt : Sound("Wither Hurt", "mob.wither.hurt")
+    data object WitherIdle : Sound("Wither Idle", "mob.wither.idle")
+    data object WitherShoot : Sound("Wither Shoot", "mob.wither.shoot")
+    data object WitherSpawn : Sound("Wither Spawn", "mob.wither.spawn")
+    data object WolfBark : Sound("Wolf Bark", "mob.wolf.bark")
+    data object WolfDeath : Sound("Wolf Death", "mob.wolf.death")
+    data object WolfGrowl : Sound("Wolf Growl", "mob.wolf.growl")
+    data object WolfHowl : Sound("Wolf Howl", "mob.wolf.howl")
+    data object WolfHurt : Sound("Wolf Hurt", "mob.wolf.hurt")
+    data object WolfPant : Sound("Wolf Pant", "mob.wolf.panting")
+    data object WolfShake : Sound("Wolf Shake", "mob.wolf.shake")
+    data object WolfWalk : Sound("Wolf Walk", "mob.wolf.step")
+    data object WolfWhine : Sound("Wolf Whine", "mob.wolf.whine")
+    data object ZombieMetal : Sound("Zombie Metal", "mob.zombie.metal")
+    data object ZombieWood : Sound("Zombie Wood", "mob.zombie.wood")
+    data object ZombieWoodbreak : Sound("Zombie Woodbreak", "mob.zombie.woodbreak")
+    data object ZombieIdle : Sound("Zombie Idle", "mob.zombie.say")
+    data object ZombieDeath : Sound("Zombie Death", "mob.zombie.death")
+    data object ZombieHurt : Sound("Zombie Hurt", "mob.zombie.hurt")
+    data object ZombieInfect : Sound("Zombie Infect", "mob.zombie.infect")
+    data object ZombieUnfect : Sound("Zombie Unfect", "mob.zombie.unfect")
+    data object ZombieRemedy : Sound("Zombie Remedy", "mob.zombie.remedy")
+    data object ZombieWalk : Sound("Zombie Walk", "mob.zombie.step")
+    data object ZombiePigIdle : Sound("Zombie Pig Idle", "mob.zombiepig.zpig")
+    data object ZombiePigAngry : Sound("Zombie Pig Angry", "mob.zombiepig.zpigangry")
+    data object ZombiePigDeath : Sound("Zombie Pig Death", "mob.zombiepig.zpigdeath")
+    data object ZombiePigHurt : Sound("Zombie Pig Hurt", "mob.zombiepig.zpighurt")
+    data object FireworkBlast : Sound("Firework Blast", "fireworks.blast")
+    data object FireworkBlast2 : Sound("Firework Blast2", "fireworks.blast_far")
+    data object FireworkLargeBlast : Sound("Firework Large Blast", "fireworks.largeBlast")
+    data object FireworkLargeBlast2 : Sound("Firework Large Blast2", "fireworks.largeBlast_far")
+    data object FireworkTwinkle : Sound("Firework Twinkle", "fireworks.twinkle")
+    data object FireworkTwinkle2 : Sound("Firework Twinkle2", "fireworks.twinkle_far")
+    data object FireworkLaunch : Sound("Firework Launch", "fireworks.launch")
+    data object FireworksBlast : Sound("Fireworks Blast", "fireworks.blast")
+    data object FireworksBlast2 : Sound("Fireworks Blast2", "fireworks.blast_far")
+    data object FireworksLargeBlast : Sound("Fireworks Large Blast", "fireworks.largeBlast")
+    data object FireworksLargeBlast2 : Sound("Fireworks Large Blast2", "fireworks.largeBlast_far")
+    data object FireworksTwinkle : Sound("Fireworks Twinkle", "fireworks.twinkle")
+    data object FireworksTwinkle2 : Sound("Fireworks Twinkle2", "fireworks.twinkle_far")
+    data object FireworksLaunch : Sound("Fireworks Launch", "fireworks.launch")
+    data object SuccessfulHit : Sound("Successful Hit", "random.successful_hit")
+    data object HorseAngry : Sound("Horse Angry", "mob.horse.angry")
+    data object HorseArmor : Sound("Horse Armor", "mob.horse.armor")
+    data object HorseBreathe : Sound("Horse Breathe", "mob.horse.breathe")
+    data object HorseDeath : Sound("Horse Death", "mob.horse.death")
+    data object HorseGallop : Sound("Horse Gallop", "mob.horse.gallop")
+    data object HorseHit : Sound("Horse Hit", "mob.horse.hit")
+    data object HorseIdle : Sound("Horse Idle", "mob.horse.idle")
+    data object HorseJump : Sound("Horse Jump", "mob.horse.jump")
+    data object HorseLand : Sound("Horse Land", "mob.horse.land")
+    data object HorseSaddle : Sound("Horse Saddle", "mob.horse.leather")
+    data object HorseSoft : Sound("Horse Soft", "mob.horse.soft")
+    data object HorseWood : Sound("Horse Wood", "mob.horse.wood")
+    data object DonkeyAngry : Sound("Donkey Angry", "mob.horse.donkey.angry")
+    data object DonkeyDeath : Sound("Donkey Death", "mob.horse.donkey.death")
+    data object DonkeyHit : Sound("Donkey Hit", "mob.horse.donkey.hit")
+    data object DonkeyIdle : Sound("Donkey Idle", "mob.horse.donkey.idle")
+    data object HorseSkeletonDeath : Sound("Horse Skeleton Death", "mob.horse.skeleton.death")
+    data object HorseSkeletonHit : Sound("Horse Skeleton Hit", "mob.horse.skeleton.hit")
+    data object HorseSkeletonIdle : Sound("Horse Skeleton Idle", "mob.horse.skeleton.idle")
+    data object HorseZombieDeath : Sound("Horse Zombie Death", "mob.horse.zombie.death")
+    data object HorseZombieHit : Sound("Horse Zombie Hit", "mob.horse.zombie.hit")
+    data object HorseZombieIdle : Sound("Horse Zombie Idle", "mob.horse.zombie.idle")
+    data object VillagerDeath : Sound("Villager Death", "mob.villager.death")
+    data object VillagerHaggle : Sound("Villager Haggle", "mob.villager.haggle")
+    data object VillagerHit : Sound("Villager Hit", "mob.villager.hit")
+    data object VillagerIdle : Sound("Villager Idle", "mob.villager.idle")
+    data object VillagerNo : Sound("Villager No", "mob.villager.no")
+    data object VillagerYes : Sound("Villager Yes", "mob.villager.yes")
 
     companion object {
+        val entries: List<Sound> = Sound::class.sealedSubclasses.mapNotNull { it.objectInstance }
+
         fun fromKey(key: String): Sound? = entries.find { it.key.equals(key, true) || it.label.equals(key, true) }
     }
 }

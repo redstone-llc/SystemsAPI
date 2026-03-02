@@ -1177,10 +1177,10 @@ sealed class Time(override val key: String): Keyed {
     }
 
     object ResetToWorldTime : Time("Reset to World Time")
-    object Sunrise : Time("Sunrise")
-    object Noon : Time("Noon")
-    object Sunset : Time("Sunset")
-    object Midnight : Time("Midnight")
+    object Sunrise : Time("Sunrise (0)")
+    object Noon : Time("Noon (6,000)")
+    object Sunset : Time("Sunset (12,000)")
+    object Midnight : Time("Midnight (18,000)")
 
     companion object {
         fun fromKey(key: String): Time {
