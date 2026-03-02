@@ -2,6 +2,7 @@ package llc.redstone.systemsapi.importer
 
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.data.*
+import llc.redstone.systemsapi.data.enums.Sound
 import llc.redstone.systemsapi.importer.ActionContainer.MenuItems
 import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.getLoreLine
@@ -123,6 +124,17 @@ object PropertySettings {
                 }
                 finishImport()
                 return
+            }
+
+            Sound::class -> {
+                if (currentValue == value.toString()) return
+
+                value as Sound
+
+                MenuUtils.packetClick(slotIndex)
+                MenuUtils.onOpen("Select Option")
+                MenuUtils.packetClick(48)
+                InputUtils.textInput(value.toString())
             }
 
             Location::class -> {

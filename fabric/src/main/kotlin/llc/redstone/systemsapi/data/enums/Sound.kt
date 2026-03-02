@@ -4,8 +4,11 @@ import llc.redstone.systemsapi.data.CustomKey
 import llc.redstone.systemsapi.data.KeyedLabeled
 
 sealed class Sound(override val label: String, override val key: String) : KeyedLabeled {
+    override fun toString(): String {
+        return key
+    }
     @CustomKey
-    class Custom(val sound: String): Sound("Custom", "Custom Sound") {
+    class Custom(val sound: String): Sound("Custom Sound", "Custom Sound") {
             override fun toString(): String = sound
     }
     data object AmbienceCave : Sound("Ambience Cave", "ambient.cave.cave")
@@ -202,6 +205,13 @@ sealed class Sound(override val label: String, override val key: String) : Keyed
     companion object {
         val entries: List<Sound> = Sound::class.sealedSubclasses.mapNotNull { it.objectInstance }
 
-        fun fromKey(key: String): Sound? = entries.find { it.key.equals(key, true) || it.label.equals(key, true) }
+        fun fromKey(key: String): Sound {
+            for (entry in entries) {
+                if (entry.key.equals(key, ignoreCase = true)) {
+                    return entry
+                }
+            }
+            return Custom(key)
+        }
     }
 }
