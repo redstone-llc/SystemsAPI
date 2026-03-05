@@ -56,4 +56,8 @@ object ItemStackUtils {
             ?: return emptyList()
         return loreLines.map { TextUtils.convertTextToString(it, color)!! }
     }
+
+    fun List<String>.getLines(vararg line: Int): String? {
+        return runCatching { line.joinToString(" ") { get(it) } }.getOrNull()
+    }
 }

@@ -3,6 +3,7 @@ package llc.redstone.systemsapi.importer
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.importer.ActionContainer.MenuItems
 import llc.redstone.systemsapi.util.InputUtils
+import llc.redstone.systemsapi.util.ItemStackUtils.getLines
 import llc.redstone.systemsapi.util.ItemStackUtils.getLoreLine
 import llc.redstone.systemsapi.util.ItemStackUtils.getLoreLineMatchesOrNull
 import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
@@ -18,10 +19,7 @@ import java.lang.reflect.ParameterizedType
 import kotlin.jvm.optionals.getOrNull
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
-import kotlin.reflect.full.companionObjectInstance
-import kotlin.reflect.full.hasAnnotation
-import kotlin.reflect.full.isSubtypeOf
-import kotlin.reflect.full.starProjectedType
+import kotlin.reflect.full.*
 import kotlin.reflect.jvm.javaField
 
 object PropertySettings {
@@ -43,6 +41,9 @@ object PropertySettings {
             importTimes[property.returnType.classifier as KClass<*>] = (prevTime + duration) / 2
         }
 
+        if (value == null || !slot.hasStack()) {
+            return
+        }
         when (property.returnType.classifier) {
             Int::class, Double::class, StatValue::class -> {
                 if (currentValue != value.toString()) {
@@ -128,6 +129,38 @@ object PropertySettings {
                 return
             }
 
+            Sound::class -> {
+                if (currentValue == value.toString()) return
+
+                value as Sound
+
+                MenuUtils.packetClick(slotIndex)
+                MenuUtils.onOpen("Select Option")
+                MenuUtils.packetClick(48)
+                InputUtils.textInput(value.key)
+                finishImport()
+                return
+            }
+
+            Location::class -> {
+                if (currentValue == value.toString()) return
+
+                val location = value as Location
+
+                MenuUtils.packetClick(slotIndex)
+                MenuUtils.onOpen("Select Option")
+
+                when (location) {
+                    is Location.CurrentLocation, Location.HouseSpawn, Location.InvokersLocation -> MenuUtils.clickItems(location.key, paginated = true)
+                    is Location.Custom -> {
+                        MenuUtils.clickItems("Custom Coordinates", paginated = true)
+                        InputUtils.textInput(location.toString())
+                    }
+                }
+                finishImport()
+                return
+            }
+
             StatOp::class -> {
                 if (currentValue == value.toString()) return
 
@@ -155,7 +188,7 @@ object PropertySettings {
             }
         }
 
-        if (property.returnType.isSubtypeOf(Keyed::class.starProjectedType)) {
+        if (property.returnType.isSubtypeOf(Keyed::class.starProjectedType.withNullability(true))) {
             val keyed = value as Keyed
 
             if (keyed is KeyedCycle) {
@@ -189,23 +222,43 @@ object PropertySettings {
 
         val startTime = System.currentTimeMillis()
         val prevTime = exportTimes.getOrDefault(prop.returnType.classifier as KClass<*>, 50L)
+        var colorValue = colorValue
+        var value = value
 
-        val argValue = when (prop.returnType.classifier) {
-            String::class -> {
-                if (value.endsWith("...")) {
-                    InputUtils.getPreviousInput {
-                        MenuUtils.packetClick(actionSlot.id)
-                        MenuUtils.onOpen("Action Settings")
-                        MenuUtils.packetClick(propertySlotIndex)
-                    }.also {
-                        MenuUtils.onOpen("Action Settings")
-                        MenuUtils.clickItems(MenuItems.BACK)
-                        MenuUtils.onOpen(title)
-                    }
-                } else {
-                    colorValue
+        if (value == "Not Set") {
+            return null
+        }
+
+        if (value.endsWith("...")) {
+            if (prop.returnType.classifier == Location::class) {
+                MenuUtils.packetClick(actionSlot.id)
+                MenuUtils.onOpen("Action Settings")
+                MenuUtils.getSlot(propertySlotIndex).stack.loreLines(false).getLines(2, 3)?.let {
+                    colorValue = it
+                }
+                MenuUtils.clickItems(MenuItems.BACK)
+                MenuUtils.onOpen(title)
+            } else {
+                colorValue = InputUtils.getPreviousInput {
+                    MenuUtils.packetClick(actionSlot.id)
+                    MenuUtils.onOpen("Action Settings")
+                    MenuUtils.packetClick(propertySlotIndex)
+                }.also {
+                    MenuUtils.onOpen("Action Settings")
+                    MenuUtils.clickItems(MenuItems.BACK)
+                    MenuUtils.onOpen(title)
                 }
             }
+            value = colorValue.replace(Regex("&[0-9a-fk-or]"), "")
+        }
+
+        value = when (prop.returnType.classifier) {
+            Int::class, Long::class, Double::class  -> value.replace(",", "")
+            else -> value
+        }
+
+        val argValue = when (prop.returnType.classifier) {
+            String::class -> colorValue
             Int::class -> value.toInt()
             Long::class -> value.toLong()
             Double::class -> value.toDouble()
@@ -215,15 +268,7 @@ object PropertySettings {
                 val value = value.replace(",", "")
                 when {
                     value == "Not Set" -> null
-                    value.matches(Regex("-?\\d+")) -> {
-                        if (value.toIntOrNull() == null) {
-                            StatValue.Lng(value.toLong())
-                        } else {
-                            StatValue.I32(value.toInt())
-                        }
-                    }
-                    value.matches(Regex("-?\\d+(\\.\\d+)?")) -> StatValue.Dbl(value.toDouble())
-                    else -> StatValue.Str(colorValue)
+                    else -> StatValue.fromString(value, colorValue)
                 }
             }
 
@@ -232,11 +277,13 @@ object PropertySettings {
                 val field = prop.javaField?.genericType as? ParameterizedType ?: error("Could not get parameterized type for List property ${prop.name}")
                 val listType = field.actualTypeArguments[0]
                 if (listType == Action::class.java) {
+                    if (value == "None") return emptyList<Action>()
                     MenuUtils.packetClick(actionSlot.id)
                     MenuUtils.onOpen("Action Settings")
                     MenuUtils.packetClick(propertySlotIndex)
                     returnValue = genericContainer.getActions()
                 } else if (listType == Condition::class.java) {
+                    if (value == "None") return emptyList<Condition>()
                     MenuUtils.packetClick(actionSlot.id)
                     MenuUtils.onOpen("Action Settings")
                     MenuUtils.packetClick(propertySlotIndex)
@@ -282,17 +329,15 @@ object PropertySettings {
 
             Location::class -> {
                 when (value) {
-                    "Not Set" -> {
-                        null
-                    }
                     "Invokers Location" -> {
-                        Location.CurrentLocation
+                        Location.InvokersLocation
                     }
                     "House Spawn Location" -> {
                         Location.HouseSpawn
                     }
                     else -> {
                         val parts = value.split(", ")
+                        if (parts.size < 3) error("Invalid location format: $value")
                         val xPart = parts[0]
                         val yPart = parts[1]
                         val zPart = parts[2]
@@ -335,7 +380,7 @@ object PropertySettings {
             return argValue
         }
 
-        if (prop.returnType.isSubtypeOf(Keyed::class.starProjectedType)) {
+        if (prop.returnType.isSubtypeOf(Keyed::class.starProjectedType.withNullability(true))) {
             val companion = prop.returnType.classifier
                 .let { it as? KClass<*> }
                 ?.companionObjectInstance

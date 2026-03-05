@@ -29,6 +29,18 @@ object ConditionContainer {
         6 to 16,
         7 to 19,
         8 to 20,
+        9 to 21,
+        10 to 22,
+        11 to 23,
+        12 to 24,
+        13 to 25,
+        14 to 28,
+        15 to 29,
+        16 to 30,
+        17 to 31,
+        18 to 32,
+        19 to 33,
+        20 to 34,
     )
 
     //List of actions to add to the container
@@ -175,6 +187,12 @@ object ConditionContainer {
             }
 
             conditions.add(conditionInstance)
+        }
+
+        if (MenuUtils.findSlots(MenuUtils.GlobalMenuItems.NEXT_PAGE).firstOrNull() != null) {
+            MenuUtils.clickItems(MenuUtils.GlobalMenuItems.NEXT_PAGE)
+            MenuUtils.onOpen("Edit Conditions")
+            conditions.addAll(exportConditions())
         }
 
         return conditions

@@ -1,0 +1,2 @@
+- Fixed an issue with stat values not being imported correctly when using a placeholder
+- Fixed an issue where items weren't being exported properly

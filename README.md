@@ -1,5 +1,5 @@
 <h1 align="center">
-    <img src="fabric/src/main/resources/assets/systemsapi/icon.png" height="256" alt="SystemsAPI Icon">
+    <img src="fabric/src/main/resources/assets/systemsapi/icon.png" height="300" alt="SystemsAPI Icon">
     <br>
     SystemsAPI
     <br>
