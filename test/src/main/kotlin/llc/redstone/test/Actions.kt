@@ -1,12 +1,10 @@
 package llc.redstone.test
 
 import llc.redstone.systemsapi.util.ItemUtils
-import llc.redstone.systemsapi.util.NbtUtils
 import llc.redstone.systemsdata.*
 import llc.redstone.systemsdata.Action.*
 import llc.redstone.systemsdata.Condition.*
 import llc.redstone.systemsdata.enums.*
-import net.benwoodworth.knbt.nbtCompound
 import net.minecraft.component.DataComponentTypes
 import net.minecraft.item.Items
 import net.minecraft.text.Text
@@ -522,7 +520,7 @@ object Actions {
             stack.set(DataComponentTypes.CUSTOM_NAME, Text.literal(randomWords((1..10).random())))
         }
         return ItemStack(
-            nbt = NbtUtils.fromMinecraftNbt(ItemUtils.toNBT(stack)).nbtCompound,
+            nbt = ItemUtils.toNBT(stack).toString(),
             relativeFileLocation = ""
         )
     }
