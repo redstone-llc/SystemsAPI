@@ -27,7 +27,7 @@ sealed class Condition(
     ) : Condition("IN_GROUP")
 
     @DisplayName("Variable Requirement")
-    sealed class VariableRequirement protected constructor(
+    sealed class VariableRequirement(
         val holder: VariableHolder
     ): Condition("VARIABLE_REQUIREMENT")
 
@@ -69,7 +69,7 @@ sealed class Condition(
 
     @DisplayName("Has Item")
     data class HasItem(
-        val item: ItemStack,
+        val item: ItemStack?,
         @SerialName("what_to_check") val whatToCheck: ItemCheck,
         @SerialName("where_to_check") val whereToCheck: InventoryLocation,
         @SerialName("required_amount") val amount: ItemAmount,
@@ -153,14 +153,14 @@ sealed class Condition(
 
     @DisplayName("Block Type")
     data class BlockType(
-        val item: ItemStack,
+        val item: ItemStack?,
         @SerialName("match_type_only")
         val matchTypeOnly: Boolean,
     ) : Condition("BLOCK_TYPE")
 
     @DisplayName("Is Item")
     data class IsItem(
-        val item: ItemStack,
+        val item: ItemStack?,
         @SerialName("what_to_check") val whatToCheck: ItemCheck,
         @SerialName("where_to_check") val whereToCheck: InventoryLocation,
         @SerialName("required_amount") val amount: ItemAmount,

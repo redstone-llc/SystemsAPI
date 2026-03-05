@@ -1007,12 +1007,9 @@ sealed class Location(override val key: String): Keyed {
         }
     }
 
-
     object HouseSpawn : Location("House Spawn Location")
 
-
     object InvokersLocation : Location("Invokers Location")
-
 
     object CurrentLocation : Location("Current Location")
 

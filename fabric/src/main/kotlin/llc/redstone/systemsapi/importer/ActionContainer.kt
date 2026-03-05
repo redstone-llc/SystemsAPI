@@ -101,18 +101,20 @@ class ActionContainer(
     private suspend fun parseAction(slot: Slot): Action? {
         val item = slot.stack
         val loreLines = item.loreLines(true).filter { it.contains(":") }
+        val allLines = item.loreLines(true)
         val name = TextUtils.convertTextToString(item.name, false)
 
         val actionClass = Action::class.sealedSubclasses.firstOrNull {
             it.findAnnotations(ActionDefinition::class).any { ann -> ann.displayName == name }
         } ?: return null
 
-        return buildAction(actionClass, loreLines, slot, 0)
+        return buildAction(actionClass, loreLines, allLines, slot, 0)
     }
 
     private suspend fun buildAction(
         actionClass: KClass<out Action>,
         loreLines: List<String>,
+        allLines: List<String>,
         slot: Slot,
         indexOffset: Int
     ): Action? {
@@ -126,10 +128,21 @@ class ActionContainer(
 
         for ((index, pair) in properties.withIndex()) {
             val (prop, param) = pair
-            val colorValue = loreLines.getOrNull(index + indexOffset)
+            var colorValue = loreLines.getOrNull(index + indexOffset)
                 ?.split(": ")?.drop(1)?.joinToString(": ")
                 ?.replaceFirst("&f", "") ?: continue
-            val value = colorValue.replace(Regex("&[0-9a-fk-or]"), "")
+            var value = colorValue.replace(Regex("&[0-9a-fk-or]"), "")
+
+            if (value.isEmpty()) {
+                //Dont question this :)
+                //Used to catch when there is no actions or conditionals
+                val index = allLines.indexOf(loreLines.getOrNull(index + indexOffset))
+                println(allLines.getOrNull(index + 1))
+                colorValue = allLines.getOrNull(index + 1)
+                    ?.split(" - ")?.drop(1)?.joinToString(" - ")
+                    ?.replaceFirst("&f", "") ?: continue
+                value = colorValue.replace(Regex("&[0-9a-fk-or]"), "")
+            }
 
             val returnValue = PropertySettings.export(title, prop, slot, slots[index + indexOffset]!!, value, colorValue)
 
@@ -140,7 +153,7 @@ class ActionContainer(
                     VariableHolder.Global -> Action.GlobalVariable::class
                     VariableHolder.Team -> Action.TeamVariable::class
                 }
-                return buildAction(newClass, loreLines, slot, 1)
+                return buildAction(newClass, loreLines, allLines, slot, 1)
             }
 
             args[param] = returnValue

@@ -1,16 +1,11 @@
 package llc.redstone.systemsapi.data.enums
 
-import llc.redstone.systemsapi.data.CustomKey
 import llc.redstone.systemsapi.data.KeyedLabeled
 
 sealed class Sound(override val label: String, override val key: String) : KeyedLabeled {
-    override fun toString(): String {
-        return key
-    }
-    @CustomKey
-    class Custom(val sound: String): Sound("Custom Sound", "Custom Sound") {
-            override fun toString(): String = sound
-    }
+    override fun toString(): String = key
+
+    class Custom(val sound: String): Sound(sound, sound)
     data object AmbienceCave : Sound("Ambience Cave", "ambient.cave.cave")
     data object AmbienceRain : Sound("Ambience Rain", "ambient.weather.rain")
     data object AmbienceThunder : Sound("Ambience Thunder", "ambient.weather.thunder")
@@ -208,6 +203,9 @@ sealed class Sound(override val label: String, override val key: String) : Keyed
         fun fromKey(key: String): Sound {
             for (entry in entries) {
                 if (entry.key.equals(key, ignoreCase = true)) {
+                    return entry
+                }
+                if (entry.label.equals(key, ignoreCase = true)) {
                     return entry
                 }
             }

@@ -5,6 +5,7 @@ import llc.redstone.systemsapi.data.*
 import llc.redstone.systemsapi.data.enums.Sound
 import llc.redstone.systemsapi.importer.ActionContainer.MenuItems
 import llc.redstone.systemsapi.util.InputUtils
+import llc.redstone.systemsapi.util.ItemStackUtils.getLines
 import llc.redstone.systemsapi.util.ItemStackUtils.getLoreLine
 import llc.redstone.systemsapi.util.ItemStackUtils.getLoreLineMatchesOrNull
 import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
@@ -134,7 +135,9 @@ object PropertySettings {
                 MenuUtils.packetClick(slotIndex)
                 MenuUtils.onOpen("Select Option")
                 MenuUtils.packetClick(48)
-                InputUtils.textInput(value.toString())
+                InputUtils.textInput(value.key)
+                finishImport()
+                return
             }
 
             Location::class -> {
@@ -228,7 +231,7 @@ object PropertySettings {
             if (prop.returnType.classifier == Location::class) {
                 MenuUtils.packetClick(actionSlot.id)
                 MenuUtils.onOpen("Action Settings")
-                MenuUtils.getSlot(propertySlotIndex).stack.loreLines(false).getOrNull(2)?.let {
+                MenuUtils.getSlot(propertySlotIndex).stack.loreLines(false).getLines(2, 3)?.let {
                     colorValue = it
                 }
                 MenuUtils.clickItems(MenuItems.BACK)
@@ -247,7 +250,10 @@ object PropertySettings {
             value = colorValue.replace(Regex("&[0-9a-fk-or]"), "")
         }
 
-        value = value.replace(",", "")
+        value = when (prop.returnType.classifier) {
+            Int::class, Long::class, Double::class  -> value.replace(",", "")
+            else -> value
+        }
 
         val argValue = when (prop.returnType.classifier) {
             String::class -> colorValue
@@ -269,11 +275,13 @@ object PropertySettings {
                 val field = prop.javaField?.genericType as? ParameterizedType ?: error("Could not get parameterized type for List property ${prop.name}")
                 val listType = field.actualTypeArguments[0]
                 if (listType == Action::class.java) {
+                    if (value == "None") return emptyList<Action>()
                     MenuUtils.packetClick(actionSlot.id)
                     MenuUtils.onOpen("Action Settings")
                     MenuUtils.packetClick(propertySlotIndex)
                     returnValue = genericContainer.getActions()
                 } else if (listType == Condition::class.java) {
+                    if (value == "None") return emptyList<Condition>()
                     MenuUtils.packetClick(actionSlot.id)
                     MenuUtils.onOpen("Action Settings")
                     MenuUtils.packetClick(propertySlotIndex)
@@ -320,13 +328,14 @@ object PropertySettings {
             Location::class -> {
                 when (value) {
                     "Invokers Location" -> {
-                        Location.CurrentLocation
+                        Location.InvokersLocation
                     }
                     "House Spawn Location" -> {
                         Location.HouseSpawn
                     }
                     else -> {
                         val parts = value.split(", ")
+                        if (parts.size < 3) error("Invalid location format: $value")
                         val xPart = parts[0]
                         val yPart = parts[1]
                         val zPart = parts[2]

@@ -25,7 +25,7 @@ internal class CommandImporter(override var name: String) : Command {
 
     private fun isActionsMenuOpen(): Boolean {
         val container = MC.currentScreen as? GenericContainerScreen ?: return false
-        return container.title.string.contains("Actions: /${this@CommandImporter.name}")
+        return container.title.string.contains("Actions: ")
     }
 
     private suspend fun openCommandEditMenu() {
@@ -39,7 +39,7 @@ internal class CommandImporter(override var name: String) : Command {
         if (isActionsMenuOpen()) return
 
         CommandUtils.runCommand("command actions ${this@CommandImporter.name}")
-        MenuUtils.onOpen("Actions: /${this@CommandImporter.name}")
+        MenuUtils.onOpen("Actions: ")
     }
 
     override suspend fun setName(newName: String): Command {
@@ -134,7 +134,7 @@ internal class CommandImporter(override var name: String) : Command {
 
     override suspend fun getActionContainer(): ActionContainer {
         openActionsEditMenu()
-        return ActionContainer("Actions: /${this@CommandImporter.name}")
+        return ActionContainer("Actions: ")
     }
 
     suspend fun exists(): Boolean = getTabCompletions("command edit").contains(this@CommandImporter.name)
@@ -142,7 +142,7 @@ internal class CommandImporter(override var name: String) : Command {
         require(name.length <= MAX_NAME_LENGTH) { "Command name must be less than $MAX_NAME_LENGTH characters but was ${name.length}" }
         if (this.exists()) throw IllegalStateException("Command already exists")
         CommandUtils.runCommand("command create ${this@CommandImporter.name}")
-        MenuUtils.onOpen("Actions: /$name")
+        MenuUtils.onOpen("Actions: ")
     }
 
     override suspend fun delete() {

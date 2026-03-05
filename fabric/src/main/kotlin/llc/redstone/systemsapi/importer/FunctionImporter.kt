@@ -15,8 +15,8 @@ import net.minecraft.item.Item
 import net.minecraft.item.Items
 
 internal class FunctionImporter(override var name: String) : Function {
-    private fun isFunctionEditMenuOpen(): Boolean = runCatching { MenuUtils.currentMenu().title.string.contains("Edit: ${this@FunctionImporter.name}") }.getOrDefault(false)
-    private fun isActionsMenuOpen(): Boolean = runCatching { MenuUtils.currentMenu().title.string.contains("Actions: ${this@FunctionImporter.name}") }.getOrDefault(false)
+    private fun isFunctionEditMenuOpen(): Boolean = runCatching { MenuUtils.currentMenu().title.string.contains("Edit: ") }.getOrDefault(false)
+    private fun isActionsMenuOpen(): Boolean = runCatching { MenuUtils.currentMenu().title.string.contains("Actions: ") }.getOrDefault(false)
 
     private suspend fun openFunctionEditMenu() {
         if (isFunctionEditMenuOpen()) return
@@ -31,7 +31,7 @@ internal class FunctionImporter(override var name: String) : Function {
         if (isActionsMenuOpen()) return
 
         CommandUtils.runCommand("function edit ${this.name}")
-        MenuUtils.onOpen("Actions: ${this.name}")
+        MenuUtils.onOpen("Actions: ")
     }
 
     override suspend fun setName(newName: String): Function {
@@ -109,13 +109,13 @@ internal class FunctionImporter(override var name: String) : Function {
 
     override suspend fun getActionContainer(): ActionContainer {
         openActionsEditMenu()
-        return ActionContainer("Actions: ${this.name}")
+        return ActionContainer("Actions: ")
     }
 
     suspend fun exists(): Boolean = getTabCompletions("function edit").contains(this.name)
     suspend fun create() {
         CommandUtils.runCommand("function create ${this.name}")
-        MenuUtils.onOpen("Actions: $name")
+        MenuUtils.onOpen("Actions: ")
     }
     override suspend fun delete() {
         CommandUtils.runCommand("function delete ${this.name}")
