@@ -1,8 +1,8 @@
 package llc.redstone.systemsapi.api
 
 import llc.redstone.systemsapi.api.npc.*
-import llc.redstone.systemsapi.data.ItemStack
 import llc.redstone.systemsapi.importer.ActionContainer
+import llc.redstone.systemsdata.ItemStack
 import kotlin.reflect.KClass
 
 interface Npc {

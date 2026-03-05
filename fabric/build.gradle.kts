@@ -15,6 +15,7 @@ repositories {
     maven("https://maven.kosmx.dev") //IDK why I couldnt make this a strict maven :shrug:
     maven("https://maven.wispforest.io/releases")
     maven { url = uri("https://jitpack.io") }
+    maven("https://repo.redstone.llc/releases")
     /**
      * Restricts dependency search of the given [groups] to the [maven URL][url],
      * improving the setup speed.
@@ -43,6 +44,9 @@ dependencies {
     ksp("dev.kosmx.kowoconfig:ksp-owo-config:0.2.0")
 
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
+
+    implementation(include("net.benwoodworth.knbt:knbt:0.11.9")!!)
+    implementation(include("llc.redstone:SystemsData:1.0.1")!!)
 
     modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
 }

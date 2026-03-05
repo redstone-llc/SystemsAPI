@@ -4,9 +4,8 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.brigadier.context.CommandContext
 import llc.redstone.systemsapi.SystemsAPI
 import llc.redstone.systemsapi.api.Region
-import llc.redstone.systemsapi.data.Action
-import llc.redstone.systemsapi.data.StatOp
-import llc.redstone.test.TestMod
+import llc.redstone.systemsdata.Action
+import llc.redstone.systemsdata.StatOp
 import llc.redstone.test.TestMod.MC
 import llc.redstone.test.TestMod.sendFeedback
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal

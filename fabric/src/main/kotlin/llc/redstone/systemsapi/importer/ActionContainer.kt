@@ -2,15 +2,15 @@ package llc.redstone.systemsapi.importer
 
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.SystemsAPI.scaledDelay
-import llc.redstone.systemsapi.data.Action
-import llc.redstone.systemsapi.data.ActionDefinition
-import llc.redstone.systemsapi.data.VariableHolder
 import llc.redstone.systemsapi.util.ItemStackUtils.loreLines
 import llc.redstone.systemsapi.util.MenuUtils
 import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
 import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
 import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameExact
 import llc.redstone.systemsapi.util.TextUtils
+import llc.redstone.systemsdata.Action
+import llc.redstone.systemsdata.ActionDefinition
+import llc.redstone.systemsdata.VariableHolder
 import net.minecraft.item.Items
 import net.minecraft.screen.slot.Slot
 import kotlin.reflect.KClass
