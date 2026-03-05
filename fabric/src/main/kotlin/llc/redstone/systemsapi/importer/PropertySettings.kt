@@ -1,8 +1,6 @@
 package llc.redstone.systemsapi.importer
 
 import llc.redstone.systemsapi.SystemsAPI.MC
-import llc.redstone.systemsapi.data.*
-import llc.redstone.systemsapi.data.enums.Sound
 import llc.redstone.systemsapi.importer.ActionContainer.MenuItems
 import llc.redstone.systemsapi.util.InputUtils
 import llc.redstone.systemsapi.util.ItemStackUtils.getLines
@@ -10,9 +8,11 @@ import llc.redstone.systemsapi.util.ItemStackUtils.getLoreLine
 import llc.redstone.systemsapi.util.ItemStackUtils.getLoreLineMatchesOrNull
 import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
 import llc.redstone.systemsapi.util.ItemStackUtils.loreLines
-import llc.redstone.systemsapi.util.ItemUtils
 import llc.redstone.systemsapi.util.MenuUtils
-import net.minecraft.nbt.NbtOps
+import llc.redstone.systemsapi.util.NbtHelper
+import llc.redstone.systemsdata.*
+import llc.redstone.systemsdata.enums.Sound
+import net.minecraft.nbt.StringNbtReader
 import net.minecraft.screen.slot.Slot
 import java.lang.reflect.ParameterizedType
 import kotlin.jvm.optionals.getOrNull
@@ -70,8 +70,9 @@ object PropertySettings {
                 MenuUtils.packetClick(slotIndex)
                 MenuUtils.onOpen("Select an Item")
 
-                val nbt = (value as ItemStack).nbt ?: error("[Item action] ItemStack has no NBT data")
-                val item = ItemUtils.createFromNBT(nbt)
+                val nbtString = (value as ItemStack).nbt ?: error("[Item action] ItemStack has no NBT data")
+                val nbt = StringNbtReader.readCompound(nbtString)
+                val item = NbtHelper.deserializeItemStack(nbt).getOrNull() ?: error("[Item action] Failed to deserialize ItemStack from NBT")
                 val player = MC.player ?: error("[Item action] Could not get the player")
                 val oldStack = player.inventory.getStack(26)
                 item.giveItem(26)
@@ -311,8 +312,6 @@ object PropertySettings {
                 val item = InputUtils.getItemFromMenu(value, stack) {
                     MenuUtils.interactionClick(13, 0)
                 }
-                val nbt = net.minecraft.item.ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, item).result().getOrNull()
-                    ?.asCompound()?.getOrNull() ?: error("Could not get NBT from item $item")
 
                 MenuUtils.clickItems(MenuItems.BACK)
                 MenuUtils.onOpen("Settings")
@@ -320,7 +319,7 @@ object PropertySettings {
                 MenuUtils.onOpen(title)
 
                 ItemStack(
-                    nbt = nbt,
+                    nbt = NbtHelper.serializeItemStack(item).getOrNull().toString(),
                     relativeFileLocation = "",
                 )
             }

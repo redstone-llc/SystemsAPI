@@ -11,6 +11,7 @@ group = "llc.redstone"
 repositories {
     maven("https://maven.wispforest.io/releases")
     maven { url = uri("https://jitpack.io") }
+    maven("https://repo.redstone.llc/releases")
 
     /**
      * Restricts dependency search of the given [groups] to the [maven URL][url],
@@ -39,6 +40,9 @@ dependencies {
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
 
     modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
+
+    implementation(include("net.benwoodworth.knbt:knbt:0.11.9")!!)
+    implementation(include("llc.redstone:SystemsData:1.0.2")!!)
 
     val commonPath = common.hierarchy.toString()
     api(project(path = commonPath, configuration = "namedElements"))

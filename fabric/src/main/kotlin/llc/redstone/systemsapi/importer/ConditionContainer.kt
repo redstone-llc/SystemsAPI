@@ -1,8 +1,5 @@
 package llc.redstone.systemsapi.importer
 
-import llc.redstone.systemsapi.data.Condition
-import llc.redstone.systemsapi.data.DisplayName
-import llc.redstone.systemsapi.data.VariableHolder
 import llc.redstone.systemsapi.util.ItemStackUtils.getLoreLineMatchesOrNull
 import llc.redstone.systemsapi.util.ItemStackUtils.loreLines
 import llc.redstone.systemsapi.util.MenuUtils
@@ -10,6 +7,9 @@ import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
 import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
 import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameExact
 import llc.redstone.systemsapi.util.TextUtils
+import llc.redstone.systemsdata.Condition
+import llc.redstone.systemsdata.DisplayName
+import llc.redstone.systemsdata.VariableHolder
 import net.minecraft.item.Items
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
