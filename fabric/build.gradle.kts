@@ -12,10 +12,9 @@ base.archivesName = property("mod.id") as String
 group = "llc.redstone"
 
 repositories {
+    maven("https://repo.redstone.llc/releases")
     maven("https://maven.kosmx.dev") //IDK why I couldnt make this a strict maven :shrug:
     maven("https://maven.wispforest.io/releases")
-    maven { url = uri("https://jitpack.io") }
-    maven("https://repo.redstone.llc/releases")
     /**
      * Restricts dependency search of the given [groups] to the [maven URL][url],
      * improving the setup speed.
@@ -24,12 +23,11 @@ repositories {
         forRepository { maven(url) { name = alias } }
         filter { groups.forEach(::includeGroup) }
     }
-    maven("https://maven.kosmx.dev")
+    maven("https://jitpack.io")
 
     strictMaven("https://api.modrinth.com/maven", "Modrinth", "maven.modrinth")
     strictMaven("https://maven.terraformersmc.com/", "Terraformers")
     strictMaven("https://maven.isxander.dev/releases", "Xander Maven")
-
     strictMaven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1", "DevAuth")
 }
 

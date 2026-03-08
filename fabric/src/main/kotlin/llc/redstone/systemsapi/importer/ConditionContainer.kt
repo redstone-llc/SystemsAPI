@@ -17,7 +17,6 @@ import kotlin.reflect.full.findAnnotations
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 
-//The title of the actions gui, either Actions: <name> or Edit Actions
 object ConditionContainer {
     private val slots = mapOf(
         0 to 10,
@@ -43,7 +42,7 @@ object ConditionContainer {
         20 to 34,
     )
 
-    //List of actions to add to the container
+    //List of conditions to add to the container
     suspend fun addConditions(actions: List<Condition>) {
         for (condition in actions) {
             //Wait for the "Edit Conditions" to open
