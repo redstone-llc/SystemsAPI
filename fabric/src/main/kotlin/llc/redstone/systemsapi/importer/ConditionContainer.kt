@@ -191,7 +191,7 @@ object ConditionContainer {
 
         if (MenuUtils.findSlots(MenuUtils.GlobalMenuItems.NEXT_PAGE).firstOrNull() != null) {
             MenuUtils.clickItems(MenuUtils.GlobalMenuItems.NEXT_PAGE)
-            MenuUtils.onOpen("Edit Conditions")
+            MenuUtils.onOpen("Edit Conditions", checkIfOpen = false)
             conditions.addAll(exportConditions())
         }
 

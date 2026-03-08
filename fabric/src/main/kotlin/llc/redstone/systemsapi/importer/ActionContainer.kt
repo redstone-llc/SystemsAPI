@@ -88,7 +88,7 @@ class ActionContainer(
             MenuUtils.onOpen(title)
             if (MenuUtils.findSlots(MenuUtils.GlobalMenuItems.NEXT_PAGE).firstOrNull() != null) {
                 MenuUtils.clickItems(MenuUtils.GlobalMenuItems.NEXT_PAGE)
-                MenuUtils.onOpen(" $title")
+                MenuUtils.onOpen(" $title", checkIfOpen = false)
                 actions.addAll(getActions())
             }
 

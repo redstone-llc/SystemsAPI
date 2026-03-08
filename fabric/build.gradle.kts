@@ -45,7 +45,7 @@ dependencies {
 
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
 
-    implementation(include("llc.redstone:SystemsData:1.0.2")!!)
+    implementation(include("llc.redstone:SystemsData:1.1.0")!!)
 
     modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
 }
