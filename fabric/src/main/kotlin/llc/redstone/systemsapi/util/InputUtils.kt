@@ -180,12 +180,17 @@ object InputUtils {
         return try {
             click()
             withTimeout(CONFIG.menuItemTimeout) { deferred.await() }
+        } catch(_: Exception) {
+            error("Failed to get item from menu after timeout")
         } finally {
             if (pendingStack === deferred) pendingStack = null
         }
     }
     internal fun onItemReceived(stack: ItemStack) {
         pendingStack?.let { current ->
+            val customName =
+                convertTextToString(stack.customName, false) ?: I18n.translate(stack.item.translationKey)
+            if (customName.contains("Housing Menu")) return // Housing menu item, not an actual item
             if (pendingItemDisplayName != null) {
                 //Translate text to string
                 val customName =

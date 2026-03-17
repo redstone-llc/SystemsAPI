@@ -9,9 +9,9 @@ base.archivesName = property("mod.id") as String
 group = "llc.redstone"
 
 repositories {
+    maven("https://repo.redstone.llc/releases")
     maven("https://maven.wispforest.io/releases")
     maven { url = uri("https://jitpack.io") }
-    maven("https://repo.redstone.llc/releases")
 
     /**
      * Restricts dependency search of the given [groups] to the [maven URL][url],
@@ -42,7 +42,7 @@ dependencies {
     modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
 
     implementation(include("net.benwoodworth.knbt:knbt:0.11.9")!!)
-    implementation(include("llc.redstone:SystemsData:1.0.2")!!)
+    implementation(include("llc.redstone:SystemsData:1.1.0")!!)
 
     val commonPath = common.hierarchy.toString()
     api(project(path = commonPath, configuration = "namedElements"))

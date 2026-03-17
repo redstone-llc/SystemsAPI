@@ -32,8 +32,8 @@ internal object HouseImporter : House {
     }
 
     override fun getTimeRemaining(): Float? {
-        if (!importing) return null
-        return timeRemaining?.div(1000f) // Convert to seconds
+//        if (!importing) return null
+        return timeRemaining?.div(1000L)?.toFloat() // Convert to seconds
     }
 
     override fun cancelImport() {

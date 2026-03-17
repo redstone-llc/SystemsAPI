@@ -10,6 +10,7 @@ import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameExact
 import llc.redstone.systemsapi.util.TextUtils
 import llc.redstone.systemsdata.Action
 import llc.redstone.systemsdata.ActionDefinition
+import llc.redstone.systemsdata.Condition
 import llc.redstone.systemsdata.VariableHolder
 import net.minecraft.item.Items
 import net.minecraft.screen.slot.Slot
@@ -48,6 +49,8 @@ class ActionContainer(
             19 to 33,
             20 to 34,
         )
+
+        var updateTime = true
     }
 
     fun estimateImportTime(actions: List<Action>): Long {
@@ -59,8 +62,18 @@ class ActionContainer(
                 val prop = actionClass.memberProperties.find { it.name == param.name } as? KProperty1<Action, *>
                 prop?.let { it to param }
             }
-            for ((_, param) in properties) {
+            for ((prop, param) in properties) {
                 val classifier = param.type.classifier as? KClass<*> ?: continue
+                if (classifier == List::class) {
+                    val value = prop.get(action) as? List<*> ?: continue
+                    if (value.isEmpty()) continue
+                    if (value.first() is Action) {
+                        timeRemaining += estimateImportTime(value as List<Action>)
+                    } else if (value.first() is Condition) {
+                        timeRemaining += ConditionContainer.estimateImportTime(value as List<Condition>)
+                    }
+                    continue
+                }
                 val returnValue = PropertySettings.importTimes.getOrDefault(classifier, 400L)
                 timeRemaining += returnValue
             }
@@ -144,7 +157,8 @@ class ActionContainer(
                 value = colorValue.replace(Regex("&[0-9a-fk-or]"), "")
             }
 
-            val returnValue = PropertySettings.export(title, prop, slot, slots[index + indexOffset]!!, value, colorValue)
+            val returnValue =
+                PropertySettings.export(title, prop, slot, slots[index + indexOffset]!!, value, colorValue)
 
             // Handle VariableHolder by switching to the appropriate subclass
             if (returnValue is VariableHolder) {
@@ -201,16 +215,28 @@ class ActionContainer(
 
     var actionNavigationTime = 400L
 
+
     //List of actions to add to the container
     suspend fun addActions(actions: List<Action>) {
         if (actions.isEmpty()) return
 
         HouseImporter.setImporting(true)
 
-        HouseImporter.setTimeRemaining(estimateImportTime(actions))
+        var time = estimateImportTime(actions)
+        var startTime = (HouseImporter.getTimeRemaining()?.times(1000) ?: time).toLong()
+        if (updateTime) {
+            HouseImporter.setTimeRemaining(time)
+        }
+        println("Estimated import time: ${time}ms ${HouseImporter.getTimeRemaining()}s")
 
         for ((index, action) in actions.withIndex()) {
-            HouseImporter.setTimeRemaining(estimateImportTime(actions.subList(index, actions.size)))
+            val estimatedTime = estimateImportTime(actions.subList(index, actions.size))
+            if (updateTime) {
+                HouseImporter.setTimeRemaining(estimatedTime)
+            } else {
+                HouseImporter.setTimeRemaining(startTime - (time - estimatedTime))
+            }
+            println("Updated estimated time remaining: ${estimatedTime}ms ${HouseImporter.getTimeRemaining()}s")
 
             val startA = System.currentTimeMillis()
             //Wait for the "Actions: <name>" or "Edit Actions" to open

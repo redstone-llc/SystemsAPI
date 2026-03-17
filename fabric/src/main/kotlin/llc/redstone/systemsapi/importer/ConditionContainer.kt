@@ -7,10 +7,12 @@ import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
 import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
 import llc.redstone.systemsapi.util.PredicateUtils.NameMatch.NameExact
 import llc.redstone.systemsapi.util.TextUtils
+import llc.redstone.systemsdata.Action
 import llc.redstone.systemsdata.Condition
 import llc.redstone.systemsdata.DisplayName
 import llc.redstone.systemsdata.VariableHolder
 import net.minecraft.item.Items
+import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotations
@@ -41,6 +43,24 @@ object ConditionContainer {
         19 to 33,
         20 to 34,
     )
+
+    fun estimateImportTime(conditions: List<Condition>): Long {
+        var timeRemaining = 0L
+        for (action in conditions) {
+            val conditionClass = action::class
+            val constructor = conditionClass.primaryConstructor ?: continue
+            val properties = constructor.parameters.mapNotNull { param ->
+                val prop = conditionClass.memberProperties.find { it.name == param.name } as? KProperty1<Action, *>
+                prop?.let { it to param }
+            }
+            for ((_, param) in properties) {
+                val classifier = param.type.classifier as? KClass<*> ?: continue
+                val returnValue = PropertySettings.importTimes.getOrDefault(classifier, 400L)
+                timeRemaining += returnValue
+            }
+        }
+        return timeRemaining
+    }
 
     //List of conditions to add to the container
     suspend fun addConditions(actions: List<Condition>) {

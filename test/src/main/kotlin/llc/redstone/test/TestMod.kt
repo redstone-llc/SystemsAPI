@@ -2,6 +2,7 @@ package llc.redstone.test
 
 import com.mojang.brigadier.context.CommandContext
 import llc.redstone.systemsapi.SystemsAPI
+import llc.redstone.systemsdata.Action.*
 import llc.redstone.test.tests.Function.withFunctionSubCommand
 import llc.redstone.test.tests.GroupsTest.withGroupsSubCommand
 import llc.redstone.test.tests.HouseSettingsTest.withHouseSettingsSubCommand
@@ -11,7 +12,6 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.minecraft.client.MinecraftClient
-import net.minecraft.item.Items
 import net.minecraft.text.MutableText
 import net.minecraft.text.PlainTextContent.of
 import net.minecraft.text.Style
@@ -22,8 +22,8 @@ import org.slf4j.LoggerFactory
 object TestMod : ClientModInitializer {
     const val MOD_ID = "testmod"
     val LOGGER: Logger = LoggerFactory.getLogger("TestMod")
-    const val VERSION = /*$ mod_version*/ "0.0.1";
-    const val MINECRAFT = /*$ minecraft*/ "1.21.11";
+    const val VERSION = /*$ mod_version*/ "0.0.1"
+    const val MINECRAFT = /*$ minecraft*/ "1.21.11"
     val MC: MinecraftClient
         get() = MinecraftClient.getInstance()
 
@@ -57,10 +57,37 @@ object TestMod : ClientModInitializer {
                         SystemsAPI.launch {
                             val importer = SystemsAPI.getHousingImporter()
 
-                            importer.createFunction("mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm")
-                                .setIcon(Items.REDSTONE)
-                                .setDescription("Does some cool stuff")
-                                .setAutomaticExecution(10)
+                            importer.getFunction("test")
+                                ?.getActionContainer()
+                                ?.setActions(
+                                    listOf(
+                                        Conditional(
+                                            listOf(),
+                                            false,
+                                            listOf(
+                                                SendMessage("Hello World! 1"),
+                                                DisplayTitle(),
+                                                PauseExecution(),
+                                                SendToLobby(),
+                                                SendMessage()
+                                            ),
+                                            listOf()
+                                        ),
+                                        Conditional(
+                                            listOf(),
+                                            false,
+                                            listOf(
+                                                SendMessage("Hello World! 2"),
+                                                DisplayTitle(),
+                                                PauseExecution(),
+                                                SendToLobby(),
+                                                SendMessage()
+                                            ),
+                                            listOf()
+                                        ),
+                                        SendMessage("Hello again!")
+                                    )
+                                )
                         }
                         1
                     }

@@ -34,6 +34,15 @@ object ItemStackUtils {
             }
     }
 
+    fun ItemStack.getCurrentValue(color: Boolean): String? {
+        val lore = loreLines(color)
+        val startIndex = lore.indexOfFirst { line -> line.startsWith("Current Value:") }
+        if (startIndex == -1) return null
+        return lore.subList(startIndex + 1, lore.size)
+            .takeWhile { line -> !line.isEmpty() }
+            .joinToString(" ")
+    }
+
     fun ItemStack.getLoreLine(line: Int, color: Boolean): String {
         return this.loreLines(color)
             .getOrNull(line)

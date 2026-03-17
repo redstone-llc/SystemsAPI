@@ -3,7 +3,7 @@ package llc.redstone.systemsapi.importer
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.importer.ActionContainer.MenuItems
 import llc.redstone.systemsapi.util.InputUtils
-import llc.redstone.systemsapi.util.ItemStackUtils.getLines
+import llc.redstone.systemsapi.util.ItemStackUtils.getCurrentValue
 import llc.redstone.systemsapi.util.ItemStackUtils.getLoreLine
 import llc.redstone.systemsapi.util.ItemStackUtils.getLoreLineMatchesOrNull
 import llc.redstone.systemsapi.util.ItemStackUtils.giveItem
@@ -97,7 +97,9 @@ object PropertySettings {
                     val actions = value.filterIsInstance<Action>()
                     if (actions.size != value.size) error("List contains non-action entries")
                     MenuUtils.packetClick(slotIndex)
+                    ActionContainer.updateTime = false
                     genericContainer.addActions(actions)
+                    ActionContainer.updateTime = true
                     MenuUtils.onOpen("Edit Actions")
                     MenuUtils.clickItems(MenuItems.BACK)
                     MenuUtils.onOpen("Action Settings")
@@ -177,7 +179,10 @@ object PropertySettings {
                             ?.getLoreLine(4, false)
                             ?.equals("Enabled")
                             ?: throw IllegalStateException("Failed to get the status of advanced operations toggle")
-                        if (advancedOperationsValue) MenuUtils.clickItems(MenuItems.TOGGLE_ADVANCED_OPERATIONS)
+                        if (!advancedOperationsValue) {
+                            MenuUtils.clickItems(MenuItems.TOGGLE_ADVANCED_OPERATIONS)
+                            MenuUtils.onOpen("Select Option", checkIfOpen = false)
+                        }
                     }
 
                     MenuUtils.clickItems(operation.key, paginated = true)
@@ -229,23 +234,27 @@ object PropertySettings {
         }
 
         if (value.endsWith("...")) {
-            if (prop.returnType.classifier == Location::class) {
-                MenuUtils.packetClick(actionSlot.id)
-                MenuUtils.onOpen("Action Settings")
-                MenuUtils.getSlot(propertySlotIndex).stack.loreLines(false).getLines(2, 3)?.let {
-                    colorValue = it
-                }
-                MenuUtils.clickItems(MenuItems.BACK)
-                MenuUtils.onOpen(title)
-            } else {
-                colorValue = InputUtils.getPreviousInput {
+            when (prop.returnType.classifier) {
+                Location::class -> {
                     MenuUtils.packetClick(actionSlot.id)
                     MenuUtils.onOpen("Action Settings")
-                    MenuUtils.packetClick(propertySlotIndex)
-                }.also {
-                    MenuUtils.onOpen("Action Settings")
+                    MenuUtils.getSlot(propertySlotIndex).stack.getCurrentValue(false)?.let {
+                        colorValue = it
+                    }
                     MenuUtils.clickItems(MenuItems.BACK)
                     MenuUtils.onOpen(title)
+                }
+                ItemStack::class -> {}
+                else -> {
+                    colorValue = InputUtils.getPreviousInput {
+                        MenuUtils.packetClick(actionSlot.id)
+                        MenuUtils.onOpen("Action Settings")
+                        MenuUtils.packetClick(propertySlotIndex)
+                    }.also {
+                        MenuUtils.onOpen("Action Settings")
+                        MenuUtils.clickItems(MenuItems.BACK)
+                        MenuUtils.onOpen(title)
+                    }
                 }
             }
             value = colorValue.replace(Regex("&[0-9a-fk-or]"), "")
@@ -309,7 +318,7 @@ object PropertySettings {
                 MenuUtils.packetClick(propertySlotIndex)
                 MenuUtils.onOpen("Select an Item")
 
-                val item = InputUtils.getItemFromMenu(value, stack) {
+                val item = InputUtils.getItemFromMenu(null, stack) {
                     MenuUtils.interactionClick(13, 0)
                 }
 
@@ -344,7 +353,7 @@ object PropertySettings {
                         fun parsePart(part: String?): Location.Custom.Coordinate? {
                             if (part == null) return null
                             return Location.Custom.Coordinate(
-                                value = part.removePrefix("~").removePrefix("^").toDoubleOrNull() ?: 0.0,
+                                value = part.removePrefix("~").removePrefix("^"),
                                 type = when {
                                     part.startsWith("~") -> Location.Custom.Type.RELATIVE
                                     part.startsWith("^") -> Location.Custom.Type.CARET
