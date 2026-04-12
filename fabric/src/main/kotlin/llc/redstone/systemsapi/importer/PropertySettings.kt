@@ -69,15 +69,23 @@ object PropertySettings {
             ItemStack::class -> {
                 MenuUtils.packetClick(slotIndex)
                 MenuUtils.onOpen("Select an Item")
-
-                val nbtString = (value as ItemStack).nbt ?: error("[Item action] ItemStack has no NBT data")
-                val nbt = StringNbtReader.readCompound(nbtString)
-                val item = NbtHelper.deserializeItemStack(nbt).getOrNull() ?: error("[Item action] Failed to deserialize ItemStack from NBT")
+                value as ItemStack
                 val player = MC.player ?: error("[Item action] Could not get the player")
-                val oldStack = player.inventory.getStack(26)
-                item.giveItem(26)
-                MenuUtils.clickPlayerSlot(26)
-                oldStack.giveItem(26)
+
+                if (value.nbt != null) {
+                    val nbtString = value.nbt ?: error("[Item action] ItemStack has no NBT data")
+                    val nbt = StringNbtReader.readCompound(nbtString)
+                    val item = NbtHelper.deserializeItemStack(nbt).getOrNull()
+                        ?: error("[Item action] Failed to deserialize ItemStack from NBT")
+                    val oldStack = player.inventory.getStack(26)
+                    item.giveItem(26)
+                    MenuUtils.clickPlayerSlot(26)
+                    oldStack.giveItem(26)
+                } else if (value.slot != null) {
+                    MenuUtils.clickPlayerSlot(value.slot!!)
+                } else {
+                    error("[Item action] ItemStack must have either NBT data or a slot index")
+                }
             }
 
             Boolean::class -> {

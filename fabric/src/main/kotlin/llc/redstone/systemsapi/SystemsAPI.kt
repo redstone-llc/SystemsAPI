@@ -25,15 +25,18 @@ object SystemsAPI : ClientModInitializer {
     internal val MC: MinecraftClient
         get() = MinecraftClient.getInstance()
     internal var DYNAMIC_FPS: DynamicFPSHook? = null
+    init {
+        mcCoroutineConfiguration.minecraftExecutor = MinecraftClient.getInstance()
+    }
 
     override fun onInitializeClient() {
-        LOGGER.info("Loaded v$VERSION for Minecraft $MINECRAFT.")
 
-        mcCoroutineConfiguration.minecraftExecutor = MinecraftClient.getInstance()
 
         if (FabricLoader.getInstance().isModLoaded("dynamic_fps")) {
             DYNAMIC_FPS = DynamicFPSHook()
         }
+
+        LOGGER.info("Loaded v$VERSION for Minecraft $MINECRAFT.")
     }
 
     fun getHousingImporter(): House {

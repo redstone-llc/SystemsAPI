@@ -104,8 +104,7 @@ object MenuUtils {
 
     internal fun completeOnClose() {
         val pending = pendingScreen ?: return
-        val screen = MC.currentScreen
-        if (screen != null) return
+        val screen = null
         if (!checkScreen(screen)) return
         pendingScreen = null
         pending.complete(null)
@@ -183,7 +182,13 @@ object MenuUtils {
 
     fun clickPlayerSlot(slot: Int, button: Int = 0) {
         val gui = currentMenu()
-        val playerSlot = slot + gui.screenHandler.slots.size - 45
+        val playerSlot = when (slot) {
+            in 0..8 -> slot + gui.screenHandler.slots.size - 9
+            in 9..35 -> {
+                slot + gui.screenHandler.slots.size - 45
+            }
+            else -> throw IllegalArgumentException("Invalid player slot index: $slot")
+        }
         packetClick(playerSlot, button)
     }
 
