@@ -243,6 +243,11 @@ class ActionContainer(
             //We do this every iteration to make sure we are right back at the Actions page
             MenuUtils.onOpen(title)
 
+            if (action is Action.CustomAction) {
+                action.function(action.parameters)
+                continue
+            }
+
             //Add an action
             MenuUtils.clickItems(MenuItems.ADD_ACTION)
             MenuUtils.onOpen("Add Action")
@@ -298,6 +303,24 @@ class ActionContainer(
         HouseImporter.setImporting(false)
     }
 
+    suspend fun copyToHousingClipboard() {
+        MenuUtils.onOpen(title)
+        MenuUtils.packetClick(51, 1)
+        scaledDelay(1.0)
+        if (MenuUtils.findSlots(MenuItems.PASTE_ACTIONS).firstOrNull() == null) {
+            error("Failed to copy actions to clipboard")
+        }
+    }
+
+    suspend fun pasteFromHousingClipboard() {
+        MenuUtils.onOpen(title)
+        if (MenuUtils.findSlots(MenuItems.PASTE_ACTIONS).firstOrNull() == null) {
+            error("Clipboard is empty or does not contain valid actions")
+        }
+        MenuUtils.packetClick(51, 0)
+        scaledDelay(1.0)
+    }
+
     object MenuItems {
         val ADD_ACTION = ItemSelector(
             name = NameExact("Add Action"),
@@ -314,6 +337,10 @@ class ActionContainer(
         val NO_ACTIONS = ItemSelector(
             name = NameExact("No Actions!"),
             item = ItemExact(Items.BEDROCK)
+        )
+        val PASTE_ACTIONS = ItemSelector(
+            name = NameExact("Paste Actions"),
+            item = ItemExact(Items.BOOK)
         )
     }
 }
