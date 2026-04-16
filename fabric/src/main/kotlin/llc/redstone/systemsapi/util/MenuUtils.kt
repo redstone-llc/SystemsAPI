@@ -104,7 +104,7 @@ object MenuUtils {
 
     internal fun completeOnClose() {
         val pending = pendingScreen ?: return
-        val screen = null
+        val screen = MC.currentScreen
         if (!checkScreen(screen)) return
         pendingScreen = null
         pending.complete(null)
