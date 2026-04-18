@@ -1,5 +1,6 @@
 package llc.redstone.systemsapi.importer
 
+import llc.redstone.systemsapi.SystemsAPI.JAVERS
 import llc.redstone.systemsapi.util.ItemStackUtils.getLoreLineMatchesOrNull
 import llc.redstone.systemsapi.util.ItemStackUtils.loreLines
 import llc.redstone.systemsapi.util.MenuUtils
@@ -12,6 +13,10 @@ import llc.redstone.systemsdata.Condition
 import llc.redstone.systemsdata.DisplayName
 import llc.redstone.systemsdata.VariableHolder
 import net.minecraft.item.Items
+import org.javers.core.diff.changetype.container.ElementValueChange
+import org.javers.core.diff.changetype.container.ListChange
+import org.javers.core.diff.changetype.container.ValueAdded
+import org.javers.core.diff.changetype.container.ValueRemoved
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
@@ -20,7 +25,7 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 
 object ConditionContainer {
-    private val slots = mapOf(
+    val slots = mapOf(
         0 to 10,
         1 to 11,
         2 to 12,
@@ -117,6 +122,87 @@ object ConditionContainer {
         }
     }
 
+    suspend fun updateConditional(oldConditional: Action.Conditional, newConditional: Action.Conditional) {
+        val condDiff = JAVERS.compare(oldConditional.conditions, newConditional.conditions)
+        println("Condition diff: ${condDiff.prettyPrint()}")
+        if (condDiff.changes.isNotEmpty()) {
+            MenuUtils.onOpen("Action Settings")
+            MenuUtils.packetClick(10)
+            MenuUtils.onOpen("Edit Conditions")
+            val changes = condDiff.changes.getChangesByType(ListChange::class.java)[0].changes
+            for (change in changes) {
+                val index = change.index
+                when (change) {
+                    is ElementValueChange -> {
+                        val oldValue = change.leftValue as? Condition ?: continue
+                        val newValue = change.rightValue as? Condition ?: continue
+
+                        val (page, slot) = getSlotAndPage(index)
+                        if (page > 0) {
+                            TODO("Handle pagination when updating actions. Page: $page, Slot: $slot")
+                        }
+
+                        MenuUtils.packetClick(slots[slot] ?: continue)
+                        PropertySettings.updateCondition(oldValue, newValue)
+                        MenuUtils.onOpen("Settings")
+                        MenuUtils.clickItems(MenuItems.BACK)
+                    }
+
+                    is ValueAdded -> {
+                        val newValue = change.addedValue as? Condition ?: continue
+                        if (index >= oldConditional.conditions.size) {
+                            addConditions(listOf(newValue))
+                        } else {
+                            println("Action added in index $index: $newValue")
+                        }
+                    }
+
+                    is ValueRemoved -> {
+                        val (page, slot) = getSlotAndPage(index)
+                        if (page > 0) {
+                            TODO("Handle pagination when updating actions. Page: $page, Slot: $slot")
+                        }
+                        MenuUtils.packetClick(slots[slot] ?: continue, 1)
+                    }
+                }
+            }
+            MenuUtils.onOpen("Edit Conditions")
+            MenuUtils.clickItems(MenuItems.BACK)
+        }
+        if (oldConditional.matchAnyCondition != newConditional.matchAnyCondition) {
+            MenuUtils.onOpen("Action Settings")
+            MenuUtils.packetClick(11)
+            MenuUtils.onOpen("Action Settings", checkIfOpen = false)
+        }
+        val ifDiff = JAVERS.compare(oldConditional.ifActions, newConditional.ifActions)
+        if (ifDiff.changes.isNotEmpty()) {
+            MenuUtils.onOpen("Action Settings")
+            MenuUtils.packetClick(12)
+            MenuUtils.onOpen("Edit Actions")
+            ActionContainer().updateActions(newConditional.ifActions, oldConditional.ifActions)
+            MenuUtils.onOpen("Edit Actions")
+            MenuUtils.clickItems(MenuItems.BACK)
+        }
+        val elseDiff = JAVERS.compare(oldConditional.elseActions, newConditional.elseActions)
+        if (elseDiff.changes.isNotEmpty()) {
+            MenuUtils.onOpen("Action Settings")
+            MenuUtils.packetClick(13)
+            MenuUtils.onOpen("Edit Actions")
+            ActionContainer().updateActions(newConditional.elseActions, oldConditional.elseActions)
+            MenuUtils.onOpen("Edit Actions")
+            MenuUtils.clickItems(MenuItems.BACK)
+        }
+
+        MenuUtils.onOpen("Action Settings")
+        MenuUtils.clickItems(MenuItems.BACK)
+    }
+
+    private fun getSlotAndPage(slotIndex: Int): Pair<Int, Int> {
+        val page = slotIndex / 21
+        val index = slotIndex % 21
+        return Pair(page, index)
+    }
+
     suspend fun exportConditions(): List<Condition> {
         val conditions = mutableListOf<Condition>()
 
@@ -135,7 +221,9 @@ object ConditionContainer {
 
 
             val name = TextUtils.convertTextToString(item.name, false)
-            var conditionClass = Condition::class.sealedSubclasses.firstOrNull { it.findAnnotations(DisplayName::class).any { ann -> ann.value == name } }
+            var conditionClass = Condition::class.sealedSubclasses.firstOrNull {
+                it.findAnnotations(DisplayName::class).any { ann -> ann.value == name }
+            }
                 ?: continue
 
             var constructor = conditionClass.primaryConstructor!!
@@ -186,6 +274,7 @@ object ConditionContainer {
                 }
                 return args
             }
+
             val args = args()
 
             var conditionInstance: Condition? = null
@@ -201,7 +290,7 @@ object ConditionContainer {
 
             if (conditionInstance == null) continue
 
-            if (slot.stack.getLoreLineMatchesOrNull(false) {it == "Inverted"} != null) {
+            if (slot.stack.getLoreLineMatchesOrNull(false) { it == "Inverted" } != null) {
                 conditionInstance.inverted = true
             }
 

@@ -1,5 +1,6 @@
 package llc.redstone.systemsapi.importer
 
+import llc.redstone.systemsapi.SystemsAPI.JAVERS
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.importer.ActionContainer.MenuItems
 import llc.redstone.systemsapi.util.InputUtils
@@ -160,7 +161,11 @@ object PropertySettings {
                 MenuUtils.onOpen("Select Option")
 
                 when (location) {
-                    is Location.CurrentLocation, Location.HouseSpawn, Location.InvokersLocation -> MenuUtils.clickItems(location.key, paginated = true)
+                    is Location.CurrentLocation, Location.HouseSpawn, Location.InvokersLocation -> MenuUtils.clickItems(
+                        location.key,
+                        paginated = true
+                    )
+
                     is Location.Custom -> {
                         MenuUtils.clickItems("Custom Coordinates", paginated = true)
                         InputUtils.textInput(location.toString())
@@ -230,7 +235,14 @@ object PropertySettings {
 
     private val genericContainer = ActionContainer("Edit Actions")
 
-    suspend fun export(title: String, prop: KProperty1<out PropertyHolder, *>, actionSlot: Slot, propertySlotIndex: Int, value: String, colorValue: String): Any? {
+    suspend fun export(
+        title: String,
+        prop: KProperty1<out PropertyHolder, *>,
+        actionSlot: Slot,
+        propertySlotIndex: Int,
+        value: String,
+        colorValue: String
+    ): Any? {
 
         val startTime = System.currentTimeMillis()
         val prevTime = exportTimes.getOrDefault(prop.returnType.classifier as KClass<*>, 50L)
@@ -252,6 +264,7 @@ object PropertySettings {
                     MenuUtils.clickItems(MenuItems.BACK)
                     MenuUtils.onOpen(title)
                 }
+
                 ItemStack::class -> {}
                 else -> {
                     colorValue = InputUtils.getPreviousInput {
@@ -269,7 +282,7 @@ object PropertySettings {
         }
 
         value = when (prop.returnType.classifier) {
-            Int::class, Long::class, Double::class  -> value.replace(",", "")
+            Int::class, Long::class, Double::class -> value.replace(",", "")
             else -> value
         }
 
@@ -290,7 +303,8 @@ object PropertySettings {
 
             List::class -> {
                 var returnValue = emptyList<Any>()
-                val field = prop.javaField?.genericType as? ParameterizedType ?: error("Could not get parameterized type for List property ${prop.name}")
+                val field = prop.javaField?.genericType as? ParameterizedType
+                    ?: error("Could not get parameterized type for List property ${prop.name}")
                 val listType = field.actualTypeArguments[0]
                 if (listType == Action::class.java) {
                     if (value == "None") return emptyList<Action>()
@@ -346,9 +360,11 @@ object PropertySettings {
                     "Invokers Location" -> {
                         Location.InvokersLocation
                     }
+
                     "House Spawn Location" -> {
                         Location.HouseSpawn
                     }
+
                     else -> {
                         val parts = value.split(", ")
                         if (parts.size < 3) error("Invalid location format: $value")
@@ -380,6 +396,7 @@ object PropertySettings {
                     }
                 }
             }
+
             else -> null
         }
 
@@ -409,5 +426,95 @@ object PropertySettings {
 
         finishExport()
         return null
+    }
+
+    suspend fun updateCondition(oldValue: Condition, newValue: Condition) {
+        if (oldValue::class != newValue::class) {
+            throw IllegalArgumentException("Cannot update condition: condition types do not match (${oldValue::class.simpleName} vs ${newValue::class.simpleName})")
+        }
+
+        val parameters = oldValue::class.primaryConstructor!!.parameters.toMutableList()
+        val conditionProperties = oldValue.javaClass.kotlin.memberProperties
+
+        val properties = mutableListOf<KProperty1<Condition, *>>()
+        for (parm in parameters) {
+            properties.add(conditionProperties.find { it.name == parm.name } ?: continue)
+        }
+
+        //Inverted
+        properties.add(0, conditionProperties.find { it.name == "inverted" } ?: return)
+
+        //For require variable, because the holder isn't found in the parameters
+        if (newValue is Condition.VariableRequirement) {
+            properties.add(1, conditionProperties.find { it.name == "holder" } ?: return)
+        }
+
+        for ((index, property) in properties.withIndex()) {
+            val oldPropValue = property.get(oldValue)
+            val newPropValue = property.get(newValue)
+            if (oldPropValue != newPropValue) {
+                MenuUtils.onOpen("Settings")
+
+                val slot = ConditionContainer.slots[index]
+                    ?: error("No slot found for property ${property.name} at index $index")
+                import(property, MenuUtils.getSlot(slot), newPropValue)
+            }
+        }
+    }
+
+    suspend fun updateAction(slot: Int, oldValue: Action, newValue: Action) {
+        if (oldValue::class != newValue::class) {
+            throw IllegalArgumentException("Cannot update action: action types do not match (${oldValue::class.simpleName} vs ${newValue::class.simpleName})")
+        }
+
+        val parameters = oldValue::class.primaryConstructor!!.parameters.toMutableList()
+        val actionProperties = oldValue.javaClass.kotlin.memberProperties
+
+        if (parameters.isEmpty()) {
+            return
+        }
+
+        MenuUtils.packetClick(slot)
+
+        if (oldValue is Action.Conditional && newValue is Action.Conditional) {
+            ConditionContainer.updateConditional(oldValue, newValue)
+            return
+        }
+
+        if (oldValue is Action.RandomAction && newValue is Action.RandomAction) {
+            val actionsDiff = JAVERS.compare(oldValue.actions, newValue.actions)
+            if (actionsDiff.changes.isNotEmpty()) {
+                MenuUtils.onOpen("Action Settings")
+                MenuUtils.packetClick(10)
+                MenuUtils.onOpen("Edit Actions")
+                ActionContainer().updateActions(newValue.actions, oldValue.actions)
+                MenuUtils.onOpen("Edit Actions")
+                MenuUtils.clickItems(ConditionContainer.MenuItems.BACK)
+            }
+            return
+        }
+
+        val properties = mutableListOf<KProperty1<Action, *>>()
+        for (parm in parameters) {
+            properties.add(actionProperties.find { it.name == parm.name } ?: continue)
+        }
+
+        if (newValue is Action.ChangeVariable) {
+            properties.add(0, actionProperties.find { it.name == "holder" } ?: return)
+        }
+
+        for ((index, property) in properties.withIndex()) {
+            val oldPropValue = property.get(oldValue)
+            val newPropValue = property.get(newValue)
+            if (oldPropValue != newPropValue) {
+                MenuUtils.onOpen("Action Settings")
+
+                val slot =
+                    ActionContainer.slots[index] ?: error("No slot found for property ${property.name} at index $index")
+                import(property, MenuUtils.getSlot(slot), newPropValue)
+            }
+        }
+        MenuUtils.onOpen("Action Settings")
+        MenuUtils.clickItems(MenuItems.BACK)
     }
 }

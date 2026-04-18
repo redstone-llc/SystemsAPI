@@ -12,6 +12,7 @@ import llc.redstone.systemsapi.hook.DynamicFPSHook
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.MinecraftClient
+import org.javers.core.JaversBuilder
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import kotlin.coroutines.CoroutineContext
@@ -25,6 +26,8 @@ object SystemsAPI : ClientModInitializer {
     internal val MC: MinecraftClient
         get() = MinecraftClient.getInstance()
     internal var DYNAMIC_FPS: DynamicFPSHook? = null
+    internal val JAVERS = JaversBuilder.javers().build()
+
     init {
         mcCoroutineConfiguration.minecraftExecutor = MinecraftClient.getInstance()
     }

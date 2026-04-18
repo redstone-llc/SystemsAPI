@@ -1,5 +1,6 @@
 package llc.redstone.systemsapi.importer
 
+import llc.redstone.systemsapi.SystemsAPI.JAVERS
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.SystemsAPI.scaledDelay
 import llc.redstone.systemsapi.util.ItemStackUtils.loreLines
@@ -14,6 +15,10 @@ import llc.redstone.systemsdata.Condition
 import llc.redstone.systemsdata.VariableHolder
 import net.minecraft.item.Items
 import net.minecraft.screen.slot.Slot
+import org.javers.core.diff.changetype.container.ElementValueChange
+import org.javers.core.diff.changetype.container.ListChange
+import org.javers.core.diff.changetype.container.ValueAdded
+import org.javers.core.diff.changetype.container.ValueRemoved
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
@@ -21,12 +26,13 @@ import kotlin.reflect.full.findAnnotations
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 
+
 //The title of the actions gui, either Actions: <name> or Edit Actions
 class ActionContainer(
     val title: String = MC.currentScreen?.title?.string ?: throw IllegalStateException("No screen is currently open")
 ) {
     companion object {
-        private val slots = mutableMapOf(
+        val slots = mutableMapOf(
             0 to 10,
             1 to 11,
             2 to 12,
@@ -210,7 +216,55 @@ class ActionContainer(
     }
 
     suspend fun updateActions(newActions: List<Action>) {
-        TODO("Not yet implemented")
+        updateActions(newActions, null)
+    }
+
+    suspend fun updateActions(newActions: List<Action>, oldActions: List<Action>? = null) {
+        val existing = oldActions ?: getActions()
+
+        val diff = JAVERS.compare(existing, newActions)
+        val changes = diff.getChangesByType(ListChange::class.java).getOrNull(0)?.changes ?: return
+        for (change in changes) {
+
+            //Make sure we are on the main page before looking for the next change
+            MenuUtils.onOpen(title)
+
+            val index = change.index
+            when (change) {
+                is ElementValueChange -> {
+                    val oldValue = change.leftValue as? Action ?: continue
+                    val newValue = change.rightValue as? Action ?: continue
+
+                    val (page, slot) = getSlotAndPage(index)
+                    if (page > 0) {
+                        TODO("Handle pagination when updating actions. Page: $page, Slot: $slot")
+                    }
+
+                    PropertySettings.updateAction(slots[slot] ?: continue, oldValue, newValue)
+                }
+                is ValueAdded -> {
+                    val newValue = change.addedValue as? Action ?: continue
+                    if (index >= existing.size) {
+                        addActions(listOf(newValue))
+                    } else {
+                        println("Action added in index $index: $newValue")
+                    }
+                }
+                is ValueRemoved -> {
+                    val (page, slot) = getSlotAndPage(index)
+                    if (page > 0) {
+                        TODO("Handle pagination when updating actions. Page: $page, Slot: $slot")
+                    }
+                    MenuUtils.packetClick(slots[slot] ?: continue, 1)
+                }
+            }
+        }
+    }
+
+    private fun getSlotAndPage(slotIndex: Int): Pair<Int, Int> {
+        val page = slotIndex / 21
+        val index = slotIndex % 21
+        return Pair(page, index)
     }
 
     var actionNavigationTime = 400L
@@ -227,7 +281,6 @@ class ActionContainer(
         if (updateTime) {
             HouseImporter.setTimeRemaining(time)
         }
-        println("Estimated import time: ${time}ms ${HouseImporter.getTimeRemaining()}s")
 
         for ((index, action) in actions.withIndex()) {
             val estimatedTime = estimateImportTime(actions.subList(index, actions.size))
@@ -236,7 +289,6 @@ class ActionContainer(
             } else {
                 HouseImporter.setTimeRemaining(startTime - (time - estimatedTime))
             }
-            println("Updated estimated time remaining: ${estimatedTime}ms ${HouseImporter.getTimeRemaining()}s")
 
             val startA = System.currentTimeMillis()
             //Wait for the "Actions: <name>" or "Edit Actions" to open

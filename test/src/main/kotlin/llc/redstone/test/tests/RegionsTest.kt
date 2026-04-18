@@ -6,6 +6,7 @@ import llc.redstone.systemsapi.SystemsAPI
 import llc.redstone.systemsapi.api.Region
 import llc.redstone.systemsdata.Action
 import llc.redstone.systemsdata.StatOp
+import llc.redstone.systemsdata.StatValue
 import llc.redstone.test.TestMod.MC
 import llc.redstone.test.TestMod.sendFeedback
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal
@@ -38,13 +39,13 @@ object RegionsTest {
                 region.getEntryActionContainer().addActions(
                     listOf(
                         Action.FullHeal(),
-                        Action.ChangeHealth(10.0, StatOp.Set)
+                        Action.ChangeHealth(StatValue.from(10.0), StatOp.Set)
                     )
                 )
                 region.getExitActionContainer().addActions(
                     listOf(
                         Action.FullHeal(),
-                        Action.ChangeHealth(10.0, StatOp.Set)
+                        Action.ChangeHealth(StatValue.from(10.0), StatOp.Set)
                     )
                 )
 

@@ -2,7 +2,7 @@ package llc.redstone.test
 
 import com.mojang.brigadier.context.CommandContext
 import llc.redstone.systemsapi.SystemsAPI
-import llc.redstone.systemsdata.Action.*
+import llc.redstone.systemsdata.Action
 import llc.redstone.test.tests.Function.withFunctionSubCommand
 import llc.redstone.test.tests.GroupsTest.withGroupsSubCommand
 import llc.redstone.test.tests.HouseSettingsTest.withHouseSettingsSubCommand
@@ -57,37 +57,19 @@ object TestMod : ClientModInitializer {
                         SystemsAPI.launch {
                             val importer = SystemsAPI.getHousingImporter()
 
-                            importer.getFunction("test")
-                                ?.getActionContainer()
-                                ?.setActions(
-                                    listOf(
-                                        Conditional(
-                                            listOf(),
-                                            false,
-                                            listOf(
-                                                SendMessage("Hello World! 1"),
-                                                DisplayTitle(),
-                                                PauseExecution(),
-                                                SendToLobby(),
-                                                SendMessage()
-                                            ),
-                                            listOf()
-                                        ),
-                                        Conditional(
-                                            listOf(),
-                                            false,
-                                            listOf(
-                                                SendMessage("Hello World! 2"),
-                                                DisplayTitle(),
-                                                PauseExecution(),
-                                                SendToLobby(),
-                                                SendMessage()
-                                            ),
-                                            listOf()
-                                        ),
-                                        SendMessage("Hello again!")
-                                    )
+                            val container = importer.getFunction("test")?.getActionContainer()
+
+                            container?.setActions(
+                                listOf(
+                                    Action.ClearAllPotionEffects()
                                 )
+                            )
+
+                            container?.updateActions(
+                                listOf(
+                                    Action.ClearAllPotionEffects()
+                                )
+                            )
                         }
                         1
                     }

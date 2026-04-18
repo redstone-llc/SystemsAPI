@@ -37,7 +37,7 @@ object Actions {
             ),
             ChangeHealth(
                 op = StatOp.Inc,
-                amount = 5.0
+                amount = StatValue.Dbl(5.0)
             ),
             ApplyInventoryLayout(
                 layout = "test"
@@ -56,9 +56,9 @@ object Actions {
                 pickupDelayTicks = 20
             ),
             ChangeVelocity(
-                0.1,
-                0.2,
-                0.3
+                StatValue.Dbl(1.0),
+                StatValue.Dbl(0.5),
+                StatValue.Dbl(-1.0)
             ),
             LaunchToTarget(
                 location = testLocation,
@@ -126,8 +126,8 @@ object Actions {
             SendToLobby(location = Lobby.MainLobby),
             SetCompassTarget(location = testLocation),
             SetGameMode(gamemode = GameMode.Creative),
-            ChangeHunger(op = StatOp.Set, amount = 4.0),
-            ChangeMaxHealth(op = StatOp.Set, amount = 40.0, healOnChange = true),
+            ChangeHunger(op = StatOp.Set, amount = StatValue.Dbl(10.0)),
+            ChangeMaxHealth(op = StatOp.Set, amount = StatValue.Dbl(40.0), healOnChange = true),
             TeleportPlayer(location = testLocation, preventInsideBlocks = false),
             ExecuteFunction(name = "test2", global = true),
             EnchantHeldItem(enchantment = Enchantment.Protection, level = 10),
@@ -248,7 +248,7 @@ object Actions {
             ),
             ChangeHealth(
                 op = randomProp(StatOp::class),
-                amount = randomProp(Double::class)
+                amount = randomStatValue()
             ),
             ApplyInventoryLayout(
                 layout = "test"
@@ -264,9 +264,9 @@ object Actions {
                 pickupDelayTicks = randomProp(Int::class)
             ),
             ChangeVelocity(
-                randomProp(Double::class),
-                randomProp(Double::class),
-                randomProp(Double::class)
+                randomStatValue(),
+                randomStatValue(),
+                randomStatValue()
             ),
             LaunchToTarget(
                 location = randomLocation(),
@@ -328,8 +328,8 @@ object Actions {
             SendToLobby(location = Lobby.MainLobby),
             SetCompassTarget(location = randomLocation()),
             SetGameMode(gamemode = GameMode.Creative),
-            ChangeHunger(op = randomProp(StatOp::class), amount = randomProp(Double::class)),
-            ChangeMaxHealth(op = randomProp(StatOp::class), amount = randomProp(Double::class), healOnChange = randomProp(Boolean::class)),
+            ChangeHunger(op = randomProp(StatOp::class), amount = randomStatValue()),
+            ChangeMaxHealth(op = randomProp(StatOp::class), amount = randomStatValue(), healOnChange = randomProp(Boolean::class)),
             TeleportPlayer(location = randomLocation(), preventInsideBlocks = randomProp(Boolean::class)),
             ExecuteFunction(name = "test", global = randomProp(Boolean::class)),
             EnchantHeldItem(enchantment = randomProp(Enchantment::class), level = randomProp(Int::class)),
@@ -495,9 +495,9 @@ object Actions {
 
             else -> {
                 Location.Custom(
-                    x = Location.Custom.Coordinate(0.0),
-                    y = Location.Custom.Coordinate(0.0),
-                    z = Location.Custom.Coordinate(0.0),
+                    x = Location.Custom.Coordinate("0.0"),
+                    y = Location.Custom.Coordinate("0.0"),
+                    z = Location.Custom.Coordinate("0.0"),
                 )
             }
         }

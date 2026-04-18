@@ -20,7 +20,7 @@ public class OpenCloseScreenMixin {
         MenuUtils.INSTANCE.completeOnOpenScreen$systemsapi(screen);
     }
 
-    @Inject(method = "onCloseScreen", at = @At(value = "HEAD"))
+    @Inject(method = "onCloseScreen", at = @At(value = "RETURN"))
     private void onScreenClose(CloseScreenS2CPacket packet, CallbackInfo ci) {
         MenuUtils.INSTANCE.completeOnClose$systemsapi();
     }
