@@ -25,7 +25,8 @@ jobs:
         env:
           GRADLE_OPTS: "-Xmx2g -XX:+UseParallelGC -XX:MaxMetaspaceSize=384m"
           _JAVA_OPTIONS: "-Xmx4g"
-        run: ./gradlew publish \
+        run: |
+          ./gradlew publish \
           -PreleasesRepoUsername=${{ secrets.RELEASESREPOUSERNAME }} \
           -PreleasesRepoPassword=${{ secrets.RELEASESREPOPASSWORD }} \
           -Psnapshot=true
