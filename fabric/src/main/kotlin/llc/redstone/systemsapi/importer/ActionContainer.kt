@@ -220,12 +220,33 @@ class ActionContainer(
     }
 
     suspend fun updateActions(newActions: List<Action>, oldActions: List<Action>? = null) {
+        HouseImporter.setImporting(true)
         val existing = oldActions ?: getActions()
 
+        var shouldReplace = false
         val diff = JAVERS.compare(existing, newActions)
         val changes = diff.getChangesByType(ListChange::class.java).getOrNull(0)?.changes ?: return
-        for (change in changes) {
+        println(diff)
+        val toBeRemoved = mutableListOf<Int>()
 
+        for (change in changes) {
+            if (change is ElementValueChange) {
+                val oldValue = change.leftValue as? Action ?: continue
+                val newValue = change.rightValue as? Action ?: continue
+                if (oldValue::class != newValue::class) {
+                    shouldReplace = true
+                    break
+                }
+            }
+        }
+
+        if (shouldReplace) {
+            println("Significant changes detected, replacing all actions.")
+            setActions(newActions)
+            return
+        }
+
+        for (change in changes) {
             //Make sure we are on the main page before looking for the next change
             MenuUtils.onOpen(title)
 
@@ -236,6 +257,7 @@ class ActionContainer(
                     val newValue = change.rightValue as? Action ?: continue
 
                     val (page, slot) = getSlotAndPage(index)
+
                     MenuUtils.gotoPage(page)
 
                     PropertySettings.updateAction(slots[slot] ?: continue, oldValue, newValue)
@@ -244,19 +266,24 @@ class ActionContainer(
                     val newValue = change.addedValue as? Action ?: continue
                     if (index >= existing.size) {
                         addActions(listOf(newValue))
-                    } else {
-                        println("Action added in index $index: $newValue")
                     }
                 }
                 is ValueRemoved -> {
-                    val (page, slot) = getSlotAndPage(index)
-                    if (page > 0) {
-                        TODO("Handle pagination when updating actions. Page: $page, Slot: $slot")
-                    }
-                    MenuUtils.packetClick(slots[slot] ?: continue, 1)
+                    toBeRemoved.add(index)
                 }
             }
         }
+
+        //Remove actions after processing all changes to avoid index issues
+        toBeRemoved.sortDescending() //Remove from the end to avoid shifting indexes
+        for (index in toBeRemoved) {
+            val (page, slot) = getSlotAndPage(index)
+            MenuUtils.gotoPage(page)
+            val slotId = slots[slot] ?: continue
+            MenuUtils.interactionClick(slotId, 1)
+            MenuUtils.onOpen(title, checkIfOpen = false)
+        }
+        HouseImporter.setImporting(false)
     }
 
     private fun getSlotAndPage(slotIndex: Int): Pair<Int, Int> {

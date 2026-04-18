@@ -26,7 +26,8 @@ object SystemsAPI : ClientModInitializer {
     internal val MC: MinecraftClient
         get() = MinecraftClient.getInstance()
     internal var DYNAMIC_FPS: DynamicFPSHook? = null
-    internal val JAVERS = JaversBuilder.javers().build()
+    internal val JAVERS = JaversBuilder.javers()
+        .build()
 
     init {
         mcCoroutineConfiguration.minecraftExecutor = MinecraftClient.getInstance()

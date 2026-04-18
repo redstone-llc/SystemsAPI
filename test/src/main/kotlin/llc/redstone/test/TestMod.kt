@@ -3,6 +3,7 @@ package llc.redstone.test
 import com.mojang.brigadier.context.CommandContext
 import llc.redstone.systemsapi.SystemsAPI
 import llc.redstone.systemsdata.Action
+import llc.redstone.systemsdata.Condition
 import llc.redstone.test.tests.Function.withFunctionSubCommand
 import llc.redstone.test.tests.GroupsTest.withGroupsSubCommand
 import llc.redstone.test.tests.HouseSettingsTest.withHouseSettingsSubCommand
@@ -59,15 +60,16 @@ object TestMod : ClientModInitializer {
 
                             val container = importer.getFunction("test")?.getActionContainer()
 
-                            container?.setActions(
-                                listOf(
-                                    Action.ClearAllPotionEffects()
-                                )
-                            )
-
                             container?.updateActions(
                                 listOf(
-                                    Action.ClearAllPotionEffects()
+                                    Action.Conditional(
+                                        conditions = listOf(
+                                            Condition.PlayerVariableRequirement()
+                                        ),
+                                        ifActions = listOf(
+                                            Action.SendMessage("Hello, World!")
+                                        )
+                                    )
                                 )
                             )
                         }

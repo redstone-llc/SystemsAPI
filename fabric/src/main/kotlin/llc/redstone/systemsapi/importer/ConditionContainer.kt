@@ -1,6 +1,7 @@
 package llc.redstone.systemsapi.importer
 
 import llc.redstone.systemsapi.SystemsAPI.JAVERS
+import llc.redstone.systemsapi.SystemsAPI.scaledDelay
 import llc.redstone.systemsapi.util.ItemStackUtils.getLoreLineMatchesOrNull
 import llc.redstone.systemsapi.util.ItemStackUtils.loreLines
 import llc.redstone.systemsapi.util.MenuUtils
@@ -67,6 +68,35 @@ object ConditionContainer {
         return timeRemaining
     }
 
+    suspend fun setConditions(newConditions: List<Condition>) {
+        HouseImporter.setImporting(true)
+        //Clear existing conditions
+        MenuUtils.onOpen("Edit Conditions")
+        if (MenuUtils.findSlots(MenuItems.NO_CONDITIONS).firstOrNull() == null) {
+            //There are existing conditions, remove them
+            while (true) {
+                val actionSlots = mutableListOf<Int>()
+                for (slotIndex in slots.values) {
+                    val slot = MenuUtils.getSlot(slotIndex)
+                    if (!slot.hasStack()) break //No more actions
+                    actionSlots.add(slotIndex)
+                }
+
+                if (MenuUtils.findSlots(MenuItems.NO_CONDITIONS).firstOrNull() != null) break
+
+                for (slotIndex in actionSlots) {
+                    val slot = MenuUtils.getSlot(slotIndex)
+                    MenuUtils.interactionClick(slot.id, 1)
+                    MenuUtils.onOpen("Edit Conditions")
+                }
+                scaledDelay()
+            }
+        }
+
+        //Add new conditions
+        addConditions(newConditions)
+    }
+
     //List of conditions to add to the container
     suspend fun addConditions(actions: List<Condition>) {
         for (condition in actions) {
@@ -130,6 +160,7 @@ object ConditionContainer {
             MenuUtils.packetClick(10)
             MenuUtils.onOpen("Edit Conditions")
             val changes = condDiff.changes.getChangesByType(ListChange::class.java)[0].changes
+            var shouldReplace = false
             for (change in changes) {
                 val index = change.index
                 when (change) {
@@ -138,8 +169,11 @@ object ConditionContainer {
                         val newValue = change.rightValue as? Condition ?: continue
 
                         val (page, slot) = getSlotAndPage(index)
-                        if (page > 0) {
-                            TODO("Handle pagination when updating actions. Page: $page, Slot: $slot")
+                        MenuUtils.gotoPage(page)
+
+                        if (oldValue::class != newValue::class) {
+                            shouldReplace = true
+                            break
                         }
 
                         MenuUtils.packetClick(slots[slot] ?: continue)
@@ -159,12 +193,17 @@ object ConditionContainer {
 
                     is ValueRemoved -> {
                         val (page, slot) = getSlotAndPage(index)
-                        if (page > 0) {
-                            TODO("Handle pagination when updating actions. Page: $page, Slot: $slot")
-                        }
+
+                        MenuUtils.gotoPage(page)
+
                         MenuUtils.packetClick(slots[slot] ?: continue, 1)
+                        MenuUtils.onOpen("Edit Conditions", checkIfOpen = false)
                     }
                 }
+            }
+            if (shouldReplace) {
+                println("Conditions were completely changed, replacing all conditions")
+                setConditions(newConditional.conditions)
             }
             MenuUtils.onOpen("Edit Conditions")
             MenuUtils.clickItems(MenuItems.BACK)
