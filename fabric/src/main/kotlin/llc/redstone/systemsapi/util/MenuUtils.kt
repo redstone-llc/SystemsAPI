@@ -304,6 +304,28 @@ object MenuUtils {
         )
     }
 
+    val pattern = Regex("\\((\\d+)/(\\d+)\\)")
+    suspend fun gotoPage(page: Int) {
+        val title = currentMenu().title.string
+        if (page == 0 && !title.contains("/")) return // already on first page
+        val match = pattern.find(title) ?: return
+        var currentPage = match.groupValues[1].toInt()
+        var totalPages = match.groupValues[2].toInt()
+        if (page < 0 || page > totalPages) throw IllegalArgumentException("Invalid page number: $page")
+        if (currentPage == page) return
+        while (currentPage != page) {
+            if (currentPage < page) {
+                clickItems(GlobalMenuItems.NEXT_PAGE, packet = true, paginated = false)
+            } else {
+                clickItems(GlobalMenuItems.PREVIOUS_PAGE, packet = true, paginated = false)
+            }
+            scaledDelay(4.0)
+            val newTitle = currentMenu().title.string
+            val newMatch = pattern.find(newTitle) ?: throw IllegalStateException("Failed to find page pattern in title: $newTitle")
+            currentPage = newMatch.groupValues[1].toInt()
+        }
+    }
+
     object GlobalMenuItems {
         val NEXT_PAGE = ItemSelector(
             name = NameWithin(listOf("Next Page", "Left-click for next page!")),

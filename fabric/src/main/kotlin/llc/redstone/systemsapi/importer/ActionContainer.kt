@@ -236,9 +236,7 @@ class ActionContainer(
                     val newValue = change.rightValue as? Action ?: continue
 
                     val (page, slot) = getSlotAndPage(index)
-                    if (page > 0) {
-                        TODO("Handle pagination when updating actions. Page: $page, Slot: $slot")
-                    }
+                    MenuUtils.gotoPage(page)
 
                     PropertySettings.updateAction(slots[slot] ?: continue, oldValue, newValue)
                 }

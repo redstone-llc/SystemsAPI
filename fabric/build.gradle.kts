@@ -7,7 +7,7 @@ plugins {
     id("org.jetbrains.dokka") version "2.1.0"
 }
 
-version = "${property("mod.version")}+${stonecutter.current.version}"
+version = "${property("mod.version")}+${stonecutter.current.version}${if (findProperty("snapshot") == "true") "-SNAPSHOT" else ""}"
 base.archivesName = property("mod.id") as String
 group = "llc.redstone"
 
@@ -43,7 +43,8 @@ dependencies {
 
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
 
-    implementation(include("llc.redstone:SystemsData:1.1.5")!!)
+    implementation(include("llc.redstone:SystemsData:1.0.0-SNAPSHOT")!!)
+    include("org.picocontainer:picocontainer:2.15")
     implementation(include("org.javers:javers-core:7.11.0")!!)
 
 
