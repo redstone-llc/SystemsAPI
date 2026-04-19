@@ -26,5 +26,5 @@ jobs:
           ./gradlew publishMavenJavaPublicationToSnapshotsRepoRepository \
             -PreleasesRepoUsername=${{ secrets.RELEASESREPOUSERNAME }} \
             -PreleasesRepoPassword=${{ secrets.RELEASESREPOPASSWORD }} \
-            -Pversion=$(git rev-parse --short HEAD)
+            -Pversion=$(git rev-parse --short HEAD) \
             -Psnapshot=true
