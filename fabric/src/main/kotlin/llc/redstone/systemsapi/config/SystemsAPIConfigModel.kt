@@ -6,7 +6,7 @@ import io.wispforest.owo.config.annotation.SectionHeader
 import llc.redstone.systemsapi.SystemsAPI.MOD_ID
 
 
-@Modmenu(modId = MOD_ID)
+@Modmenu(modId = MOD_ID, uiModelId = "systemsapi:config")
 @Config(name = MOD_ID, wrapperName = "SystemsAPIConfig")
 class SystemsAPIConfigModel {
     @JvmField
