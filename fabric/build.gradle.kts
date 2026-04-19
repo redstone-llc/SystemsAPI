@@ -94,7 +94,7 @@ publishing {
             groupId = project.group.toString()
             artifactId = "SystemsAPI"
 
-            version = findProperty("version")?.toString() ?: project.version.toString()
+            version = if (hasProperty("commit")) "${property("commit")}+${stonecutter.current.version}" else project.version.toString()
 //            version = "dev"
         }
     }
