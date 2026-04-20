@@ -15,6 +15,7 @@ import llc.redstone.systemsdata.Condition
 import llc.redstone.systemsdata.VariableHolder
 import net.minecraft.item.Items
 import net.minecraft.screen.slot.Slot
+import net.minecraft.screen.slot.SlotActionType
 import org.javers.core.diff.changetype.container.ElementValueChange
 import org.javers.core.diff.changetype.container.ListChange
 import org.javers.core.diff.changetype.container.ValueAdded
@@ -227,18 +228,19 @@ class ActionContainer(
         val diff = JAVERS.compare(existing, newActions)
         val changes = diff.getChangesByType(ListChange::class.java).getOrNull(0)?.changes ?: return
         println(diff)
-        val toBeRemoved = mutableListOf<Int>()
 
-        for (change in changes) {
-            if (change is ElementValueChange) {
-                val oldValue = change.leftValue as? Action ?: continue
-                val newValue = change.rightValue as? Action ?: continue
-                if (oldValue::class != newValue::class) {
-                    shouldReplace = true
-                    break
-                }
-            }
-        }
+        var newIndex = existing.size - 1
+
+//        for (change in changes) {
+//            if (change is ElementValueChange) {
+//                val oldValue = change.leftValue as? Action ?: continue
+//                val newValue = change.rightValue as? Action ?: continue
+//                if (oldValue::class != newValue::class) {
+//                    shouldReplace = true
+//                    break
+//                }
+//            }
+//        }
 
         if (shouldReplace) {
             println("Significant changes detected, replacing all actions.")
@@ -260,28 +262,40 @@ class ActionContainer(
 
                     MenuUtils.gotoPage(page)
 
-                    PropertySettings.updateAction(slots[slot] ?: continue, oldValue, newValue)
+                    PropertySettings.updateAction(title, slots[slot] ?: continue, page, oldValue, newValue)
                 }
                 is ValueAdded -> {
                     val newValue = change.addedValue as? Action ?: continue
+                    newIndex += 1
                     if (index >= existing.size) {
                         addActions(listOf(newValue))
+                    } else {
+                        val (page, slot) = getSlotAndPage(newIndex)
+                        val (indexPage, indexSlot) = getSlotAndPage(index)
+                        MenuUtils.gotoPage(page)
+                        addActions(listOf(newValue))
+                        var counter = 1
+                        var (currentPage, currentSlot) = getSlotAndPage(newIndex - counter)
+                        while (currentSlot != indexSlot || currentPage != indexPage) {
+                            println("Moving action from page $currentPage slot $currentSlot to page $indexPage slot $indexSlot")
+                            counter += 1
+                            MenuUtils.packetClick(slots[currentSlot]!!, 0, SlotActionType.QUICK_MOVE)
+                            MenuUtils.onOpen(title, checkIfOpen = false)
+                            val (newPage, newSlot) = getSlotAndPage(existing.size - counter)
+                            currentPage = newPage
+                            currentSlot = newSlot
+                            MenuUtils.gotoPage(newPage)
+                        }
                     }
                 }
                 is ValueRemoved -> {
-                    toBeRemoved.add(index)
+                    val (page, slot) = getSlotAndPage(index)
+                    MenuUtils.gotoPage(page)
+                    val slotId = slots[slot] ?: continue
+                    MenuUtils.interactionClick(slotId, 1)
+                    MenuUtils.onOpen(title, checkIfOpen = false)
                 }
             }
-        }
-
-        //Remove actions after processing all changes to avoid index issues
-        toBeRemoved.sortDescending() //Remove from the end to avoid shifting indexes
-        for (index in toBeRemoved) {
-            val (page, slot) = getSlotAndPage(index)
-            MenuUtils.gotoPage(page)
-            val slotId = slots[slot] ?: continue
-            MenuUtils.interactionClick(slotId, 1)
-            MenuUtils.onOpen(title, checkIfOpen = false)
         }
         HouseImporter.setImporting(false)
     }

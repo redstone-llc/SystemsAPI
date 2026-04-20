@@ -194,7 +194,7 @@ object MenuUtils {
 
     // CORE UTILS
 
-    fun packetClick(slot: Int, button: Int = 0) {
+    fun packetClick(slot: Int, button: Int = 0, actionType: SlotActionType = SlotActionType.PICKUP) {
         val gui = currentMenu()
 
         val pkt = ClickSlotC2SPacket(
@@ -202,7 +202,7 @@ object MenuUtils {
             gui.screenHandler.revision,
             slot.toShort(),
             button.toByte(),
-            SlotActionType.PICKUP,
+            actionType,
             Int2ObjectOpenHashMap(),
             ItemStackHash.EMPTY
         )
@@ -210,14 +210,14 @@ object MenuUtils {
         MC.networkHandler?.sendPacket(pkt) ?: error("Failed to send click packet")
     }
 
-    fun interactionClick(slot: Int, button: Int = 0) {
+    fun interactionClick(slot: Int, button: Int = 0, actionType: SlotActionType = SlotActionType.PICKUP) {
         val gui = MC.currentScreen as? HandledScreen<*> ?: throw IllegalStateException("Expected HandledScreen, but found ${MC.currentScreen?.javaClass?.name}")
 
         MC.interactionManager?.clickSlot(
             gui.screenHandler.syncId,
             slot,
             button,
-            SlotActionType.PICKUP,
+            actionType,
             MC.player
         )
     }

@@ -462,11 +462,7 @@ object PropertySettings {
         }
     }
 
-    suspend fun updateAction(slot: Int, oldValue: Action, newValue: Action) {
-        if (oldValue::class != newValue::class) {
-            throw IllegalArgumentException("Cannot update action: action types do not match (${oldValue::class.simpleName} vs ${newValue::class.simpleName})")
-        }
-
+    suspend fun updateAction(title: String, slot: Int, page: Int, oldValue: Action, newValue: Action) {
         val parameters = oldValue::class.primaryConstructor!!.parameters.toMutableList()
         val actionProperties = oldValue.javaClass.kotlin.memberProperties
 

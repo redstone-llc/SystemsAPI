@@ -3,7 +3,6 @@ package llc.redstone.test
 import com.mojang.brigadier.context.CommandContext
 import llc.redstone.systemsapi.SystemsAPI
 import llc.redstone.systemsdata.Action
-import llc.redstone.systemsdata.Condition
 import llc.redstone.test.tests.Function.withFunctionSubCommand
 import llc.redstone.test.tests.GroupsTest.withGroupsSubCommand
 import llc.redstone.test.tests.HouseSettingsTest.withHouseSettingsSubCommand
@@ -62,14 +61,33 @@ object TestMod : ClientModInitializer {
 
                             container?.updateActions(
                                 listOf(
-                                    Action.Conditional(
-                                        conditions = listOf(
-                                            Condition.PlayerVariableRequirement()
-                                        ),
-                                        ifActions = listOf(
-                                            Action.SendMessage("Hello, World!")
-                                        )
-                                    )
+                                    Action.SendMessage("Hello 2"),
+                                    Action.SendMessage("Hello 0"),
+                                    Action.SendMessage("Hello"),
+                                    Action.RemoveItem(),
+                                    Action.SendMessage("Hello 1"),
+                                    Action.SendMessage("Hello 4"),
+                                    Action.SendMessage("Hello 3"),
+                                    Action.SendMessage("Hello 4"),
+                                    Action.SendMessage("Hello 5"),
+                                    Action.RemoveItem(),
+                                    Action.SendMessage("Hello 10"),
+                                    Action.SendMessage("Hello 6"),
+                                    Action.SendMessage("Hello 7"),
+                                    Action.SendMessage("Hello 8"),
+                                    Action.SendMessage("Hello 9"),
+                                    Action.RemoveItem(),
+                                    Action.SendMessage("Hello 11"),
+                                    Action.SendMessage("Hello 12"),
+                                    Action.SendMessage("Hello 13"),
+                                    Action.SendMessage("Hello 14"),
+                                    Action.SendMessage("Hello 15"),
+                                    Action.RemoveItem(),
+                                    Action.SendMessage("Hello 16"),
+                                    Action.SendMessage("Hello 17"),
+                                    Action.SendMessage("Hello 18"),
+                                    Action.SendMessage("Hello 19"),
+                                    Action.SendMessage("Hello 20")
                                 )
                             )
                         }
