@@ -462,7 +462,7 @@ object PropertySettings {
         }
     }
 
-    suspend fun updateAction(title: String, slot: Int, page: Int, oldValue: Action, newValue: Action) {
+    suspend fun updateAction(slotId: Int, oldValue: Action, newValue: Action) {
         val parameters = oldValue::class.primaryConstructor!!.parameters.toMutableList()
         val actionProperties = oldValue.javaClass.kotlin.memberProperties
 
@@ -470,7 +470,7 @@ object PropertySettings {
             return
         }
 
-        MenuUtils.packetClick(slot)
+        MenuUtils.packetClick(slotId)
 
         if (oldValue is Action.Conditional && newValue is Action.Conditional) {
             ConditionContainer.updateConditional(oldValue, newValue)

@@ -258,11 +258,32 @@ class ActionContainer(
                     val oldValue = change.leftValue as? Action ?: continue
                     val newValue = change.rightValue as? Action ?: continue
 
-                    val (page, slot) = getSlotAndPage(index)
-
+                    val (page, slot) = MenuUtils.getSlotAndPage(index)
                     MenuUtils.gotoPage(page)
 
-                    PropertySettings.updateAction(title, slots[slot] ?: continue, page, oldValue, newValue)
+                    if (oldValue::class != newValue::class) {
+                        println("Replacing action at index $index due to type change from ${oldValue::class} to ${newValue::class}")
+                        MenuUtils.interactionClick(slots[slot] ?: continue, 1)
+                        MenuUtils.onOpen(title, checkIfOpen = false)
+                        addActions(listOf(newValue))
+                        val (page, slot) = MenuUtils.getSlotAndPage(newIndex)
+                        MenuUtils.gotoPage(page)
+
+                        var counter = 1
+                        var (currentPage, currentSlot) = MenuUtils.getSlotAndPage(newIndex - counter)
+                        while (currentSlot != slot || currentPage != page) {
+                            println("Moving action from page $currentPage slot $currentSlot to page $page slot $slot")
+                            counter += 1
+                            MenuUtils.packetClick(slots[currentSlot]!!, 0, SlotActionType.QUICK_MOVE)
+                            MenuUtils.onOpen(title, checkIfOpen = false)
+                            val (newPage, newSlot) = MenuUtils.getSlotAndPage(existing.size - counter)
+                            currentPage = newPage
+                            currentSlot = newSlot
+                            MenuUtils.gotoPage(newPage)
+                        }
+                    } else {
+                        PropertySettings.updateAction(slots[slot] ?: continue, oldValue, newValue)
+                    }
                 }
                 is ValueAdded -> {
                     val newValue = change.addedValue as? Action ?: continue
@@ -270,18 +291,18 @@ class ActionContainer(
                     if (index >= existing.size) {
                         addActions(listOf(newValue))
                     } else {
-                        val (page, slot) = getSlotAndPage(newIndex)
-                        val (indexPage, indexSlot) = getSlotAndPage(index)
+                        val (page, slot) = MenuUtils.getSlotAndPage(newIndex)
+                        val (indexPage, indexSlot) = MenuUtils.getSlotAndPage(index)
                         MenuUtils.gotoPage(page)
                         addActions(listOf(newValue))
                         var counter = 1
-                        var (currentPage, currentSlot) = getSlotAndPage(newIndex - counter)
+                        var (currentPage, currentSlot) = MenuUtils.getSlotAndPage(newIndex - counter)
                         while (currentSlot != indexSlot || currentPage != indexPage) {
                             println("Moving action from page $currentPage slot $currentSlot to page $indexPage slot $indexSlot")
                             counter += 1
                             MenuUtils.packetClick(slots[currentSlot]!!, 0, SlotActionType.QUICK_MOVE)
                             MenuUtils.onOpen(title, checkIfOpen = false)
-                            val (newPage, newSlot) = getSlotAndPage(existing.size - counter)
+                            val (newPage, newSlot) = MenuUtils.getSlotAndPage(existing.size - counter)
                             currentPage = newPage
                             currentSlot = newSlot
                             MenuUtils.gotoPage(newPage)
@@ -289,7 +310,7 @@ class ActionContainer(
                     }
                 }
                 is ValueRemoved -> {
-                    val (page, slot) = getSlotAndPage(index)
+                    val (page, slot) = MenuUtils.getSlotAndPage(index)
                     MenuUtils.gotoPage(page)
                     val slotId = slots[slot] ?: continue
                     MenuUtils.interactionClick(slotId, 1)
@@ -298,12 +319,6 @@ class ActionContainer(
             }
         }
         HouseImporter.setImporting(false)
-    }
-
-    private fun getSlotAndPage(slotIndex: Int): Pair<Int, Int> {
-        val page = slotIndex / 21
-        val index = slotIndex % 21
-        return Pair(page, index)
     }
 
     var actionNavigationTime = 400L

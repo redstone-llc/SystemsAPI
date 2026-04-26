@@ -321,9 +321,15 @@ object MenuUtils {
             }
             scaledDelay(4.0)
             val newTitle = currentMenu().title.string
-            val newMatch = pattern.find(newTitle) ?: throw IllegalStateException("Failed to find page pattern in title: $newTitle")
+            val newMatch = pattern.find(newTitle) ?: "(1/1)".let { pattern.find(it)!! }
             currentPage = newMatch.groupValues[1].toInt()
         }
+    }
+
+    fun getSlotAndPage(slotIndex: Int): Pair<Int, Int> {
+        val page = slotIndex / 21
+        val index = slotIndex % 21
+        return Pair(page, index)
     }
 
     object GlobalMenuItems {
@@ -332,7 +338,7 @@ object MenuUtils {
             item = ItemExact(Items.ARROW)
         )
         val PREVIOUS_PAGE = ItemSelector(
-            name = NameWithin(listOf("Last Page", "Right-click for previous page!")),
+            name = NameWithin(listOf("Last Page", "Left-click for previous page!")),
             item = ItemExact(Items.ARROW)
         )
     }
