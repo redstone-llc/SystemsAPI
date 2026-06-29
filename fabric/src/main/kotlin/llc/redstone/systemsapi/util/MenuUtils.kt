@@ -9,6 +9,7 @@ import llc.redstone.systemsapi.SystemsAPI.CONFIG
 import llc.redstone.systemsapi.SystemsAPI.MC
 import llc.redstone.systemsapi.SystemsAPI.scaledDelay
 import llc.redstone.systemsapi.importer.HouseImporter.setImporting
+import llc.redstone.systemsapi.util.ErrorCorrection.BasicClick
 import llc.redstone.systemsapi.util.PredicateUtils.ItemMatch.ItemExact
 import llc.redstone.systemsapi.util.PredicateUtils.ItemSelector
 import llc.redstone.systemsapi.util.PredicateUtils.NameMatch
@@ -27,12 +28,6 @@ import net.minecraft.screen.sync.ItemStackHash
 import kotlin.reflect.KClass
 
 object MenuUtils {
-    //Debug info
-    var waitingOn: String? = null
-    var lastWaitingOn: String? = null
-    var lastSuccessful: String? = null
-    var currentScreen: String? = null
-
     var pendingScreen: CompletableDeferred<Screen?>? = null
     var pendingClazz: Array<out KClass<out Screen>?> = arrayOf()
     var pendingNameMatch: NameMatch? = null
@@ -53,19 +48,16 @@ object MenuUtils {
     suspend fun onOpen(
         nameMatch: NameMatch?,
         vararg clazz: KClass<out Screen>? = arrayOf(GenericContainerScreen::class),
-        checkIfOpen: Boolean = false
+        checkIfOpen: Boolean = false,
+        errorCorrection: Boolean = true
     ): Screen? {
         suspend fun reset() {
             pendingScreen = null
             pendingNameMatch = null
             pendingClazz = arrayOf()
-            lastSuccessful = waitingOn
-            lastWaitingOn = waitingOn
-            waitingOn = null
             if (MC.currentScreen is HandledScreen<*>) awaitUntilMenuItemsLoaded()
         }
 
-        waitingOn = "$nameMatch"
         val deferred = CompletableDeferred<Screen?>()
         pendingScreen?.cancel()
         pendingScreen = deferred
@@ -94,8 +86,13 @@ object MenuUtils {
                 println("Menu opened during timeout: $nameMatch")
                 MC.currentScreen
             } else {
-                setImporting(false)
-                error("Timed out waiting for menu: $nameMatch")
+                if (errorCorrection && ErrorCorrection.onMenuTimeout()) {
+                    println("Menu corrected on timeout: $nameMatch")
+                    MC.currentScreen
+                } else {
+                    setImporting(false)
+                    error("Timed out waiting for menu: $nameMatch")
+                }
             }
         } finally {
             reset()
@@ -181,6 +178,7 @@ object MenuUtils {
     }
 
     fun clickPlayerSlot(slot: Int, button: Int = 0) {
+        ErrorCorrection.lastPlayerSlotClick = BasicClick(slot, button)
         val gui = currentMenu()
         val playerSlot = when (slot) {
             in 0..8 -> slot + gui.screenHandler.slots.size - 9
@@ -195,7 +193,8 @@ object MenuUtils {
     // CORE UTILS
 
     fun packetClick(slot: Int, button: Int = 0, actionType: SlotActionType = SlotActionType.PICKUP) {
-        val gui = currentMenu()
+        ErrorCorrection.lastMenuSlotClick = BasicClick(slot, button)
+        val gui = MC.currentScreen as? HandledScreen<*> ?: return
 
         val pkt = ClickSlotC2SPacket(
             gui.screenHandler.syncId,
@@ -211,7 +210,8 @@ object MenuUtils {
     }
 
     fun interactionClick(slot: Int, button: Int = 0, actionType: SlotActionType = SlotActionType.PICKUP) {
-        val gui = MC.currentScreen as? HandledScreen<*> ?: throw IllegalStateException("Expected HandledScreen, but found ${MC.currentScreen?.javaClass?.name}")
+        ErrorCorrection.lastMenuSlotClick = BasicClick(slot, button)
+        val gui = MC.currentScreen as? HandledScreen<*> ?: return
 
         MC.interactionManager?.clickSlot(
             gui.screenHandler.syncId,

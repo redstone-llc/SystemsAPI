@@ -26,6 +26,7 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotations
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
+import kotlin.reflect.jvm.isAccessible
 
 
 //The title of the actions gui, either Actions: <name> or Edit Actions
@@ -157,7 +158,6 @@ class ActionContainer(
                 //Dont question this :)
                 //Used to catch when there is no actions or conditionals
                 val index = allLines.indexOf(loreLines.getOrNull(index + indexOffset))
-                println(allLines.getOrNull(index + 1))
                 colorValue = allLines.getOrNull(index + 1)
                     ?.split(" - ")?.drop(1)?.joinToString(" - ")
                     ?.replaceFirst("&f", "") ?: continue
@@ -180,9 +180,12 @@ class ActionContainer(
             args[param] = returnValue
         }
 
+
         return if (args.size != constructor.parameters.size) {
             actionClass.constructors.firstOrNull { it.parameters.size == constructor.parameters.size }?.callBy(args)
+                ?: constructor.callBy(args)
         } else {
+            constructor.isAccessible = true
             constructor.callBy(args)
         }
     }
@@ -203,12 +206,8 @@ class ActionContainer(
 
                 if (MenuUtils.findSlots(MenuItems.NO_ACTIONS).firstOrNull() != null) break
 
-                for (slotIndex in actionSlots) {
-                    val slot = MenuUtils.getSlot(slotIndex)
-                    MenuUtils.interactionClick(slot.id, 1)
-                    MenuUtils.onOpen(title)
-                }
-                scaledDelay()
+                MenuUtils.packetClick(10, 1)
+                MenuUtils.onCurrentScreenUpdate()
             }
         }
 

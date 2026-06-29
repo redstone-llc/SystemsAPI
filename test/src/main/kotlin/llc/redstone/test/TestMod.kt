@@ -45,7 +45,6 @@ object TestMod : ClientModInitializer {
                         it.source.sendFeedback(MutableText.of(of("Usage: /testmod <feature>")))
                         1
                     }
-                    .withFunctionSubCommand()
                     .withHouseSettingsSubCommand()
                     .withRegionsSubCommand()
                     .withGroupsSubCommand()

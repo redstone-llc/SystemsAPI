@@ -52,7 +52,7 @@ object ItemStackUtils {
     fun ItemStack.getLoreLineMatches(color: Boolean, filter: (String) -> Boolean = { true }): String {
         return this.loreLines(color)
             .firstOrNull { line -> filter(line) }
-            ?: throw IllegalStateException("No lore lines for item $this passed filter")
+            ?: throw IllegalStateException("No lore lines for item $this passed filter, with lore: ${this.loreLines(color)}")
     }
 
     fun ItemStack.getLoreLineMatchesOrNull(color: Boolean, filter: (String) -> Boolean = { true }): String? {

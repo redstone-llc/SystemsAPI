@@ -144,6 +144,7 @@ object InputUtils {
     // For anvil and chat inputs
     suspend fun textInput(message: String) {
         val message = message.ifEmpty { "&r" }
+        ErrorCorrection.lastTextInput = message
         when (val screen = MenuUtils.onOpen(null, AnvilScreen::class, ChatScreen::class, null)) {
             is AnvilScreen -> {
                 scaledDelay(4.0)
@@ -154,7 +155,7 @@ object InputUtils {
             }
 
             null, is ChatScreen -> { //If they have Housing Toolbox and the setting is enabled
-                TextUtils.sendMessage(message)
+                MC.networkHandler?.sendChatMessage(message)
             }
 
             else -> throw IllegalStateException("Expected AnvilScreen or ChatScreen, got ${screen.javaClass.name}")

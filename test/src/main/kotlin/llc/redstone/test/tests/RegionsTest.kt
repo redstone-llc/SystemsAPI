@@ -39,13 +39,13 @@ object RegionsTest {
                 region.getEntryActionContainer().addActions(
                     listOf(
                         Action.FullHeal(),
-                        Action.ChangeHealth(StatValue.from(10.0), StatOp.Set)
+                        Action.ChangeHealth(StatValue.Dbl(10.0), StatOp.Set)
                     )
                 )
                 region.getExitActionContainer().addActions(
                     listOf(
                         Action.FullHeal(),
-                        Action.ChangeHealth(StatValue.from(10.0), StatOp.Set)
+                        Action.ChangeHealth(StatValue.Dbl(10.0), StatOp.Set)
                     )
                 )
 

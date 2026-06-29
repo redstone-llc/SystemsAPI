@@ -7,7 +7,7 @@ plugins {
     id("org.jetbrains.dokka") version "2.1.0"
 }
 
-version = "${property("mod.version")}+${stonecutter.current.version}${if (findProperty("snapshot") == "true") "-SNAPSHOT" else ""}"
+version = "${property("mod.version")}+${stonecutter.current.version}"
 base.archivesName = property("mod.id") as String
 group = "llc.redstone"
 
@@ -43,10 +43,7 @@ dependencies {
 
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
 
-    implementation(include("llc.redstone:SystemsData:1.0.0-SNAPSHOT")!!)
-    include("org.picocontainer:picocontainer:2.15")
-    implementation(include("org.javers:javers-core:7.11.0")!!)
-
+    implementation(include("llc.redstone:SystemsData:1.2.1")!!)
 
     modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
 }
@@ -96,8 +93,8 @@ publishing {
             from(components["java"])
             groupId = project.group.toString()
             artifactId = "SystemsAPI"
-            version = project.version.toString()
 
+            version = if (hasProperty("commit")) "${property("commit")}+${stonecutter.current.version}" else project.version.toString()
 //            version = "dev"
         }
     }
@@ -106,8 +103,16 @@ publishing {
             name = "releasesRepo"
             url = uri("https://repo.redstone.llc/releases")
             credentials {
-                username = property("releasesRepoUsername") as String
-                password = property("releasesRepoPassword") as String
+                username = findProperty("releasesRepoUsername") as? String
+                password = findProperty("releasesRepoPassword") as? String
+            }
+        }
+        maven {
+            name = "snapshotsRepo"
+            url = uri("https://repo.redstone.llc/snapshots")
+            credentials {
+                username = findProperty("releasesRepoUsername") as? String
+                password = findProperty("releasesRepoPassword") as? String
             }
         }
     }
