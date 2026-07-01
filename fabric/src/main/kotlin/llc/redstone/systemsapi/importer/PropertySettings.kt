@@ -107,7 +107,7 @@ object PropertySettings {
                     if (actions.size != value.size) error("List contains non-action entries")
                     MenuUtils.packetClick(slotIndex)
                     ActionContainer.updateTime = false
-                    genericContainer.addActions(actions)
+                    genericContainer.updateActions(actions)
                     ActionContainer.updateTime = true
                     MenuUtils.onOpen("Edit Actions")
                     MenuUtils.clickItems(MenuItems.BACK)
@@ -116,7 +116,9 @@ object PropertySettings {
                     val conditions = value.filterIsInstance<Condition>()
                     if (conditions.size != value.size) error("List contains non-condition entries")
                     MenuUtils.packetClick(slotIndex)
-                    ConditionContainer.addConditions(conditions)
+                    ActionContainer.updateTime = false
+                    ConditionContainer.updateConditions(conditions)
+                    ActionContainer.updateTime = true
                     MenuUtils.onOpen("Edit Conditions")
                     MenuUtils.clickItems(MenuItems.BACK)
                     MenuUtils.onOpen("Action Settings")

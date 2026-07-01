@@ -12,6 +12,7 @@ import llc.redstone.systemsdata.Condition
 import llc.redstone.systemsdata.DisplayName
 import llc.redstone.systemsdata.VariableHolder
 import net.minecraft.item.Items
+import net.minecraft.screen.slot.Slot
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
@@ -20,6 +21,8 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 
 object ConditionContainer {
+    private const val TITLE = "Edit Conditions"
+
     private val slots = mapOf(
         0 to 10,
         1 to 11,
@@ -62,159 +65,303 @@ object ConditionContainer {
         return timeRemaining
     }
 
-    //List of conditions to add to the container
-    suspend fun addConditions(actions: List<Condition>) {
-        for (condition in actions) {
-            //Wait for the "Edit Conditions" to open
-            //We do this every iteration to make sure we are right back at the Conditions page
-            MenuUtils.onOpen("Edit Conditions")
-
-            //Add a condition
-            MenuUtils.clickItems(MenuItems.ADD_CONDITION)
-            MenuUtils.onOpen("Add Condition")
-
-            //Get the condition parameters/properties
-            val parameters = condition::class.primaryConstructor!!.parameters.toMutableList()
-            val conditionProperties = condition.javaClass.kotlin.memberProperties
-
-            val properties = mutableListOf<KProperty1<Condition, *>>()
-            for (parm in parameters) {
-                properties.add(conditionProperties.find { it.name == parm.name } ?: continue)
-            }
-
-            //Get the Display Name of the condition and add it
-            val displayName = (condition::class.annotations.find { it is DisplayName } as DisplayName).value
-            MenuUtils.clickItems(displayName, paginated = true)
-
-            //Inverted
-            properties.add(0, conditionProperties.find { it.name == "inverted" } ?: continue)
-
-            //For require variable, because the holder isn't found in the parameters
-            if (condition is Condition.VariableRequirement) {
-                properties.add(1, conditionProperties.find { it.name == "holder" } ?: continue)
-            }
-
-            //Iterate through parameters
-            for ((index, property) in properties.withIndex()) {
-                //Get the property and its values
-                val value = property.get(condition)
-
-                //Make sure we are in the right gui before continuing
-                MenuUtils.onOpen("Settings")
-
-                //Place in the gui to click
-                val slotIndex = slots[index]!!
-                val slot = MenuUtils.getSlot(slotIndex)
-
-                PropertySettings.import(property, slot, value)
-            }
-            //Make sure we are in the condition settings menu before we go back to actions to add another one
-            if (properties.isNotEmpty()) {
-                MenuUtils.onOpen("Settings")
-                MenuUtils.clickItems(MenuItems.BACK)
-            }
-            MenuUtils.onOpen("Edit Conditions")
-        }
+    suspend fun exportConditions(): List<Condition> {
+        MenuUtils.onOpen(TITLE)
+        return collectConditions()
     }
 
-    suspend fun exportConditions(): List<Condition> {
+    private suspend fun collectConditions(): List<Condition> {
         val conditions = mutableListOf<Condition>()
-
-        MenuUtils.onOpen("Edit Conditions")
+        MenuUtils.onOpen(TITLE)
 
         if (MenuUtils.findSlots(MenuItems.NO_CONDITIONS).firstOrNull() != null) return conditions
 
         for (slotIndex in slots.values) {
             val slot = MenuUtils.getSlot(slotIndex)
-            if (!slot.hasStack()) break //No more actions
+            if (!slot.hasStack()) break
 
-            val item = slot.stack
-            val loreLines = item.loreLines(true).filter {
-                it.contains(": ") //Only care about lines with properties
-            }
-
-
-            val name = TextUtils.convertTextToString(item.name, false)
-            var conditionClass = Condition::class.sealedSubclasses.firstOrNull { it.findAnnotations(DisplayName::class).any { ann -> ann.value == name } }
-                ?: continue
-
-            var constructor = conditionClass.primaryConstructor!!
-            var parameters = constructor.parameters.toMutableList()
-            var conditionProperties = conditionClass.memberProperties
-            var properties = mutableListOf<Pair<KProperty1<Condition, *>, KParameter?>>()
-
-            for (parm in parameters) {
-                properties.add(conditionProperties.find { it.name == parm.name } as KProperty1<Condition, *> to parm)
-            }
-
-            suspend fun args(indexAddition: Int = 1): MutableMap<KParameter, Any?> {
-                val args = mutableMapOf<KParameter, Any?>()
-                properties.forEachIndexed { index, (prop, param) ->
-                    if (param == null) return@forEachIndexed
-                    val colorValue =
-                        (loreLines.getOrNull(index + indexAddition - 1)?.split(": ")?.drop(1)?.joinToString(": ")
-                            ?: return@forEachIndexed).replaceFirst("&f", "")
-                    val value = colorValue.replace(Regex("&[0-9a-fk-or]"), "")
-
-                    val returnValue = PropertySettings.export(
-                        "Edit Conditions",
-                        prop,
-                        slot,
-                        slots[index + indexAddition]!!,
-                        value,
-                        colorValue
-                    )
-
-                    if (returnValue is VariableHolder) {
-                        conditionClass = when (returnValue) {
-                            VariableHolder.Player -> Condition.PlayerVariableRequirement::class
-                            VariableHolder.Global -> Condition.GlobalVariableRequirement::class
-                            VariableHolder.Team -> Condition.TeamVariableRequirement::class
-                        }
-                        constructor = conditionClass.primaryConstructor!!
-                        parameters = constructor.parameters.toMutableList()
-                        conditionProperties = conditionClass.memberProperties
-                        properties = mutableListOf()
-                        for (parm in parameters) {
-                            properties.add(conditionProperties.find { it.name == parm.name } as KProperty1<Condition, *> to parm)
-                        }
-                        // I hate recursion, but I think this is the cleanest way to handle it
-                        return args(2)
-                    }
-
-                    args[param] = returnValue
-                }
-                return args
-            }
-            val args = args()
-
-            var conditionInstance: Condition? = null
-            if (args.size != constructor.parameters.size) {
-                conditionClass.constructors.forEach { newCon ->
-                    if (constructor.parameters.size == newCon.parameters.size) {
-                        conditionInstance = newCon.callBy(args)
-                    }
-                }
-            } else {
-                conditionInstance = constructor.callBy(args)
-            }
-
-            if (conditionInstance == null) continue
-
-            if (slot.stack.getLoreLineMatchesOrNull(false) {it == "Inverted"} != null) {
-                conditionInstance.inverted = true
-            }
-
-            conditions.add(conditionInstance)
+            parseCondition(slot)?.let { conditions.add(it) }
         }
 
+        MenuUtils.onOpen(TITLE)
         if (MenuUtils.findSlots(MenuUtils.GlobalMenuItems.NEXT_PAGE).firstOrNull() != null) {
             MenuUtils.clickItems(MenuUtils.GlobalMenuItems.NEXT_PAGE)
-            MenuUtils.onOpen("Edit Conditions", checkIfOpen = false)
-            conditions.addAll(exportConditions())
+            MenuUtils.onOpen(" $TITLE", checkIfOpen = false)
+            conditions.addAll(collectConditions())
         }
 
         return conditions
+    }
+
+    private suspend fun parseCondition(slot: Slot): Condition? {
+        val item = slot.stack
+        val loreLines = item.loreLines(true).filter { it.contains(": ") }
+        val name = TextUtils.convertTextToString(item.name, false)
+
+        var conditionClass = Condition::class.sealedSubclasses.firstOrNull {
+            it.findAnnotations(DisplayName::class).any { ann -> ann.value == name }
+        } ?: return null
+
+        var constructor = conditionClass.primaryConstructor!!
+        var conditionProperties = conditionClass.memberProperties
+        var properties = mutableListOf<Pair<KProperty1<Condition, *>, KParameter?>>()
+
+        for (parm in constructor.parameters) {
+            properties.add(conditionProperties.find { it.name == parm.name } as KProperty1<Condition, *> to parm)
+        }
+
+        suspend fun args(indexAddition: Int = 1): MutableMap<KParameter, Any?> {
+            val args = mutableMapOf<KParameter, Any?>()
+            properties.forEachIndexed { index, (prop, param) ->
+                if (param == null) return@forEachIndexed
+                val colorValue =
+                    (loreLines.getOrNull(index + indexAddition - 1)?.split(": ")?.drop(1)?.joinToString(": ")
+                        ?: return@forEachIndexed).replaceFirst("&f", "")
+                val value = colorValue.replace(Regex("&[0-9a-fk-or]"), "")
+
+                val returnValue = PropertySettings.export(
+                    TITLE,
+                    prop,
+                    slot,
+                    slots[index + indexAddition]!!,
+                    value,
+                    colorValue
+                )
+
+                if (returnValue is VariableHolder) {
+                    conditionClass = when (returnValue) {
+                        VariableHolder.Player -> Condition.PlayerVariableRequirement::class
+                        VariableHolder.Global -> Condition.GlobalVariableRequirement::class
+                        VariableHolder.Team -> Condition.TeamVariableRequirement::class
+                    }
+                    constructor = conditionClass.primaryConstructor!!
+                    conditionProperties = conditionClass.memberProperties
+                    properties = mutableListOf()
+                    for (parm in constructor.parameters) {
+                        properties.add(
+                            conditionProperties.find { it.name == parm.name } as KProperty1<Condition, *> to parm
+                        )
+                    }
+                    return args(2)
+                }
+
+                args[param] = returnValue
+            }
+            return args
+        }
+
+        val args = args()
+
+        var conditionInstance: Condition? = null
+        if (args.size != constructor.parameters.size) {
+            conditionClass.constructors.forEach { newCon ->
+                if (constructor.parameters.size == newCon.parameters.size) {
+                    conditionInstance = newCon.callBy(args)
+                }
+            }
+        } else {
+            conditionInstance = constructor.callBy(args)
+        }
+
+        if (conditionInstance == null) return null
+
+        if (slot.stack.getLoreLineMatchesOrNull(false) { it == "Inverted" } != null) {
+            conditionInstance.inverted = true
+        }
+
+        return conditionInstance
+    }
+
+    suspend fun updateConditions(newConditions: List<Condition>) {
+        val current = collectConditions().toMutableList()
+
+        if (newConditions.isEmpty()) {
+            while (current.isNotEmpty()) {
+                deleteConditionAt(current.lastIndex)
+                current.removeAt(current.lastIndex)
+            }
+            return
+        }
+
+        if (current.isEmpty()) {
+            addConditions(newConditions)
+            return
+        }
+
+        for (targetIndex in newConditions.indices) {
+            val desired = newConditions[targetIndex]
+            val currentAtTarget = current.getOrNull(targetIndex)
+
+            if (conditionsEqual(currentAtTarget, desired)) continue
+
+            val exactMatch = current.indexOfFirst { conditionsEqual(it, desired) }
+            if (exactMatch >= 0) {
+                moveCondition(exactMatch, targetIndex)
+                current.moveElement(exactMatch, targetIndex)
+                continue
+            }
+
+            val sameTypeMatch = current.withIndex().indexOfFirst { (index, item) ->
+                index != targetIndex && item::class == desired::class
+            }
+            if (sameTypeMatch >= 0) {
+                moveCondition(sameTypeMatch, targetIndex)
+                current.moveElement(sameTypeMatch, targetIndex)
+                if (!conditionsEqual(current[targetIndex], desired)) {
+                    editConditionAt(targetIndex, desired)
+                }
+                current[targetIndex] = desired
+                continue
+            }
+
+            if (currentAtTarget != null && currentAtTarget::class == desired::class) {
+                editConditionAt(targetIndex, desired)
+                current[targetIndex] = desired
+                continue
+            }
+
+            replaceConditionAt(targetIndex, desired, current)
+        }
+
+        while (current.size > newConditions.size) {
+            deleteConditionAt(current.lastIndex)
+            current.removeAt(current.lastIndex)
+        }
+    }
+
+    suspend fun addConditions(conditions: List<Condition>) {
+        for (condition in conditions) {
+            MenuUtils.onOpen(TITLE)
+            createCondition(condition)
+        }
+    }
+
+    private fun getConditionProperties(condition: Condition): List<KProperty1<Condition, *>> {
+        val parameters = condition::class.primaryConstructor!!.parameters
+        val conditionProperties = condition.javaClass.kotlin.memberProperties
+        val properties = mutableListOf<KProperty1<Condition, *>>()
+        for (parm in parameters) {
+            conditionProperties.find { it.name == parm.name }?.let { properties.add(it) }
+        }
+        val inverted = conditionProperties.find { it.name == "inverted" } ?: return emptyList()
+        properties.add(0, inverted)
+        if (condition is Condition.VariableRequirement) {
+            conditionProperties.find { it.name == "holder" }?.let { properties.add(1, it) }
+        }
+        return properties
+    }
+
+    private suspend fun configureConditionProperties(
+        condition: Condition,
+        properties: List<KProperty1<Condition, *>>
+    ) {
+        for ((index, property) in properties.withIndex()) {
+            MenuUtils.onOpen("Settings")
+            val slot = MenuUtils.getSlot(slots[index]!!)
+            PropertySettings.import(property, slot, property.get(condition))
+        }
+    }
+
+    private suspend fun navigateToConditionIndex(index: Int) {
+        val page = index / slots.size
+        MenuUtils.onOpen(TITLE)
+        while (MenuUtils.findSlots(MenuUtils.GlobalMenuItems.PREVIOUS_PAGE).firstOrNull() != null) {
+            MenuUtils.clickItems(MenuUtils.GlobalMenuItems.PREVIOUS_PAGE)
+            MenuUtils.onOpen(" $TITLE", checkIfOpen = false)
+        }
+        repeat(page) {
+            MenuUtils.clickItems(MenuUtils.GlobalMenuItems.NEXT_PAGE)
+            MenuUtils.onOpen(" $TITLE", checkIfOpen = false)
+        }
+    }
+
+    private suspend fun deleteConditionAt(index: Int) {
+        navigateToConditionIndex(index)
+        MenuUtils.packetClick(slots[index % slots.size]!!, 1)
+        MenuUtils.onCurrentScreenUpdate()
+    }
+
+    private suspend fun moveConditionForward(index: Int) {
+        navigateToConditionIndex(index)
+        MenuUtils.shiftPacketClick(slots[index % slots.size]!!, 0)
+        MenuUtils.onCurrentScreenUpdate()
+    }
+
+    private suspend fun moveConditionBackward(index: Int) {
+        navigateToConditionIndex(index)
+        MenuUtils.shiftPacketClick(slots[index % slots.size]!!, 1)
+        MenuUtils.onCurrentScreenUpdate()
+    }
+
+    private suspend fun moveCondition(fromIndex: Int, toIndex: Int) {
+        if (fromIndex == toIndex) return
+        var currentIndex = fromIndex
+        while (currentIndex > toIndex) {
+            moveConditionForward(currentIndex)
+            currentIndex--
+        }
+        while (currentIndex < toIndex) {
+            moveConditionBackward(currentIndex)
+            currentIndex++
+        }
+    }
+
+    private suspend fun replaceConditionAt(index: Int, condition: Condition, current: MutableList<Condition>) {
+        if (index < current.size) {
+            deleteConditionAt(index)
+            current.removeAt(index)
+        }
+        MenuUtils.onOpen(TITLE)
+        createCondition(condition)
+        current.add(condition)
+        val lastIndex = current.lastIndex
+        if (lastIndex != index) {
+            moveCondition(lastIndex, index)
+            current.moveElement(lastIndex, index)
+        }
+    }
+
+    private suspend fun editConditionAt(index: Int, condition: Condition) {
+        navigateToConditionIndex(index)
+        MenuUtils.packetClick(slots[index % slots.size]!!)
+        MenuUtils.onOpen("Settings")
+        val properties = getConditionProperties(condition)
+        configureConditionProperties(condition, properties)
+        if (properties.isNotEmpty()) {
+            MenuUtils.onOpen("Settings")
+            MenuUtils.clickItems(MenuItems.BACK)
+        }
+        MenuUtils.onOpen(TITLE)
+    }
+
+    private suspend fun createCondition(condition: Condition) {
+        MenuUtils.clickItems(MenuItems.ADD_CONDITION)
+        MenuUtils.onOpen("Add Condition")
+
+        val displayName = (condition::class.annotations.find { it is DisplayName } as DisplayName).value
+        MenuUtils.clickItems(displayName, paginated = true)
+
+        val properties = getConditionProperties(condition)
+        configureConditionProperties(condition, properties)
+
+        if (properties.isNotEmpty()) {
+            MenuUtils.onOpen("Settings")
+            MenuUtils.clickItems(MenuItems.BACK)
+        }
+        MenuUtils.onOpen(TITLE)
+    }
+
+    private fun conditionsEqual(a: Condition?, b: Condition?): Boolean {
+        if (a === b) return true
+        if (a == null || b == null) return false
+        return a == b
+    }
+
+    private fun MutableList<Condition>.moveElement(fromIndex: Int, toIndex: Int) {
+        if (fromIndex == toIndex) return
+        val item = removeAt(fromIndex)
+        val insertIndex = if (toIndex > fromIndex) toIndex - 1 else toIndex
+        add(insertIndex, item)
     }
 
     object MenuItems {

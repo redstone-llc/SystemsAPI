@@ -142,9 +142,9 @@ object InputUtils {
     }
 
     // For anvil and chat inputs
-    suspend fun textInput(message: String) {
+    suspend fun textInput(message: String, errorCorrection: Boolean = true) {
         val message = message.ifEmpty { "&r" }
-        ErrorCorrection.lastTextInput = message
+        if (errorCorrection) ErrorCorrection.lastTextInput = message
         when (val screen = MenuUtils.onOpen(null, AnvilScreen::class, ChatScreen::class, null)) {
             is AnvilScreen -> {
                 scaledDelay(4.0)

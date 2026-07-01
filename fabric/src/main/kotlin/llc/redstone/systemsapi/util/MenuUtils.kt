@@ -185,6 +185,7 @@ object MenuUtils {
             in 9..35 -> {
                 slot + gui.screenHandler.slots.size - 45
             }
+
             else -> throw IllegalArgumentException("Invalid player slot index: $slot")
         }
         packetClick(playerSlot, button)
@@ -209,8 +210,25 @@ object MenuUtils {
         MC.networkHandler?.sendPacket(pkt) ?: error("Failed to send click packet")
     }
 
-    fun interactionClick(slot: Int, button: Int = 0) {
-        ErrorCorrection.lastMenuSlotClick = BasicClick(slot, button)
+    fun shiftPacketClick(slot: Int, button: Int = 0, errorCorrection: Boolean = true) {
+        if (errorCorrection) ErrorCorrection.lastMenuSlotClick = BasicClick(slot, button)
+        val networkHandler = MC.networkHandler ?: error("No network handler")
+        val gui = MC.currentScreen as? HandledScreen<*> ?: return
+
+        val pkt = ClickSlotC2SPacket(
+            gui.screenHandler.syncId,
+            gui.screenHandler.revision,
+            slot.toShort(),
+            button.toByte(),
+            SlotActionType.QUICK_MOVE,
+            Int2ObjectOpenHashMap(),
+            ItemStackHash.EMPTY
+        )
+        networkHandler.sendPacket(pkt)
+    }
+
+    fun interactionClick(slot: Int, button: Int = 0, errorCorrection: Boolean = true) {
+        if (errorCorrection) ErrorCorrection.lastMenuSlotClick = BasicClick(slot, button)
         val gui = MC.currentScreen as? HandledScreen<*> ?: return
 
         MC.interactionManager?.clickSlot(
@@ -224,7 +242,7 @@ object MenuUtils {
 
     fun currentMenu(): GenericContainerScreen =
         MC.currentScreen as? GenericContainerScreen
-        ?: throw ClassCastException("Expected GenericContainerScreen but found ${MC.currentScreen?.javaClass?.name}")
+            ?: throw ClassCastException("Expected GenericContainerScreen but found ${MC.currentScreen?.javaClass?.name}")
 
     // FINDING ITEMS IN MENUS
 
@@ -250,7 +268,7 @@ object MenuUtils {
     suspend fun findSlots(name: String, item: Item, paginated: Boolean = false): List<Slot> {
         return findSlots({
             it.name.string == name &&
-            it.item == item
+                    it.item == item
         }, paginated)
     }
 
@@ -263,7 +281,12 @@ object MenuUtils {
     }
 
     // CLICKING ITEMS IN MENUS
-    suspend fun clickItems(predicate: (ItemStack) -> Boolean, packet: Boolean = true, button: Int = 0, paginated: Boolean = false) {
+    suspend fun clickItems(
+        predicate: (ItemStack) -> Boolean,
+        packet: Boolean = true,
+        button: Int = 0,
+        paginated: Boolean = false
+    ) {
         findSlots(predicate, paginated).forEach { slot ->
             when (packet) {
                 true -> packetClick(slot.id, button)
@@ -283,11 +306,17 @@ object MenuUtils {
         )
     }
 
-    suspend fun clickItems(name: String, item: Item, packet: Boolean = true, button: Int = 0, paginated: Boolean = false) {
+    suspend fun clickItems(
+        name: String,
+        item: Item,
+        packet: Boolean = true,
+        button: Int = 0,
+        paginated: Boolean = false
+    ) {
         clickItems(
             {
                 it.name.string == name &&
-                it.item == item
+                        it.item == item
             },
             packet,
             button,
@@ -295,7 +324,12 @@ object MenuUtils {
         )
     }
 
-    suspend fun clickItems(selector: ItemSelector, packet: Boolean = true, button: Int = 0, paginated: Boolean = false) {
+    suspend fun clickItems(
+        selector: ItemSelector,
+        packet: Boolean = true,
+        button: Int = 0,
+        paginated: Boolean = false
+    ) {
         clickItems(
             selector.toPredicate(),
             packet,

@@ -3,6 +3,7 @@ package llc.redstone.test
 import com.mojang.brigadier.context.CommandContext
 import llc.redstone.systemsapi.SystemsAPI
 import llc.redstone.systemsdata.Action
+import llc.redstone.systemsdata.Condition
 import llc.redstone.systemsdata.StatValue
 import llc.redstone.test.tests.GroupsTest.withGroupsSubCommand
 import llc.redstone.test.tests.HouseSettingsTest.withHouseSettingsSubCommand
@@ -56,18 +57,30 @@ object TestMod : ClientModInitializer {
                         SystemsAPI.launch {
                             val importer = SystemsAPI.getHousingImporter()
 
-                            println(importer.getFunction("test")
+                            importer.getFunction("test")
                                 ?.getActionContainer()
-                                ?.setActions(
+                                ?.updateActions(
                                     listOf(
                                         Action.PlayerVariable(
-                                            variable = "Test",
-                                            amount = StatValue.Lng(10)
+                                            variable = "Test2",
+                                            amount = StatValue.I32(10)
                                         ),
-                                        Action.PlayerVariable(),
-                                        Action.SendMessage("Hello from SystemsAPI")
+                                        Action.GlobalVariable(
+                                            amount = StatValue.I32(1),
+                                        ),
+                                        Action.SendMessage("Hello from SystemsAPI 2"),
+                                        Action.Conditional(
+                                            conditions = listOf(
+                                                Condition.PlayerVariableRequirement(),
+                                                Condition.GlobalVariableRequirement(),
+                                            ),
+                                            ifActions = listOf(
+                                                Action.SendMessage("Conditions met!"),
+                                                Action.SendMessage("Conditions met! 2"),
+                                            ),
+                                        )
                                     )
-                                ))
+                                )
                         }
                         1
                     }

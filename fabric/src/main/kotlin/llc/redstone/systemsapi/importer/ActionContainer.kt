@@ -86,30 +86,33 @@ class ActionContainer(
     suspend fun getActions(): List<Action> {
         HouseImporter.setImporting(true)
         try {
-            val actions = mutableListOf<Action>()
-            MenuUtils.onOpen(title)
-
-            if (MenuUtils.findSlots(MenuItems.NO_ACTIONS).firstOrNull() != null) return actions
-
-            for (slotIndex in slots.values) {
-                val slot = MenuUtils.getSlot(slotIndex)
-                if (!slot.hasStack()) break
-
-                parseAction(slot)?.let { actions.add(it) }
-            }
-
-            // Handle pagination
-            MenuUtils.onOpen(title)
-            if (MenuUtils.findSlots(MenuUtils.GlobalMenuItems.NEXT_PAGE).firstOrNull() != null) {
-                MenuUtils.clickItems(MenuUtils.GlobalMenuItems.NEXT_PAGE)
-                MenuUtils.onOpen(" $title", checkIfOpen = false)
-                actions.addAll(getActions())
-            }
-
-            return actions
+            return collectActions()
         } finally {
             HouseImporter.setImporting(false)
         }
+    }
+
+    private suspend fun collectActions(): List<Action> {
+        val actions = mutableListOf<Action>()
+        MenuUtils.onOpen(title)
+
+        if (MenuUtils.findSlots(MenuItems.NO_ACTIONS).firstOrNull() != null) return actions
+
+        for (slotIndex in slots.values) {
+            val slot = MenuUtils.getSlot(slotIndex)
+            if (!slot.hasStack()) break
+
+            parseAction(slot)?.let { actions.add(it) }
+        }
+
+        MenuUtils.onOpen(title)
+        if (MenuUtils.findSlots(MenuUtils.GlobalMenuItems.NEXT_PAGE).firstOrNull() != null) {
+            MenuUtils.clickItems(MenuUtils.GlobalMenuItems.NEXT_PAGE)
+            MenuUtils.onOpen(" $title", checkIfOpen = false)
+            actions.addAll(collectActions())
+        }
+
+        return actions
     }
 
     private suspend fun parseAction(slot: Slot): Action? {
@@ -209,11 +212,210 @@ class ActionContainer(
     }
 
     suspend fun updateActions(newActions: List<Action>) {
-        TODO("Not yet implemented")
+        HouseImporter.setImporting(true)
+        try {
+            val current = collectActions().toMutableList()
+
+            if (newActions.isEmpty()) {
+                while (current.isNotEmpty()) {
+                    deleteActionAt(current.lastIndex)
+                    current.removeAt(current.lastIndex)
+                }
+                return
+            }
+
+            if (current.isEmpty()) {
+                addActions(newActions)
+                return
+            }
+
+            for (targetIndex in newActions.indices) {
+                val desired = newActions[targetIndex]
+                val currentAtTarget = current.getOrNull(targetIndex)
+
+                if (actionsEqual(currentAtTarget, desired)) continue
+
+                if (desired is Action.CustomAction) {
+                    replaceActionAt(targetIndex, desired, current)
+                    continue
+                }
+
+                val exactMatch = current.indexOfFirst { actionsEqual(it, desired) }
+                if (exactMatch >= 0) {
+                    moveAction(exactMatch, targetIndex)
+                    current.moveElement(exactMatch, targetIndex)
+                    continue
+                }
+
+                val sameTypeMatch = current.withIndex().indexOfFirst { (index, item) ->
+                    index != targetIndex && item::class == desired::class
+                }
+                if (sameTypeMatch >= 0) {
+                    moveAction(sameTypeMatch, targetIndex)
+                    current.moveElement(sameTypeMatch, targetIndex)
+                    if (!actionsEqual(current[targetIndex], desired)) {
+                        editActionAt(targetIndex, desired)
+                    }
+                    current[targetIndex] = desired
+                    continue
+                }
+
+                if (currentAtTarget != null && currentAtTarget::class == desired::class) {
+                    editActionAt(targetIndex, desired)
+                    current[targetIndex] = desired
+                    continue
+                }
+
+                replaceActionAt(targetIndex, desired, current)
+            }
+
+            while (current.size > newActions.size) {
+                deleteActionAt(current.lastIndex)
+                current.removeAt(current.lastIndex)
+            }
+        } finally {
+            HouseImporter.setImporting(false)
+        }
+    }
+
+    private fun MutableList<Action>.moveElement(fromIndex: Int, toIndex: Int) {
+        if (fromIndex == toIndex) return
+        val item = removeAt(fromIndex)
+        val insertIndex = if (toIndex > fromIndex) toIndex - 1 else toIndex
+        add(insertIndex, item)
     }
 
     var actionNavigationTime = 400L
 
+    private fun getActionProperties(action: Action): List<KProperty1<Action, *>> {
+        val parameters = action::class.primaryConstructor!!.parameters
+        val actionProperties = action.javaClass.kotlin.memberProperties
+        val properties = mutableListOf<KProperty1<Action, *>>()
+        for (parm in parameters) {
+            actionProperties.find { it.name == parm.name }?.let { properties.add(it) }
+        }
+        if (action is Action.ChangeVariable) {
+            actionProperties.find { it.name == "holder" }?.let { properties.add(0, it) }
+        }
+        return properties
+    }
+
+    private suspend fun configureActionProperties(action: Action, properties: List<KProperty1<Action, *>>) {
+        for ((index, property) in properties.withIndex()) {
+            MenuUtils.onOpen("Action Settings")
+            val slot = MenuUtils.getSlot(slots[index]!!)
+            PropertySettings.import(property, slot, property.get(action))
+        }
+    }
+
+    private suspend fun navigateToActionIndex(index: Int) {
+        val page = index / slots.size
+        MenuUtils.onOpen(title)
+        while (MenuUtils.findSlots(MenuUtils.GlobalMenuItems.PREVIOUS_PAGE).firstOrNull() != null) {
+            MenuUtils.clickItems(MenuUtils.GlobalMenuItems.PREVIOUS_PAGE)
+            MenuUtils.onOpen(" $title", checkIfOpen = false)
+        }
+        repeat(page) {
+            MenuUtils.clickItems(MenuUtils.GlobalMenuItems.NEXT_PAGE)
+            MenuUtils.onOpen(" $title", checkIfOpen = false)
+        }
+    }
+
+    private suspend fun deleteActionAt(index: Int) {
+        navigateToActionIndex(index)
+        MenuUtils.packetClick(slots[index % slots.size]!!, 1)
+        MenuUtils.onCurrentScreenUpdate()
+    }
+
+    private suspend fun moveActionForward(index: Int) {
+        navigateToActionIndex(index)
+        MenuUtils.shiftPacketClick(slots[index % slots.size]!!, 0)
+        MenuUtils.onCurrentScreenUpdate()
+    }
+
+    private suspend fun moveActionBackward(index: Int) {
+        navigateToActionIndex(index)
+        MenuUtils.shiftPacketClick(slots[index % slots.size]!!, 1)
+        MenuUtils.onCurrentScreenUpdate()
+    }
+
+    private suspend fun moveAction(fromIndex: Int, toIndex: Int) {
+        if (fromIndex == toIndex) return
+        var currentIndex = fromIndex
+        while (currentIndex > toIndex) {
+            moveActionForward(currentIndex)
+            currentIndex--
+        }
+        while (currentIndex < toIndex) {
+            moveActionBackward(currentIndex)
+            currentIndex++
+        }
+    }
+
+    private suspend fun replaceActionAt(index: Int, action: Action, current: MutableList<Action>) {
+        if (index < current.size) {
+            deleteActionAt(index)
+            current.removeAt(index)
+        }
+        MenuUtils.onOpen(title)
+        createAction(action)
+        current.add(action)
+        val lastIndex = current.lastIndex
+        if (lastIndex != index) {
+            moveAction(lastIndex, index)
+            current.moveElement(lastIndex, index)
+        }
+    }
+
+    private suspend fun editActionAt(index: Int, action: Action) {
+        navigateToActionIndex(index)
+        MenuUtils.packetClick(slots[index % slots.size]!!)
+        MenuUtils.onOpen("Action Settings")
+        val properties = getActionProperties(action)
+        configureActionProperties(action, properties)
+        if (properties.isNotEmpty()) {
+            MenuUtils.onOpen("Action Settings")
+            MenuUtils.clickItems(MenuItems.BACK)
+        }
+        MenuUtils.onOpen(title)
+    }
+
+    private suspend fun createAction(action: Action) {
+        if (action is Action.CustomAction) {
+            action.function(action.parameters)
+            return
+        }
+
+        val startA = System.currentTimeMillis()
+        MenuUtils.clickItems(MenuItems.ADD_ACTION)
+        MenuUtils.onOpen("Add Action")
+
+        val displayName =
+            (action::class.annotations.find { it is ActionDefinition } as ActionDefinition).displayName
+        MenuUtils.clickItems(displayName, paginated = true)
+
+        val properties = getActionProperties(action)
+        val endA = System.currentTimeMillis()
+
+        configureActionProperties(action, properties)
+
+        val startB = System.currentTimeMillis()
+        if (properties.isNotEmpty()) {
+            MenuUtils.onOpen("Action Settings")
+            MenuUtils.clickItems(MenuItems.BACK)
+        }
+        MenuUtils.onOpen(title)
+        val endB = System.currentTimeMillis()
+
+        actionNavigationTime = (endA - startA) + (endB - startB)
+    }
+
+    private fun actionsEqual(a: Action?, b: Action?): Boolean {
+        if (a === b) return true
+        if (a == null || b == null) return false
+        if (a is Action.CustomAction || b is Action.CustomAction) return false
+        return a == b
+    }
 
     //List of actions to add to the container
     suspend fun addActions(actions: List<Action>) {
@@ -237,66 +439,8 @@ class ActionContainer(
             }
             println("Updated estimated time remaining: ${estimatedTime}ms ${HouseImporter.getTimeRemaining()}s")
 
-            val startA = System.currentTimeMillis()
-            //Wait for the "Actions: <name>" or "Edit Actions" to open
-            //We do this every iteration to make sure we are right back at the Actions page
             MenuUtils.onOpen(title)
-
-            if (action is Action.CustomAction) {
-                action.function(action.parameters)
-                continue
-            }
-
-            //Add an action
-            MenuUtils.clickItems(MenuItems.ADD_ACTION)
-            MenuUtils.onOpen("Add Action")
-
-            //Get the action parameters/properties
-            val parameters = action::class.primaryConstructor!!.parameters.toMutableList()
-            val actionProperties = action.javaClass.kotlin.memberProperties
-
-            val properties = mutableListOf<KProperty1<Action, *>>()
-            for (parm in parameters) {
-                properties.add(actionProperties.find { it.name == parm.name } ?: continue)
-            }
-
-            //Get the Display Name of the action and add it
-            val displayName =
-                (action::class.annotations.find { it is ActionDefinition } as ActionDefinition).displayName
-            MenuUtils.clickItems(displayName, paginated = true)
-
-            //For change variable, because the holder isn't found in the parameters
-            if (action is Action.ChangeVariable) {
-                properties.add(0, actionProperties.find { it.name == "holder" } ?: continue)
-            }
-
-            val endA = System.currentTimeMillis()
-
-            //Iterate through parameters
-            for ((index, property) in properties.withIndex()) {
-                //Get the property and its values
-                val value = property.get(action)
-
-                //Make sure we are in the right gui before continuing
-                MenuUtils.onOpen("Action Settings")
-
-                //Place in the gui to click
-                val slotIndex = slots[index]!!
-                val slot = MenuUtils.getSlot(slotIndex)
-
-                PropertySettings.import(property, slot, value)
-            }
-            //Make sure we are in the action settings menu before we go back to actions to add another one
-            var startB = System.currentTimeMillis()
-            if (properties.isNotEmpty()) {
-                MenuUtils.onOpen("Action Settings")
-                MenuUtils.clickItems(MenuItems.BACK)
-            }
-            MenuUtils.onOpen(title)
-
-            var endB = System.currentTimeMillis()
-
-            actionNavigationTime = ((endA - startA) + (endB - startB))
+            createAction(action)
         }
 
         HouseImporter.setImporting(false)
