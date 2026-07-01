@@ -9,6 +9,7 @@ import llc.redstone.systemsapi.coroutine.MCCoroutineImpl.mcCoroutineConfiguratio
 import llc.redstone.systemsapi.coroutine.MCCoroutineImpl.minecraftDispatcher
 import llc.redstone.systemsapi.coroutine.MCCoroutineImpl.scope
 import llc.redstone.systemsapi.hook.DynamicFPSHook
+import llc.redstone.systemsapi.importer.HouseImporter
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.MinecraftClient
@@ -46,7 +47,7 @@ object SystemsAPI : ClientModInitializer {
     }
 
     fun getHousingImporter(): House {
-        return llc.redstone.systemsapi.importer.HouseImporter
+        return HouseImporter
     }
 
     suspend fun scaledDelay(mul: Double = 1.0) = delay((CONFIG.baseClickDelay * mul).toLong())

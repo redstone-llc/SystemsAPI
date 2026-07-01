@@ -43,6 +43,7 @@ dependencies {
 
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
 
+    implementation(include("org.javers:javers-core:7.11.0")!!)
     implementation(include("llc.redstone:SystemsData:1.2.1")!!)
 
     modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
