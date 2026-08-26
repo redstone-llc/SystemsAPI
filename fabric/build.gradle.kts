@@ -1,3 +1,4 @@
+
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -90,7 +91,7 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 
 publishMods {
-    file.set(tasks.jar.map { it.archiveFile.get() })
+    file.set(loomx.modJar.flatMap { it.archiveFile })
     displayName.set("${property("mod.name")} ${property("mod.version")} for ${property("mod.mc_title")}")
     version.set(property("mod.version") as String)
     changelog.set(rootProject.file("CHANGELOG.md").readText())
