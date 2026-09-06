@@ -30,7 +30,13 @@ import kotlin.reflect.jvm.isAccessible
 
 //The title of the actions gui, either Actions: <name> or Edit Actions
 class ActionContainer(
-    val title: String = MC.screen?.title?.string ?: throw IllegalStateException("No screen is currently open")
+    val title: String =
+        if (MC.screen?.title?.string?.matches(Regex("Edit Actions")) == true)
+            "Edit Actions"
+        else if (MC.screen?.title?.string?.matches(Regex("Actions: .*")) == true)
+            "Actions: "
+        else MC.screen?.title?.string
+            ?: throw IllegalStateException("No screen is currently open")
 ) {
     companion object {
         private val slots = mutableMapOf(

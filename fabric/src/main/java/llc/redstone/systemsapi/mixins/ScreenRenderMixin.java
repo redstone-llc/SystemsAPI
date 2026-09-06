@@ -35,13 +35,13 @@ public class ScreenRenderMixin {
 
     @Inject(method="renderSlot", at=@At("RETURN"))
     //? if <1.21.11 {
-    public void drawSlot(GuiGraphics context, Slot slot, CallbackInfo ci) {
+    /*public void drawSlot(GuiGraphics context, Slot slot, CallbackInfo ci) {
         MenuUtils.INSTANCE.renderStack$systemsapi(slot.getItem());
     }
-    //?} else {
-     /* public void drawSlot(GuiGraphics context, Slot slot, int mouseX, int mouseY, CallbackInfo ci) {
+    *///?} else {
+      public void drawSlot(GuiGraphics context, Slot slot, int mouseX, int mouseY, CallbackInfo ci) {
          MenuUtils.INSTANCE.renderStack$systemsapi(slot.getItem());
-     } */
+     } 
     //?}
 }
 //?}

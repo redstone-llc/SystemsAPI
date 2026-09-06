@@ -16,6 +16,7 @@ import llc.redstone.systemsdata.enums.Sound
 import net.minecraft.nbt.TagParser
 import net.minecraft.world.inventory.Slot
 import java.lang.reflect.ParameterizedType
+import java.math.BigDecimal
 import kotlin.jvm.optionals.getOrNull
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
@@ -41,7 +42,20 @@ object PropertySettings {
             return
         }
         when (property.returnType.classifier) {
-            Int::class, Double::class, StatValue::class -> {
+            Double::class -> {
+                try {
+                    val value: String = BigDecimal(value.toString())
+                        .stripTrailingZeros()
+                        .toPlainString()
+                    if (currentValue != value) {
+                        MenuUtils.packetClick(slotIndex)
+                        InputUtils.textInput(value)
+                    }
+                } catch (e: NumberFormatException) {
+                    error("[Property action] Failed to parse Double value: $value")
+                }
+            }
+            Int::class, StatValue::class -> {
                 if (currentValue != value.toString()) {
                     MenuUtils.packetClick(slotIndex)
                     InputUtils.textInput(value.toString())
@@ -235,11 +249,11 @@ object PropertySettings {
             return null
         }
 
-        if (value.endsWith("...")) {
+        if (value.endsWith("...") || value == "0.0") {
             when (prop.returnType.classifier) {
                 Location::class -> {
                     MenuUtils.packetClick(actionSlot.index)
-                    MenuUtils.onOpen("Action Settings")
+                    MenuUtils.onOpen("Settings")
                     MenuUtils.getSlot(propertySlotIndex).item.getCurrentValue(false)?.let {
                         colorValue = it
                     }
@@ -250,10 +264,10 @@ object PropertySettings {
                 else -> {
                     colorValue = InputUtils.getPreviousInput {
                         MenuUtils.packetClick(actionSlot.index)
-                        MenuUtils.onOpen("Action Settings")
+                        MenuUtils.onOpen("Settings")
                         MenuUtils.packetClick(propertySlotIndex)
                     }.also {
-                        MenuUtils.onOpen("Action Settings")
+                        MenuUtils.onOpen("Settings")
                         MenuUtils.clickItems(MenuItems.BACK)
                         MenuUtils.onOpen(title)
                     }

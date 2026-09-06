@@ -10,10 +10,10 @@ import net.minecraft.client.gui.GuiGraphics
 /*import net.minecraft.client.gui.GuiGraphicsExtractor
 *///?}
 //? if <1.21.11 {
-import net.minecraft.resources.ResourceLocation
-//?} else {
-/*import net.minecraft.resources.Identifier
-*///?}
+/*import net.minecraft.resources.ResourceLocation
+*///?} else {
+import net.minecraft.resources.Identifier
+//?}
 
 /**
  * Draws the current import/export progress in the corner of the screen.
@@ -36,10 +36,10 @@ object ProgressHud {
     private const val TRACK_COLOR = 0xFF303030.toInt()
 
     //? if <1.21.11 {
-    private val ID = ResourceLocation.fromNamespaceAndPath("testmod", "progress_hud")
-    //?} else {
-    /*private val ID = Identifier.fromNamespaceAndPath("testmod", "progress_hud")
-    *///?}
+    /*private val ID = ResourceLocation.fromNamespaceAndPath("testmod", "progress_hud")
+    *///?} else {
+    private val ID = Identifier.fromNamespaceAndPath("testmod", "progress_hud")
+    //?}
 
     fun register() {
         HudElementRegistry.addLast(ID) { context, _ ->

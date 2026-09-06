@@ -21,6 +21,7 @@ val requiredJava: JavaVersion = when {
 
 repositories {
     maven("https://repo.redstone.llc/releases")
+    maven("https://repo.redstone.llc/snapshots")
     maven("https://maven.wispforest.io/releases")
     maven { url = uri("https://jitpack.io") }
 
@@ -50,10 +51,12 @@ dependencies {
 
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
 
+    modImplementation("llc.redstone:HTSLReborn:c764ea1+1.21.11")
+
     modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
 
     implementation(include("net.benwoodworth.knbt:knbt:0.11.9")!!)
-    implementation(include("llc.redstone:SystemsData:1.2.1")!!)
+    implementation(include("llc.redstone:SystemsData:1.3.1")!!)
 
     val commonPath = common.hierarchy.toString()
     api(project(path = commonPath, configuration = "namedElements"))

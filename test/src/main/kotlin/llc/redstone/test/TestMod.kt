@@ -1,6 +1,14 @@
 package llc.redstone.test
 
+//? if <26.1 {
+//?} else {
+/*import net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal
+*///?}
 import com.mojang.brigadier.context.CommandContext
+import llc.redstone.htslreborn.htslio.HTSLExporter
+import llc.redstone.htslreborn.parser.Parser
+import llc.redstone.htslreborn.parser.PreProcess
+import llc.redstone.htslreborn.tokenizer.Tokenizer
 import llc.redstone.systemsapi.SystemsAPI
 import llc.redstone.systemsapi.api.ImportProgress
 import llc.redstone.systemsdata.Action
@@ -8,13 +16,8 @@ import llc.redstone.systemsdata.Condition
 import llc.redstone.systemsdata.StatValue
 import llc.redstone.test.tests.GroupsTest.withGroupsSubCommand
 import llc.redstone.test.tests.HouseSettingsTest.withHouseSettingsSubCommand
-import llc.redstone.test.tests.RegionsTest.withRegionsSubCommand
 import net.fabricmc.api.ClientModInitializer
-//? if <26.1 {
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal
-//?} else {
-/*import net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal
-*///?}
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.minecraft.client.Minecraft
@@ -23,13 +26,15 @@ import net.minecraft.network.chat.Style
 import net.minecraft.network.chat.TextColor
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.nio.file.Paths
 import net.minecraft.network.chat.contents.PlainTextContents.create as of
+
 
 object TestMod : ClientModInitializer {
     const val MOD_ID = "testmod"
     val LOGGER: Logger = LoggerFactory.getLogger("TestMod")
-    const val VERSION = /*$ mod_version*/ "0.0.1"
-    const val MINECRAFT = /*$ minecraft*/ "1.21.11"
+    const val VERSION = /*$ mod_version*/ "0.0.1";
+    const val MINECRAFT = /*$ minecraft*/ "1.21.11";
     val MC: Minecraft
         get() = Minecraft.getInstance()
 
@@ -63,13 +68,52 @@ object TestMod : ClientModInitializer {
 
         ClientCommandRegistrationCallback.EVENT.register { dispatcher, registryAccess ->
             dispatcher.register(
+                literal("htsl")
+                    .executes {
+                        it.source.sendFeedback(MutableComponent.create(of("Usage: /htsl <feature>")))
+                        1
+                    }
+                    .then(literal("import").executes {
+                        val homePath = Paths.get(System.getProperty("user.home"))
+                        val path = homePath.resolve("Desktop/test.htsl")
+                        if (!path.toFile().exists()) {
+                            it.source.sendFeedback(MutableComponent.create(of("File does not exist: $path")))
+                            return@executes 1
+                        }
+                        val tokens = Tokenizer.tokenize(path)
+                        val preProcessedTokens = PreProcess.preProcess(tokens)
+                        val gotoSplit = Parser.parse(preProcessedTokens, path)
+                        it.source.sendFeedback(MutableComponent.create(of("Parsed ${gotoSplit.first().second.size} actions from $path")))
+
+                        SystemsAPI.launch {
+                            SystemsAPI.getHousingImporter().getFunction("test")
+                                ?.getActionContainer()
+                                ?.setActions(gotoSplit.first().second)
+                        }
+                        1
+                    })
+                    .then(literal("export").executes {
+                        SystemsAPI.launch {
+                            val actions = SystemsAPI.getHousingImporter().getFunction("test")
+                                ?.getActionContainer()
+                                ?.getActions()
+                            it.sendFeedback("Exported", actions?.size ?: 0)
+                            val lines = HTSLExporter.export(actions ?: emptyList())
+                            val homePath = Paths.get(System.getProperty("user.home"))
+                            val path = homePath.resolve("Desktop/test_export.htsl")
+                            path.toFile().writeText(lines.joinToString("\n"))
+                        }
+                        1
+                    })
+            )
+
+            dispatcher.register(
                 literal("testmod")
                     .executes {
                         it.source.sendFeedback(MutableComponent.create(of("Usage: /testmod <feature>")))
                         1
                     }
                     .withHouseSettingsSubCommand()
-                    .withRegionsSubCommand()
                     .withGroupsSubCommand()
             )
 

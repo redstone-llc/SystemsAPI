@@ -239,6 +239,9 @@ object InputUtils {
             withTimeout(CONFIG.previousInputTimeout) { deferred.await() }
         } finally {
             if (pendingString === deferred) pendingString = null
+            if (MC.screen is AnvilScreen) {
+                throw IllegalStateException("Received a potentially inaccurate value while exporting. To fix this, set your text input method to Chat in /settings and export again.")
+            }
         }
     }
     internal fun receivePreviousInput(value: String) {

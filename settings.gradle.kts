@@ -16,7 +16,7 @@ plugins {
 stonecutter {
     create(rootProject) {
         versions("1.21.9", "1.21.10", "1.21.11", "26.1.2", "26.2")
-        vcsVersion = "1.21.9"
+        vcsVersion = "1.21.11"
         branch("fabric")
         branch("test")
     }
